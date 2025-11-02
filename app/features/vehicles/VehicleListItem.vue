@@ -33,12 +33,6 @@ const vehicleMakeModel = computed(() => {
           v-if="vehicle?.thumbnail"
           :src="`https://akhxphgocxpyoofvdqwi.supabase.co/storage/v1/object/public/${vehicle.thumbnail}`"
         />
-
-        <!-- <MotorcycleIcon
-          v-else-if="vehicle.type === 'Motorcycle'"
-          class="size-10"
-        />
-        <CarIcon v-else-if="vehicle.type === 'Car'" class="size-10" /> -->
       </div>
 
       <div class="card-actions justify-end">
