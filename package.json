@@ -1,0 +1,33 @@
+{
+  "name": "nuxt-app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "update-types": "npx supabase gen types --lang=typescript --project-id \"akhxphgocxpyoofvdqwi\" > app/types/supabase.ts"
+  },
+  "dependencies": {
+    "@nuxt/icon": "^2.0.0",
+    "@nuxtjs/supabase": "^1.6.2",
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@tailwindcss/postcss": "^4.1.13",
+    "@tailwindcss/vite": "^4.1.13",
+    "nuxt": "^4.1.2",
+    "supabase": "^2.40.7",
+    "tailwindcss": "^4.1.13",
+    "vue": "^3.5.21",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@iconify-json/mdi": "^1.2.3",
+    "autoprefixer": "^10.4.21",
+    "daisyui": "^5.1.13",
+    "postcss": "^8.5.6",
+    "typescript": "^5.9.2",
+    "vue-tsc": "^3.0.7"
+  }
+}

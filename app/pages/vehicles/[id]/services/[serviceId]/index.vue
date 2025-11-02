@@ -1,0 +1,295 @@
+<script setup lang="ts">
+import type { MenuItem } from "~/components/menu/Menu.vue";
+import { deleteVehicleDocument } from "~/features/vehicles/documents/useVehicleDocuments";
+import ItemsTable from "~/features/vehicles/services/serviceDialog/components/ItemsTable.vue";
+import { useVehicleService } from "~/features/vehicles/services/useVehicleServices";
+import { useVehicle } from "~/features/vehicles/useVehicles";
+
+useHead({
+  title: "Service",
+});
+
+definePageMeta({
+  middleware: "auth",
+  layout: "vehicle",
+});
+
+const ServiceDialog = defineAsyncComponent(
+  async () =>
+    await import("~/features/vehicles/services/serviceDialog/ServiceDialog.vue")
+);
+const FilePreviewModal = defineAsyncComponent(
+  async () => await import("~/components/file/FilePreviewModal.vue")
+);
+
+const vehicleId = useRouteParam("id", "number");
+const serviceId = useRouteParam("serviceId", "number");
+
+const { data: service, pending: loading } = await useVehicleService(
+  vehicleId.value,
+  serviceId.value
+);
+
+const { data: vehicle } = useVehicle(vehicleId.value);
+
+const serviceDialogRef = ref<InstanceType<typeof ServiceDialog>>();
+const filePreviewRef = ref<InstanceType<typeof FilePreviewModal>>();
+
+const handleServiceDelete = async () => {
+  const result = await useConfirm({
+    title: "Delete Service?",
+    message:
+      "Are you sure you want to delete this service? This cannot be undone.",
+    confirmLabel: "Delete",
+    severity: "danger",
+  });
+
+  if (!result) return;
+
+  // deleteService(service.value!.id);
+};
+
+const handleFilePreview = async (file: File) => {
+  const fileToPreview = service.value?.files?.find(
+    ({ name }) => name === file.name
+  );
+  if (!fileToPreview) return;
+  if (!fileToPreview.file_path) return;
+  filePreviewRef.value?.open({ path: fileToPreview.file_path });
+};
+
+const handleFileDownload = async (file: File) => {
+  try {
+    const fileToPreview = service.value?.files?.find(
+      ({ name }) => name === file.name
+    );
+    if (!fileToPreview) return;
+    if (!fileToPreview.file_path) return;
+
+    const client = useSupabaseClient();
+    const { data, error } = await client.storage
+      .from("VehicleDocuments")
+      .download(fileToPreview.file_path);
+    if (error) throw error;
+
+    downloadBlob(data, file?.name || "file");
+  } catch (error) {
+    console.error(error);
+    toast.error(`Failed to download file`);
+  }
+};
+
+const handleFileDelete = async (file: File) => {
+  const fileToDelete = service.value?.files?.find(
+    ({ name }) => name === file.name
+  );
+  if (!fileToDelete) return;
+  if (!fileToDelete.file_path) return;
+
+  await deleteVehicleDocument(fileToDelete.vehicle_id, fileToDelete.id);
+
+  toast.success(`Successfully deleted file '${file.name}'`);
+};
+
+const addCalendarEvent = () => {
+  if (!service.value) return;
+
+  const event = {
+    title: service.value.type,
+    description: service.value.notes,
+    location: service.value.provider,
+    startDate: new Date(service.value.date),
+    endDate: new Date(service.value.date),
+  };
+
+  generateICSFile(event);
+};
+
+const generateFileGridActions = (file: File) => {
+  const fileGridActions: MenuItem[] = [
+    {
+      type: "label",
+      label: "Preview",
+      icon: "mdi:file",
+      onClick: () => handleFilePreview(file),
+    },
+    {
+      type: "label",
+      label: "Download",
+      icon: "mdi:download",
+      onClick: () => handleFileDownload(file),
+    },
+    {
+      type: "label",
+      label: "Delete",
+      icon: "mdi:trash",
+      onClick: () => handleFileDelete(file),
+    },
+  ];
+
+  return fileGridActions;
+};
+
+const handleEditService = () => {
+  if (!vehicleId.value) return;
+  serviceDialogRef.value?.open(vehicleId.value, serviceId.value);
+};
+
+console.log("service", service.value);
+</script>
+
+<template>
+  <div>
+    <ServiceDialog ref="serviceDialogRef" />
+    <FilePreviewModal bucket="VehicleDocuments" ref="filePreviewRef" />
+    <NuxtLink
+      :to="{
+        name: 'vehicles-id-services',
+        params: { id: useRouteParam('id').value },
+      }"
+      class="link flex items-center gap-2 mb-2"
+    >
+      <Icon name="mdi:chevron-left" />
+      Back to Services
+    </NuxtLink>
+
+    <!-- <SkeletonLoader v-if="loading" /> -->
+
+    <div
+      v-if="service"
+      :key="service.id"
+      class="card card-border card-sm md:card-side bg-base-100 shadow-xl"
+    >
+      <div class="card-body">
+        <div class="flex justify-between w-full">
+          <h2 class="card-title">{{ service.type }}</h2>
+
+          <div class="flex gap-1">
+            <template v-if="new Date(service.date) > new Date()">
+              <button
+                type="button"
+                class="btn btn-sm btn-outline btn-neutral"
+                @click="addCalendarEvent()"
+              >
+                <Icon name="mdi:calendar" />
+                Add Reminder
+              </button>
+
+              <div class="divider divider-horizontal mx-1"></div>
+            </template>
+
+            <button
+              type="button"
+              class="btn btn-sm btn-outline btn-secondary"
+              @click="handleEditService"
+            >
+              <Icon name="mdi:pencil" />
+              Edit
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-sm btn-outline btn-error"
+              @click="handleServiceDelete"
+            >
+              <Icon name="mdi:trash" />
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <ul class="flex flex-col gap-1 text-sm">
+          <li class="inline-flex gap-1 items-center">
+            <span class="font-semibold">Date:</span>
+            <span>
+              {{
+                formatDate(service.date, {
+                  dateStyle: "long",
+                  timeStyle: "short",
+                })
+              }}
+            </span>
+          </li>
+          <li class="inline-flex gap-1 items-center">
+            <span class="font-semibold">Provider:</span>
+            <span>
+              {{ service.provider }}
+            </span>
+          </li>
+          <li class="inline-flex gap-1 items-center">
+            <span class="font-semibold">Mileage:</span>
+            <span>
+              {{
+                formatNumber(service.mileage || 0, {
+                  style: "unit",
+                  unit: vehicle?.mileage_unit || "kilometer",
+                  compactDisplay: "short",
+                })
+              }}
+            </span>
+          </li>
+          <li class="inline-flex gap-1 items-center">
+            <span class="font-semibold">Cost:</span>
+            <span>
+              {{
+                formatNumber(service.cost || 0, {
+                  style: "currency",
+                  currency: service.currency || "EUR",
+                  currencyDisplay: "narrowSymbol",
+                  compactDisplay: "short",
+                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 0,
+                })
+              }}
+            </span>
+          </li>
+        </ul>
+
+        <div class="divider my-0"></div>
+
+        <template v-if="service.notes">
+          <p class="text-sm">{{ service.notes }}</p>
+
+          <div class="divider my-0"></div>
+        </template>
+
+        <Suspense>
+          <ItemsTable
+            v-if="serviceId != null && vehicleId != null"
+            v-model="service"
+            v-model:serviceItems="service.items"
+          />
+          <template #fallback>
+            <div class="flex justify-center">
+              <span class="loading loading-spinner loading-lg"></span>
+            </div>
+          </template>
+        </Suspense>
+
+        <div class="divider my-0"></div>
+
+        <span class="font-semibold text-sm">Attachments:</span>
+
+        <FileGrid
+          :files="
+            service.files.map(({ name, file_size }) => ({
+              name: name || '',
+              size: file_size || 0,
+            }))
+          "
+        >
+          <!--serviceFiles.map(p => p.file as File)-->
+          <template #actions="{ file }">
+            <Menu
+              btnClass="btn btn-sm btn-ghost"
+              alignMenu="end"
+              :items="generateFileGridActions(file as File)"
+            >
+              <Icon name="mdi:dots-vertical" size="1.2em" />
+            </Menu>
+          </template>
+        </FileGrid>
+      </div>
+    </div>
+  </div>
+</template>
