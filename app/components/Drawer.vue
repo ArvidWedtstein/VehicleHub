@@ -115,8 +115,6 @@ const snapPointHeight = computed(() => {
   return "0";
 });
 
-console.log("snappoint", snapPointsOffset.value, activeSnapPointIdx.value);
-
 const clamp = (v: number, min: number, max: number) =>
   Math.max(min, Math.min(max, v));
 

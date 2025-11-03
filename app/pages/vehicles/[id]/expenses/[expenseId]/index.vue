@@ -112,6 +112,7 @@ const handleExpenseDelete = async () => {
             />
 
             <NuxtLink
+              v-if="createdBy?.id"
               :to="{
                 name: 'profiles-profileId',
                 params: { profileId: createdBy?.id },
