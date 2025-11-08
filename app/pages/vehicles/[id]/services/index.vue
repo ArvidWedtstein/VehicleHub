@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import postcssPluginWarning from "tailwindcss";
+import type ActionSheet from "~/components/ActionSheet.vue";
 import ServicesFilterDrawer from "~/features/vehicles/services/ServicesFilterDrawer.vue";
 import ServicesListItem from "~/features/vehicles/services/ServicesListItem.vue";
 import { useVehicleServices } from "~/features/vehicles/services/useVehicleServices";
@@ -14,7 +16,7 @@ definePageMeta({
 
 const vehicleId = useRouteParam("id", "number");
 
-const filters = ref<Array<FilterOption<Tables<"VehicleExpenses">>>>([]);
+const filters = ref<Array<FilterOption<Tables<"VehicleServiceLogs">>>>([]);
 
 const {
   data: services,
@@ -28,6 +30,7 @@ const ServiceDialog = defineAsyncComponent(
 );
 
 const serviceDialogRef = ref<InstanceType<typeof ServiceDialog>>();
+const sortActionSheetRef = ref<ComponentPublicInstance<{ open: () => void }>>();
 
 const handleServicesExport = (type: string) => {
   const columnsToExport: Array<keyof Tables<"VehicleServiceLogs">> = [
@@ -58,15 +61,6 @@ const handleServicesExport = (type: string) => {
   downloadBlob(blob, `services.${type}`);
 };
 
-// const filters = ref<Array<FilterOption>>([]);
-
-const filterMappings: Record<string, keyof Tables<"VehicleServiceLogs">> = {
-  Date: "date",
-  Currency: "currency",
-  "Created by me": "createdby_id",
-  Cost: "cost",
-};
-
 const sortControl = reactive<{
   key: keyof Tables<"VehicleServiceLogs">;
   direction: "asc" | "desc";
@@ -85,9 +79,6 @@ const sortControl = reactive<{
 
 const groupedServices = computed(() => {
   const filtered = services.value || [];
-  // .filter(service =>
-  //   filters.value.every(filter => applyFilter(service, filter)),
-  // );
 
   const sorted = dynamicSort(filtered, sortControl.key, sortControl.direction);
 
@@ -105,14 +96,6 @@ const groupedServices = computed(() => {
 
   return grouped;
 });
-
-// const handleFilterApply = async (filterOptions: Array<FilterOption>) => {
-//   filters.value = filterOptions;
-// };
-
-// const handleFiltersReset = () => {
-//   filters.value = [];
-// };
 
 const setSortKey = (key: keyof Tables<"VehicleServiceLogs">) => {
   sortControl.key = key;
@@ -140,20 +123,22 @@ const handleFilterApply = async (
         class="btn btn-primary w-auto"
         @click="handleCreateService"
       >
-        <Icon name="mdi:plus" size="1.2em" />
+        <Icon name="mdi:plus" />
         Add Service
       </button>
 
       <div class="flex items-center gap-2">
         <div class="join">
           <ServicesFilterDrawer @applyFilters="handleFilterApply" />
-          <!-- <ServicesFilter
-            @reset="handleFiltersReset"
-            @apply="handleFilterApply"
-          /> -->
+
+          <ActionSheet
+            ref="sortActionSheetRef"
+            :options="sortControl.options"
+            @select="(pOpt) => setSortKey(pOpt.value)"
+          />
 
           <Menu
-            btnClass="btn btn-outline join-item"
+            btnClass="btn hidden md:inline-flex btn-outline join-item"
             :items="
               sortControl.options.map((p) => ({
                 label: p.label || p.value,

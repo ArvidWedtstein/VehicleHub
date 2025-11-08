@@ -2,7 +2,7 @@ import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
 export function useVehicleServices(
   vehicleId: MaybeRef<string | number | undefined>,
-  filters: MaybeRef<FilterOption<Tables<"VehicleExpenses">>[]> = []
+  filters: MaybeRef<FilterOption<Tables<"VehicleServiceLogs">>[]> = []
 ) {
   return useAsyncData(
     `vehicle-${unref(vehicleId)}_services`,

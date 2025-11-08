@@ -13,7 +13,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="flex flex-col divide-y-2 divide-neutral m-4">
+  <div class="flex flex-col divide-y-2 divide-neutral">
     <div
       v-for="field in schema"
       :key="field.column"
@@ -74,7 +74,7 @@ defineProps<{
         </div>
 
         <FormInput
-          v-else-if="['text', 'search', 'date'].includes(field.type)"
+          v-else-if="['text', 'search', 'date', 'number'].includes(field.type)"
           :type="field.type"
           v-model="filterState[field.column as string]"
         />

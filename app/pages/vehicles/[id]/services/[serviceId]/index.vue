@@ -258,6 +258,7 @@ console.log("service", service.value);
             v-if="serviceId != null && vehicleId != null"
             v-model="service"
             v-model:serviceItems="service.items"
+            :allowEdit="false"
           />
           <template #fallback>
             <div class="flex justify-center">

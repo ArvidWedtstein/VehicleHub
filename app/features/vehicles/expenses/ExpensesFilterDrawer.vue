@@ -58,11 +58,13 @@ const applyFilters = async () => {
   </button>
 
   <Drawer ref="drawerRef" title="Filter" direction="bottom" v-model:open="open">
-    <NuxtLoadingIndicator />
+    <template #body>
+      <NuxtLoadingIndicator />
 
-    <FilterForm :schema="schema" :filterState="filterState" />
+      <FilterForm :schema="schema" :filterState="filterState" />
+    </template>
 
-    <template #actions>
+    <template #footer>
       <button class="btn btn-primary" @click="applyFilters">Apply</button>
       <button class="btn btn-soft" @click="resetFilters">Reset</button>
     </template>

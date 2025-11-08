@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
+import type { TablesInsert, TablesUpdate } from "~/types/supabase";
+
+const props = withDefaults(
+  defineProps<{
+    allowEdit?: boolean;
+  }>(),
+  {
+    allowEdit: true,
+  }
+);
 
 const service = defineModel<
   TablesInsert<"VehicleServiceLogs"> | TablesUpdate<"VehicleServiceLogs">
@@ -43,18 +52,29 @@ const handleRemoveItem = (index: number) => {
               type="text"
               size="sm"
               v-model="item.description"
+              :class="{ 'input-ghost': !allowEdit }"
               placeholder="Item title"
+              :readonly="!allowEdit"
             />
           </td>
           <td class="py-0">
-            <FormInput type="number" size="sm" v-model="item.cost" :min="0" />
+            <FormInput
+              type="number"
+              size="xs"
+              v-model="item.cost"
+              :class="{ 'input-ghost': !allowEdit }"
+              :min="0"
+              :readonly="!allowEdit"
+            />
           </td>
           <td class="py-0">
             <FormInput
               type="number"
               size="sm"
               v-model="item.quantity"
+              :class="{ 'input-ghost': !allowEdit }"
               :min="0"
+              :readonly="!allowEdit"
             />
           </td>
           <td class="py-0 max-w-fit">
@@ -73,7 +93,7 @@ const handleRemoveItem = (index: number) => {
         <tr v-if="serviceItems.length === 0">
           <td colspan="4" class="text-center">No items found</td>
         </tr>
-        <tr>
+        <tr v-if="allowEdit">
           <td colspan="4" class="text-center">
             <button
               type="button"

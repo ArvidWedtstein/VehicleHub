@@ -26,6 +26,8 @@ type Props = {
    * 0.5 would mean drawer will be closed when user has swiped 50% of screen.
    */
   closeThreshold?: number;
+
+  inset?: boolean;
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -36,6 +38,7 @@ const props = withDefaults(defineProps<Props>(), {
   closeThreshold: 0.5,
 
   dismissible: true,
+  inset: false,
 });
 
 const emit = defineEmits<{
@@ -347,18 +350,45 @@ const resetDrawer = () => {
 
 // ============ Computed classes/styles ============
 const drawerClass = computed(() => {
+  let baseClass = "";
+
   switch (props.direction) {
     case "top":
-      return "flex-col-reverse top-0 left-0 w-full h-auto rounded-b-box mb-24";
+      baseClass =
+        "flex-col-reverse top-0 left-0 w-full h-auto rounded-b-box mb-24";
+      break;
     case "bottom":
-      return "flex-col w-full h-auto max-h-[96%] rounded-t-box mt-24"; //  bottom-0 left-0
+      baseClass = "flex-col h-auto max-h-[96%] rounded-t-box mt-24"; //  bottom-0 left-0
+      break;
     case "left":
-      return "flex-row-reverse top-0 left-0 h-full w-auto rounded-r-box";
+      baseClass = "flex-row-reverse top-0 left-0 h-full w-auto rounded-r-box";
+      break;
     case "right":
-      return "flex-row top-0 right-0 h-full w-auto rounded-l-box";
+      baseClass = "flex-row top-0 right-0 h-full w-auto rounded-l-box";
+      break;
     default:
-      return "";
+      baseClass = "";
   }
+
+  if (props.inset) {
+    switch (props.direction) {
+      case "top":
+        baseClass +=
+          " rounded-t-box inset-x-4 top-4 overflow-hidden after:hidden";
+        break;
+      case "bottom":
+        baseClass +=
+          " rounded-b-box inset-x-4 bottom-4 overflow-hidden after:hidden";
+        break;
+      case "left":
+        baseClass += " rounded-l-box inset-y-4 left-4 after:hidden";
+        break;
+      case "right":
+        baseClass += " rounded-r-box inset-y-4 right-4 after:hidden";
+        break;
+    }
+  }
+  return baseClass;
 });
 
 const handlePositionClass = computed(() => {
@@ -455,31 +485,29 @@ defineExpose({
             @pointerdown="onHandlePointerDown"
           ></div>
 
-          <div class="w-full flex flex-col gap-4 p-4 overflow-y-auto">
-            <!-- Header -->
-            <div class="flex items-center justify-between">
-              <slot name="header">
-                <h2 v-if="title" class="text-lg font-bold">
-                  {{ title }}
-                </h2>
-              </slot>
-            </div>
+          <slot name="content">
+            <div class="w-full flex flex-col gap-4 p-4 overflow-y-auto">
+              <!-- Header -->
+              <div class="flex items-center justify-between">
+                <slot name="header">
+                  <h2 v-if="title" class="text-lg font-bold">
+                    {{ title }}
+                  </h2>
+                </slot>
+              </div>
 
-            <div class="flex-1">
-              <slot></slot>
-            </div>
+              <div v-if="!!$slots.body" class="flex-1">
+                <slot name="body"></slot>
+              </div>
 
-            <div class="hidden md:flex gap-1 justify-end p-4 shrink-0">
-              <slot name="actions" :toggleDrawer="toggleDrawer">
-                <button
-                  @click="toggleDrawer(false, 'clickOutside')"
-                  class="btn btn-sm btn-outline"
-                >
-                  Close
-                </button>
-              </slot>
+              <div
+                v-if="!!$slots.footer"
+                class="flex gap-1 md:justify-end justify-items-stretch py-4 shrink-0"
+              >
+                <slot name="footer" :toggleDrawer="toggleDrawer"></slot>
+              </div>
             </div>
-          </div>
+          </slot>
         </div>
       </Transition>
     </div>
