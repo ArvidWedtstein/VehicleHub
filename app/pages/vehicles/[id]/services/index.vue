@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import postcssPluginWarning from "tailwindcss";
 import type ActionSheet from "~/components/ActionSheet.vue";
+import ExportButton from "~/features/vehicles/ExportButton.vue";
 import ServicesFilterDrawer from "~/features/vehicles/services/ServicesFilterDrawer.vue";
 import ServicesListItem from "~/features/vehicles/services/ServicesListItem.vue";
 import { useVehicleServices } from "~/features/vehicles/services/useVehicleServices";
@@ -16,7 +16,8 @@ definePageMeta({
 
 const vehicleId = useRouteParam("id", "number");
 
-const filters = ref<Array<FilterOption<Tables<"VehicleServiceLogs">>>>([]);
+const filters = ref<FilterOption<Tables<"VehicleServiceLogs">>[]>([]);
+const { isMobile } = useBreakpoints();
 
 const {
   data: services,
@@ -109,7 +110,8 @@ const handleCreateService = () => {
 const handleFilterApply = async (
   buildFilters: Ref<Array<FilterOption<Tables<"VehicleServiceLogs">>>>
 ) => {
-  // filters.value = buildFilters.value;
+  filters.value = buildFilters.value;
+  refresh();
 };
 </script>
 
@@ -131,13 +133,24 @@ const handleFilterApply = async (
         <div class="join">
           <ServicesFilterDrawer @applyFilters="handleFilterApply" />
 
-          <ActionSheet
-            ref="sortActionSheetRef"
-            :options="sortControl.options"
-            @select="(pOpt) => setSortKey(pOpt.value)"
-          />
+          <template v-if="isMobile">
+            <ActionSheet
+              ref="sortActionSheetRef"
+              :options="sortControl.options"
+              @select="(pOpt) => setSortKey(pOpt.value)"
+            />
+
+            <button
+              class="btn btn-outline join-item"
+              @click="sortActionSheetRef?.open()"
+            >
+              <Icon name="mdi:sort" />
+              Sort
+            </button>
+          </template>
 
           <Menu
+            v-else
             btnClass="btn hidden md:inline-flex btn-outline join-item"
             :items="
               sortControl.options.map((p) => ({
@@ -160,7 +173,7 @@ const handleFilterApply = async (
           </Menu>
         </div>
 
-        <!-- <ExportButton @export="handleServicesExport" /> -->
+        <ExportButton @export="handleServicesExport" />
       </div>
     </div>
 

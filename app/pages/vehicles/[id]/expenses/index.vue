@@ -180,11 +180,6 @@ const handleFilterApply = async (
       <div class="flex items-center gap-2">
         <div class="join">
           <ExpensesFilterDrawer @applyFilters="handleFilterApply" />
-          <!-- <ExpensesFilter
-          @reset="handleFiltersReset"
-          @apply="handleFilterApply"
-          class="join-item"
-        /> -->
 
           <Menu
             btnClass="btn btn-outline join-item"
