@@ -47,7 +47,7 @@ type Props = {
   /**
    * TODO: implement this
    */
-  items?: MenuItem[] | MenuItem[][];
+  items?: MenuItem[];
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -104,37 +104,11 @@ const handleToggleDropdown = () => {
 };
 
 const [DefineMenuItem, ReuseMenuItem] = useReusableTemplate<{
-  item: MenuItem;
+  menuItem: MenuItem;
 }>();
 </script>
 
 <template>
-  <DefineMenuItem v-slot="{ item }">
-    <MenuItem
-      :class="[
-        item.class,
-        {
-          'menu-dropdown-toggle menu-dropdown-show': item.children,
-        },
-      ]"
-      v-bind="item"
-      :active="item.checked || item.active"
-      @click="item.onClick"
-    >
-      <slot v-if="item.slot" :name="item.slot"></slot>
-
-      <template #children v-if="item.children">
-        <ul class="menu-dropdown menu-dropdown-show">
-          <ReuseMenuItem
-            v-for="(subItem, idx) in item.children.flat()"
-            :key="`dropdown-item-${idx}`"
-            :item="subItem"
-          />
-        </ul>
-      </template>
-    </MenuItem>
-  </DefineMenuItem>
-
   <div
     ref="dropdownRef"
     class="dropdown"
@@ -144,6 +118,29 @@ const [DefineMenuItem, ReuseMenuItem] = useReusableTemplate<{
       'dropdown-end': alignMenu === 'end',
     }"
   >
+    <DefineMenuItem v-slot="{ menuItem }">
+      <template v-if="menuItem">
+        <MenuItem
+          v-bind="menuItem"
+          :class="[
+            { 'menu-dropdown-toggle menu-dropdown-show': menuItem?.children },
+          ]"
+        >
+          <slot v-if="menuItem.slot" :name="menuItem.slot"></slot>
+
+          <template #children v-if="menuItem.children">
+            <ul class="menu-dropdown menu-dropdown-show">
+              <ReuseMenuItem
+                v-for="(subItem, idx) in menuItem.children.flat()"
+                :key="`dropdown-item-${idx}`"
+                :menuItem="subItem"
+              />
+            </ul>
+          </template>
+        </MenuItem>
+      </template>
+    </DefineMenuItem>
+
     <div
       ref="buttonRef"
       tabindex="0"
@@ -154,6 +151,7 @@ const [DefineMenuItem, ReuseMenuItem] = useReusableTemplate<{
     >
       <slot>Click</slot>
     </div>
+
     <Transition name="dropdown" appear>
       <div
         tabindex="0"
@@ -175,11 +173,12 @@ const [DefineMenuItem, ReuseMenuItem] = useReusableTemplate<{
               class="isolate"
               v-if="Array.isArray(itemOrGroup)"
             >
-              <ReuseMenuItem
+              <template
                 v-for="(item, idx) in itemOrGroup"
                 :key="`dropdown-item-${idx}`"
-                :item="item"
-              />
+              >
+                <ReuseMenuItem :menuItem="item" />
+              </template>
 
               <div
                 v-if="idx != (items || []).length - 1"
@@ -187,11 +186,9 @@ const [DefineMenuItem, ReuseMenuItem] = useReusableTemplate<{
               ></div>
             </div>
 
-            <ReuseMenuItem
-              v-else
-              :key="`dropdown-item-${idx}`"
-              :item="itemOrGroup"
-            />
+            <template v-else :key="`dropdown-item-wrapper-${idx}`">
+              <ReuseMenuItem :menuItem="itemOrGroup" />
+            </template>
           </template>
         </slot>
       </div>

@@ -2,6 +2,7 @@ import {
   defineComponent,
   h,
   shallowRef,
+  type ComponentObjectPropsOptions,
   type DefineComponent,
   type Slot,
   type Slots,
@@ -36,6 +37,18 @@ type ReuseTemplateComponent<
   new (): { $slots: SlotsFromSlotMap<MapSlotNameToSlotProps> };
 };
 
+export interface ReusableTemplateOptions<Props extends Record<string, any>> {
+  /**
+   * Whether to inherit attributes when reusing the template.
+   * @default true
+   */
+  inheritAttrs?: boolean;
+  /**
+   * Props definition for reuse component.
+   */
+  props?: ComponentObjectPropsOptions<Props>;
+}
+
 export function useReusableTemplate<
   Bindings extends Record<string, any>,
   MapSlotNameToSlotProps extends Record<
@@ -43,28 +56,35 @@ export function useReusableTemplate<
     Record<string, any> | undefined
   > = Record<"default", undefined>,
   Props extends Record<string, any> = Record<string, any>
->() {
-  const renderFn = shallowRef<
-    ((props: Props, slots: Slots) => VNodeChild) | null
-  >(null);
+>(options: ReusableTemplateOptions<Bindings> = {}) {
+  const { inheritAttrs = true } = options;
+
+  const renderFn = shallowRef<Slot | undefined>();
 
   const DefineTemplate = defineComponent({
-    name: "DefineTemplate",
     setup(_, { slots }) {
-      renderFn.value = (props: Props, _slots: Slots) => {
-        return slots.default?.(props) ?? null;
+      return () => {
+        renderFn.value = slots.default;
       };
-      return () => null;
     },
   }) as unknown as DefineTemplateComponent<Bindings, MapSlotNameToSlotProps>;
 
   const ReuseTemplate = defineComponent<Props>({
-    name: "ReuseTemplate",
-    setup(props, { slots }) {
-      return () =>
-        renderFn.value
-          ? renderFn.value(props as Props, slots)
-          : h("div", "⚠️ No template defined");
+    inheritAttrs,
+    props: options.props,
+    setup(props, { attrs, slots }) {
+      return () => {
+        if (!renderFn.value) {
+          throw new Error("Failed to get definition of template");
+        }
+
+        const node = renderFn.value({
+          ...((options.props == null ? attrs : props) as Props),
+          $slots: slots,
+        });
+
+        return inheritAttrs && node?.length === 1 ? node[0] : node;
+      };
     },
   }) as unknown as ReuseTemplateComponent<Bindings, MapSlotNameToSlotProps>;
 

@@ -86,3 +86,20 @@ export async function updateVehicleService(
 
   return service;
 }
+
+export async function deleteVehicleService(
+  vehicleId: MaybeRef<string | number>,
+  id: MaybeRef<string | number>
+) {
+  await $fetch<Tables<"VehicleServiceLogs">>(
+    `/api/vehicles/${unref(vehicleId)}/services/${unref(id)}`,
+    {
+      method: "delete",
+      credentials: "include",
+      headers: useRequestHeaders(["cookie"]),
+    }
+  );
+
+  refreshNuxtData(`vehicle-${unref(vehicleId)}_services`);
+  clearNuxtData(`vehicle-${unref(vehicleId)}_service-${unref(id)}`);
+}
