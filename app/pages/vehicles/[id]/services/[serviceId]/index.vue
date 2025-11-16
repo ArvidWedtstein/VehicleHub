@@ -246,7 +246,7 @@ const handleEditService = () => {
             <span class="font-semibold">Cost:</span>
             <span>
               {{
-                formatNumber(service.cost || 0, {
+                formatNumber(service.totalCost || 0, {
                   style: "currency",
                   currency: service.currency || "EUR",
                   currencyDisplay: "narrowSymbol",

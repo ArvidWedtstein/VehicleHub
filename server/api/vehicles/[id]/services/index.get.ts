@@ -8,14 +8,15 @@ export default defineEventHandler(async (event) => {
 
   const client = await serverSupabaseClient<Database>(event);
 
-  const { data, error } = await client
-    .from("VehicleServiceLogs")
-    .select("*")
+  const { data: services, error } = await client
+    .from("vehicleservicelogs_with_items")
+    .select(`*`)
     .eq("vehicle_id", parseInt(id))
     .order("date", { ascending: false })
     .select();
 
   if (error)
     throw createError({ statusCode: 500, statusMessage: error.message });
-  return data;
+
+  return services;
 });

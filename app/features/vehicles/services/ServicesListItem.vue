@@ -2,7 +2,7 @@
 import type { Tables } from "~/types/supabase";
 
 type Props = {
-  service: Tables<"VehicleServiceLogs">;
+  service: Tables<"vehicleservicelogs_with_items">;
 };
 
 const { service } = defineProps<Props>();
@@ -61,7 +61,7 @@ const icon = computed(() => {
     <template #endIcon>
       <span class="font-bold">
         {{
-          formatNumber(service.cost ?? 0, {
+          formatNumber(service.total_cost ?? 0, {
             style: "currency",
             currency: service.currency || "EUR",
             currencyDisplay: "narrowSymbol",

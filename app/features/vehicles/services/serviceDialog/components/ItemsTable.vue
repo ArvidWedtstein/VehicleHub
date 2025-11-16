@@ -36,9 +36,19 @@ const handleRemoveItem = (index: number) => {
   <div
     class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100"
   >
-    <table class="table table-xs">
+    <table class="table table-sm table-pin-rows">
       <thead>
         <tr>
+          <th width="30">
+            <button
+              v-if="allowEdit"
+              type="button"
+              class="btn btn-secondary btn-soft btn-xs btn-square"
+              @click="handleAddItem"
+            >
+              <Icon name="mdi:plus" size="1.2em" />
+            </button>
+          </th>
           <th>Description</th>
           <th>Cost</th>
           <th>Quantity</th>
@@ -47,7 +57,8 @@ const handleRemoveItem = (index: number) => {
       </thead>
       <tbody v-if="service">
         <tr v-for="(item, index) in serviceItems" :key="index">
-          <td class="py-0">
+          <th width="30">{{ index + 1 }}</th>
+          <td>
             <FormInput
               type="text"
               size="sm"
@@ -57,7 +68,7 @@ const handleRemoveItem = (index: number) => {
               :readonly="!allowEdit"
             />
           </td>
-          <td class="py-0">
+          <td>
             <FormInput
               type="number"
               size="xs"
@@ -67,7 +78,7 @@ const handleRemoveItem = (index: number) => {
               :readonly="!allowEdit"
             />
           </td>
-          <td class="py-0">
+          <td>
             <FormInput
               type="number"
               size="sm"
@@ -77,7 +88,7 @@ const handleRemoveItem = (index: number) => {
               :readonly="!allowEdit"
             />
           </td>
-          <td class="py-0 max-w-fit">
+          <td>
             <button
               type="button"
               class="btn btn-error btn-soft btn-sm btn-square"
@@ -91,24 +102,12 @@ const handleRemoveItem = (index: number) => {
         </tr>
 
         <tr v-if="serviceItems.length === 0">
-          <td colspan="4" class="text-center">No items found</td>
-        </tr>
-        <tr v-if="allowEdit">
-          <td colspan="4" class="text-center">
-            <button
-              type="button"
-              class="btn btn-secondary btn-soft btn-sm"
-              @click="handleAddItem"
-            >
-              <Icon name="mdi:plus" size="1.2em" />
-              Add Item
-            </button>
-          </td>
+          <td colspan="6" class="text-center">No items found</td>
         </tr>
       </tbody>
       <tfoot>
         <tr>
-          <th>Sum:</th>
+          <th colspan="2">Sum:</th>
           <td>
             {{
               formatNumber(sum(serviceItems || [], "cost"), {
@@ -122,6 +121,7 @@ const handleRemoveItem = (index: number) => {
             }}
           </td>
           <td>{{ sum(serviceItems || [], "quantity") }}</td>
+          <td></td>
         </tr>
       </tfoot>
     </table>

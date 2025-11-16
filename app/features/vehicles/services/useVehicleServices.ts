@@ -2,12 +2,14 @@ import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
 export function useVehicleServices(
   vehicleId: MaybeRef<string | number | undefined>,
-  filters: MaybeRef<FilterOption<Tables<"VehicleServiceLogs">>[]> = []
+  filters: MaybeRef<
+    FilterOption<Tables<"vehicleservicelogs_with_items">>[]
+  > = []
 ) {
   return useAsyncData(
     `vehicle-${unref(vehicleId)}_services`,
     async () => {
-      return await $fetch<Tables<"VehicleServiceLogs">[]>(
+      return await $fetch<Tables<"vehicleservicelogs_with_items">[]>(
         `/api/vehicles/${unref(vehicleId)}/services/filter`,
         {
           method: "post",
@@ -34,6 +36,7 @@ export const useVehicleService = (
     async () => {
       return await $fetch<
         Tables<"VehicleServiceLogs"> & {
+          totalCost: number;
           items: Tables<"VehicleServiceLogsItems">[];
           files: Tables<"VehicleDocuments">[];
         }

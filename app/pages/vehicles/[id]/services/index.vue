@@ -86,7 +86,7 @@ const groupedServices = computed(() => {
   const enriched = sorted.map((service) => ({
     ...service,
     monthYear: formatDate(
-      service.date,
+      service.date || "",
       sortControl.key === "date"
         ? { year: "numeric", month: "long" }
         : { year: "numeric" }

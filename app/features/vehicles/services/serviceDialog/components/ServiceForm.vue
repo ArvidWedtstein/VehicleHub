@@ -26,10 +26,6 @@ const handleAddItem = () => {
     quantity: 1,
   } as TablesInsert<"VehicleServiceLogsItems">);
 };
-
-const handleRemoveItem = (index: number) => {
-  serviceItems.value.splice(index, 1);
-};
 </script>
 
 <template>
@@ -70,32 +66,22 @@ const handleRemoveItem = (index: number) => {
       v-model.trim="service.provider"
     />
 
-    <FormInputGroup class="md:col-span-2">
-      <FormInput
-        label="Cost"
-        type="text"
-        inputmode="decimal"
-        join
-        v-model.number="service.cost"
-        :min="0"
-      />
-
-      <FormInput
-        join
-        type="select"
-        wrapperClass="w-32"
-        v-model="service.currency"
-        :tabindex="-1"
-        :options="[
-          { value: 'NOK' },
-          { value: 'EUR' },
-          { value: 'GBP' },
-          { value: 'USD' },
-          { value: 'SEK' },
-          { value: 'DDK' },
-        ]"
-      />
-    </FormInputGroup>
+    <FormInput
+      join
+      label="Currency"
+      type="select"
+      wrapperClass="md:col-span-2"
+      v-model="service.currency"
+      :tabindex="-1"
+      :options="[
+        { value: 'NOK' },
+        { value: 'EUR' },
+        { value: 'GBP' },
+        { value: 'USD' },
+        { value: 'SEK' },
+        { value: 'DDK' },
+      ]"
+    />
 
     <FormInput
       label="Odometer Reading"

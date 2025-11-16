@@ -189,6 +189,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "VehicleDocuments_service_log_id_fkey"
+            columns: ["service_log_id"]
+            isOneToOne: false
+            referencedRelation: "vehicleservicelogs_with_items"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "VehicleDocuments_vehicle_id_fkey"
             columns: ["vehicle_id"]
             isOneToOne: false
@@ -449,6 +456,13 @@ export type Database = {
             referencedRelation: "VehicleServiceLogs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "VehicleServiceLogsItems_service_log_id_fkey"
+            columns: ["service_log_id"]
+            isOneToOne: false
+            referencedRelation: "vehicleservicelogs_with_items"
+            referencedColumns: ["id"]
+          },
         ]
       }
       VehicleShares: {
@@ -521,6 +535,32 @@ export type Database = {
           },
         ]
       }
+      vehicleservicelogs_with_items: {
+        Row: {
+          cost: number | null
+          created_at: string | null
+          createdby_id: string | null
+          createdby_name: string | null
+          currency: string | null
+          date: string | null
+          id: number | null
+          mileage: number | null
+          notes: string | null
+          provider: string | null
+          total_cost: number | null
+          type: string | null
+          vehicle_id: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "VehicleServiceLogs_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "Vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       check_permission: {
@@ -534,10 +574,10 @@ export type Database = {
           unit: string
         }[]
       }
-      terminate_user: {
-        Args: { profile_user_id: string }
-        Returns: undefined
-      }
+      jwt_custom_claims:
+        | { Args: { event: Json }; Returns: Json }
+        | { Args: never; Returns: Json }
+      terminate_user: { Args: { profile_user_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
