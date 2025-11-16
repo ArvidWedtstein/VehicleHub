@@ -150,8 +150,8 @@ const setSortKey = (key: keyof Tables<"VehicleExpenses">) => {
 };
 
 const handleCreateExpense = () => {
-  console.log("handleCreateExpense");
   if (!vehicleId.value) return;
+
   expenseDialog.value?.open(vehicleId.value);
 };
 
