@@ -71,7 +71,7 @@ const icon = computed(() => {
         }}
       </span>
 
-      <Icon name="mdi:chevron-right" size="1.2em" />
+      <Icon name="mdi:chevron-right" />
     </template>
   </ListGroupItem>
 </template>
