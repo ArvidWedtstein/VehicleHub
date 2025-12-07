@@ -20,13 +20,16 @@ export default defineEventHandler(async (event) => {
   const client = await serverSupabaseClient<Database>(event);
 
   let query = client
-    .from("VehicleServiceLogs")
+    .from("vehicleservicelogs_with_items")
     .select("*")
     .eq("vehicle_id", parseInt(id))
     .order("date", { ascending: false });
 
   if (filters && filters.length > 0) {
-    query = applyFilters<"VehicleServiceLogs", typeof query>(query, filters);
+    query = applyFilters<"vehicleservicelogs_with_items", typeof query>(
+      query,
+      filters
+    );
   }
 
   if (body.pagination) {
