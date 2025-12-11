@@ -4,7 +4,7 @@ import { Database, TablesInsert } from "~/types/supabase";
 export default defineEventHandler(async (event) => {
   const body = await readBody<{
     service: TablesInsert<"VehicleServiceLogs">;
-    items: TablesInsert<"VehicleServiceLogsItems">[];
+    items?: TablesInsert<"VehicleServiceLogsItems">[];
   }>(event);
 
   const id = getRouterParam(event, "id");
@@ -30,10 +30,10 @@ export default defineEventHandler(async (event) => {
   if (error)
     throw createError({ statusCode: 500, statusMessage: error.message });
 
-  if (body.items.length > 0) {
-    const itemsToInsert = body.items.map((item) => ({
+  if (body.items && body.items?.length > 0) {
+    const itemsToInsert = body.items?.map((item) => ({
       ...item,
-      service_id: data.id,
+      service_log_id: data.id,
     }));
 
     const { error: itemsError } = await client
