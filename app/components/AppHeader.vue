@@ -43,10 +43,11 @@ const handleSignOut = async () => {
       <ul class="menu menu-horizontal px-1 gap-2">
         <li>
           <NuxtLink
-            to="/"
+            :to="{ name: 'index' }"
             class="btn btn-sm capitalize"
             activeClass="btn-primary"
           >
+            <Icon name="mdi:home" class="sm:block hidden" />
             Home
           </NuxtLink>
         </li>

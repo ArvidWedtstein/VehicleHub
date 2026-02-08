@@ -4,6 +4,7 @@ useHead({
 });
 definePageMeta({
   layout: "default",
+  scrollToTop: true,
 });
 </script>
 <template>

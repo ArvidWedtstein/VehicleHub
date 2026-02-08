@@ -10,9 +10,11 @@ export default defineNuxtConfig({
   css: ["~/assets/app.css"],
   modules: ["@nuxtjs/supabase", "@nuxt/icon"],
   supabase: {
+    redirect: false,
     redirectOptions: {
       callback: "/callback",
       login: "/login",
+      exclude: ["/"],
     },
     cookieOptions: {
       secure: process.env.NODE_ENV === "production",
