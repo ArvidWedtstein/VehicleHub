@@ -5,14 +5,26 @@ const LoginModal = defineAsyncComponent(
 
 const user = useSupabaseUser();
 const client = useSupabaseClient();
+const router = useRouter();
 
 const loginModalRef = ref<InstanceType<typeof LoginModal>>();
 
 const handleSignIn = () => {
   loginModalRef.value?.open();
 };
-const handleSignOut = () => {
-  client.auth.signOut();
+const handleSignOut = async () => {
+  const { error } = await client.auth.signOut({
+    scope: "global",
+  });
+  if (error) {
+    console.error("Error signing out:", error);
+    toast.error(`Error signing out: ${error}`);
+
+    return;
+  }
+
+  toast.success("Signed out successfully");
+  router.push("/");
 };
 </script>
 
