@@ -123,14 +123,16 @@ export const toast = Object.assign(
     },
 
     promise: async <T>(
-      promiseFn: () => Promise<T>,
+      promiseFn: (() => Promise<T>) | Promise<T>,
       messages: { loading: string; success: string; error: string },
       options: ToastOptions = {}
     ): Promise<T | null> => {
       const id = add(messages.loading, "loading", options);
 
       try {
-        const result = await promiseFn();
+        const result = await (typeof promiseFn === "function"
+          ? promiseFn()
+          : promiseFn);
         update(id, messages.success, "success", options);
         return result;
       } catch (err) {

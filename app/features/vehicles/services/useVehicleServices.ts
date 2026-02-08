@@ -2,12 +2,14 @@ import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
 export function useVehicleServices(
   vehicleId: MaybeRef<string | number | undefined>,
-  filters: MaybeRef<FilterOption<Tables<"VehicleExpenses">>[]> = []
+  filters: MaybeRef<
+    FilterOption<Tables<"vehicleservicelogs_with_items">>[]
+  > = []
 ) {
   return useAsyncData(
     `vehicle-${unref(vehicleId)}_services`,
     async () => {
-      return await $fetch<Tables<"VehicleServiceLogs">[]>(
+      return await $fetch<Tables<"vehicleservicelogs_with_items">[]>(
         `/api/vehicles/${unref(vehicleId)}/services/filter`,
         {
           method: "post",
@@ -34,6 +36,7 @@ export const useVehicleService = (
     async () => {
       return await $fetch<
         Tables<"VehicleServiceLogs"> & {
+          totalCost: number;
           items: Tables<"VehicleServiceLogsItems">[];
           files: Tables<"VehicleDocuments">[];
         }
@@ -85,4 +88,21 @@ export async function updateVehicleService(
   refreshNuxtData(`vehicle-${vehicleId}_service-${id}`);
 
   return service;
+}
+
+export async function deleteVehicleService(
+  vehicleId: MaybeRef<string | number>,
+  id: MaybeRef<string | number>
+) {
+  await $fetch<Tables<"VehicleServiceLogs">>(
+    `/api/vehicles/${unref(vehicleId)}/services/${unref(id)}`,
+    {
+      method: "delete",
+      credentials: "include",
+      headers: useRequestHeaders(["cookie"]),
+    }
+  );
+
+  refreshNuxtData(`vehicle-${unref(vehicleId)}_services`);
+  clearNuxtData(`vehicle-${unref(vehicleId)}_service-${unref(id)}`);
 }

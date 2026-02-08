@@ -179,22 +179,33 @@ defineExpose({
       </button>
     </template>
 
-    <ChangelogList class="md:max-w-96">
-      <template v-if="loading">
-        <ChangelogListItemPlaceholder v-for="i in 10" :key="i" />
-      </template>
+    <template #body>
+      <ChangelogList class="md:max-w-96">
+        <template v-if="loading">
+          <ChangelogListItemPlaceholder v-for="i in 10" :key="i" />
+        </template>
 
-      <ChangelogListItem
-        v-for="(change, changelogIndex) in formattedChangelog"
-        :key="changelogIndex"
-        :avatar="change.createdby_profile_image_url"
-        :actionBy="change.createdby_name || undefined"
-        :time="change.created_at"
-        :type="change.operation === 'UPDATE' ? 'comment' : 'default'"
-        :action="change.action"
+        <ChangelogListItem
+          v-for="(change, changelogIndex) in formattedChangelog"
+          :key="changelogIndex"
+          :avatar="change.createdby_profile_image_url"
+          :actionBy="change.createdby_name || undefined"
+          :time="change.created_at"
+          :type="change.operation === 'UPDATE' ? 'comment' : 'default'"
+          :action="change.action"
+        >
+          <div v-if="change.sentence" v-html="change.sentence"></div>
+        </ChangelogListItem>
+      </ChangelogList>
+    </template>
+
+    <template #footer="{ toggleDrawer }">
+      <button
+        @click="toggleDrawer(false, 'clickOutside')"
+        class="btn btn-sm btn-outline"
       >
-        <div v-if="change.sentence" v-html="change.sentence"></div>
-      </ChangelogListItem>
-    </ChangelogList>
+        Close
+      </button>
+    </template>
   </Drawer>
 </template>

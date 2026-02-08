@@ -47,7 +47,7 @@ type Props = {
   /**
    * TODO: implement this
    */
-  items?: MenuItem[] | MenuItem[][];
+  items?: MenuItem[];
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -103,7 +103,9 @@ const handleToggleDropdown = () => {
   }
 };
 
-// TODO: use reuseableComponent for the items
+const [DefineMenuItem, ReuseMenuItem] = useReusableTemplate<{
+  menuItem: MenuItem;
+}>();
 </script>
 
 <template>
@@ -116,6 +118,29 @@ const handleToggleDropdown = () => {
       'dropdown-end': alignMenu === 'end',
     }"
   >
+    <DefineMenuItem v-slot="{ menuItem }">
+      <template v-if="menuItem">
+        <MenuItem
+          v-bind="menuItem"
+          :class="[
+            { 'menu-dropdown-toggle menu-dropdown-show': menuItem?.children },
+          ]"
+        >
+          <slot v-if="menuItem.slot" :name="menuItem.slot"></slot>
+
+          <template #children v-if="menuItem.children">
+            <ul class="menu-dropdown menu-dropdown-show">
+              <ReuseMenuItem
+                v-for="(subItem, idx) in menuItem.children.flat()"
+                :key="`dropdown-item-${idx}`"
+                :menuItem="subItem"
+              />
+            </ul>
+          </template>
+        </MenuItem>
+      </template>
+    </DefineMenuItem>
+
     <div
       ref="buttonRef"
       tabindex="0"
@@ -126,6 +151,7 @@ const handleToggleDropdown = () => {
     >
       <slot>Click</slot>
     </div>
+
     <Transition name="dropdown" appear>
       <div
         tabindex="0"
@@ -147,41 +173,12 @@ const handleToggleDropdown = () => {
               class="isolate"
               v-if="Array.isArray(itemOrGroup)"
             >
-              <MenuItem
+              <template
                 v-for="(item, idx) in itemOrGroup"
                 :key="`dropdown-item-${idx}`"
-                :disabled="item.disabled"
-                :class="item.class"
-                :icon="item.icon"
-                :avatar="item.avatar"
-                :active="item.checked || item.active"
-                :label="item.label"
-                :to="item.to"
-                :color="item.color"
-                @click="item.onClick"
               >
-                <slot v-if="item.slot" :name="item.slot"></slot>
-
-                <template #children v-if="item.children">
-                  <ul class="menu-dropdown menu-dropdown-show">
-                    <MenuItem
-                      v-for="(subItem, idx) in item.children.flat()"
-                      :key="`dropdown-item-${idx}`"
-                      :disabled="subItem.disabled"
-                      :class="subItem.class"
-                      :icon="subItem.icon"
-                      :avatar="subItem.avatar"
-                      :active="subItem.checked || subItem.active"
-                      :label="subItem.label"
-                      :to="subItem.to"
-                      :color="item.color"
-                      @click="subItem.onClick"
-                    >
-                      <slot v-if="subItem.slot" :name="subItem.slot"></slot>
-                    </MenuItem>
-                  </ul>
-                </template>
-              </MenuItem>
+                <ReuseMenuItem :menuItem="item" />
+              </template>
 
               <div
                 v-if="idx != (items || []).length - 1"
@@ -189,47 +186,9 @@ const handleToggleDropdown = () => {
               ></div>
             </div>
 
-            <MenuItem
-              v-else
-              :key="`dropdown-item-${idx}`"
-              :disabled="itemOrGroup.disabled"
-              :class="[
-                itemOrGroup.class,
-                {
-                  'menu-dropdown-toggle menu-dropdown-show':
-                    itemOrGroup.children,
-                },
-              ]"
-              :icon="itemOrGroup.icon"
-              :avatar="itemOrGroup.avatar"
-              :active="itemOrGroup.checked || itemOrGroup.active"
-              :label="itemOrGroup.label"
-              :to="itemOrGroup.to"
-              :color="itemOrGroup.color"
-              @click="itemOrGroup.onClick"
-            >
-              <slot v-if="itemOrGroup.slot" :name="itemOrGroup.slot"></slot>
-
-              <template #children v-if="itemOrGroup.children">
-                <ul class="menu-dropdown menu-dropdown-show">
-                  <MenuItem
-                    v-for="(item, idx) in itemOrGroup.children.flat()"
-                    :key="`dropdown-item-${idx}`"
-                    :disabled="item.disabled"
-                    :class="item.class"
-                    :icon="item.icon"
-                    :avatar="item.avatar"
-                    :active="item.checked || item.active"
-                    :label="item.label"
-                    :to="item.to"
-                    :color="item.color"
-                    @click="item.onClick"
-                  >
-                    <slot v-if="item.slot" :name="item.slot"></slot>
-                  </MenuItem>
-                </ul>
-              </template>
-            </MenuItem>
+            <template v-else :key="`dropdown-item-wrapper-${idx}`">
+              <ReuseMenuItem :menuItem="itemOrGroup" />
+            </template>
           </template>
         </slot>
       </div>

@@ -23,7 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
   noHoverEffect: false,
 });
 
-const listGroupSize = inject("listGroupSize", props.size) ?? props.size;
+const listGroupSize = props.size ?? inject("listGroupSize", props.size);
 
 const emit = defineEmits<{
   click: [event: MouseEvent];

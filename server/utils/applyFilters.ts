@@ -14,7 +14,9 @@ import type { Database, Tables } from "~/types/supabase";
  * @returns
  */
 export const applyFilters = <
-  TableName extends keyof Database["public"]["Tables"],
+  TableName extends
+    | keyof Database["public"]["Tables"]
+    | keyof Database["public"]["Views"],
   Q extends PostgrestFilterBuilder<
     PostgrestClientOptions,
     Database["public"],

@@ -57,7 +57,6 @@ withDefaults(defineProps<Props>(), {
         <NuxtTime
           :datetime="file?.lastModified || new Date()"
           dateStyle="medium"
-          :title="new Date(file?.lastModified || new Date()).toString()"
         />
       </div>
       <div v-if="!!$slots.actions" class="table-cell align-middle relative">

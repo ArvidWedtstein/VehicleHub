@@ -2,7 +2,10 @@
 import type { MenuItem } from "~/components/menu/Menu.vue";
 import { deleteVehicleDocument } from "~/features/vehicles/documents/useVehicleDocuments";
 import ItemsTable from "~/features/vehicles/services/serviceDialog/components/ItemsTable.vue";
-import { useVehicleService } from "~/features/vehicles/services/useVehicleServices";
+import {
+  deleteVehicleService,
+  useVehicleService,
+} from "~/features/vehicles/services/useVehicleServices";
 import { useVehicle } from "~/features/vehicles/useVehicles";
 
 useHead({
@@ -36,6 +39,9 @@ const serviceDialogRef = ref<InstanceType<typeof ServiceDialog>>();
 const filePreviewRef = ref<InstanceType<typeof FilePreviewModal>>();
 
 const handleServiceDelete = async () => {
+  if (!vehicleId.value) return;
+  if (!service.value) return;
+
   const result = await useConfirm({
     title: "Delete Service?",
     message:
@@ -46,7 +52,17 @@ const handleServiceDelete = async () => {
 
   if (!result) return;
 
-  // deleteService(service.value!.id);
+  const deletePromise = deleteVehicleService(vehicleId.value, service.value.id);
+  toast.promise(deletePromise, {
+    loading: `Deleting Service...`,
+    success: `Successfully deleted Service!`,
+    error: `Failed to delete Service.`,
+  });
+
+  navigateTo({
+    name: "vehicles-id-services",
+    params: { id: vehicleId.value },
+  });
 };
 
 const handleFilePreview = async (file: File) => {
@@ -134,8 +150,6 @@ const handleEditService = () => {
   if (!vehicleId.value) return;
   serviceDialogRef.value?.open(vehicleId.value, serviceId.value);
 };
-
-console.log("service", service.value);
 </script>
 
 <template>
@@ -232,7 +246,7 @@ console.log("service", service.value);
             <span class="font-semibold">Cost:</span>
             <span>
               {{
-                formatNumber(service.cost || 0, {
+                formatNumber(service.totalCost || 0, {
                   style: "currency",
                   currency: service.currency || "EUR",
                   currencyDisplay: "narrowSymbol",
@@ -258,6 +272,7 @@ console.log("service", service.value);
             v-if="serviceId != null && vehicleId != null"
             v-model="service"
             v-model:serviceItems="service.items"
+            :allowEdit="false"
           />
           <template #fallback>
             <div class="flex justify-center">
@@ -278,7 +293,6 @@ console.log("service", service.value);
             }))
           "
         >
-          <!--serviceFiles.map(p => p.file as File)-->
           <template #actions="{ file }">
             <Menu
               btnClass="btn btn-sm btn-ghost"

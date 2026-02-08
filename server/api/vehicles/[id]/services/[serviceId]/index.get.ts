@@ -49,5 +49,12 @@ export default defineEventHandler(async (event) => {
   if (error)
     throw createError({ statusCode: 500, statusMessage: error.message });
 
-  return service;
+  const totalCost = service?.items.reduce(
+    (sum, item) => sum + (item.cost || 0),
+    0
+  );
+  return {
+    ...service,
+    totalCost: totalCost || 0,
+  };
 });

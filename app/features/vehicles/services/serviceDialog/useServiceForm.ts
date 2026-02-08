@@ -24,7 +24,6 @@ const getDefaultServiceValues = (): ServiceUpdate => ({
   mileage: 0,
   notes: "",
   type: "",
-  items: [],
 });
 
 export const useServiceForm = () => {
