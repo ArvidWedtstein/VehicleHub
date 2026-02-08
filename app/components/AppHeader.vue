@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const LoginModal = defineAsyncComponent(
-  async () => await import("~/features/auth/LoginModal.vue")
+  async () => await import("~/features/auth/LoginModal.vue"),
 );
 
 const user = useSupabaseUser();
