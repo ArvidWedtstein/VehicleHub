@@ -2,6 +2,10 @@
 import { useVehicles } from "~/features/vehicles/useVehicles";
 import VehiclesList from "~/features/vehicles/VehiclesList.vue";
 
+useHead({
+  title: "Vehicles",
+});
+
 definePageMeta({
   middleware: "auth",
   layout: "default",
