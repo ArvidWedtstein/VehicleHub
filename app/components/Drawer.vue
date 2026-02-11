@@ -394,13 +394,13 @@ const drawerClass = computed(() => {
 const handlePositionClass = computed(() => {
   switch (props.direction) {
     case "top":
-      return "mb-4 !w-12 !h-1.5 mx-auto cursor-ns-resize";
+      return "mb-4 w-12! h-1.5! mx-auto cursor-ns-resize";
     case "bottom":
-      return "mt-4 !w-12 !h-1.5 mx-auto cursor-ns-resize";
+      return "mt-4 w-12! h-1.5! mx-auto cursor-ns-resize";
     case "left":
-      return "!mr-4 !h-12 !w-1.5 mt-auto mb-auto cursor-ew-resize";
+      return "mr-4! h-12! w-1.5! mt-auto mb-auto cursor-ew-resize";
     case "right":
-      return "!ml-4 !h-12 !w-1.5 mt-auto mb-auto cursor-ew-resize";
+      return "ml-4! h-12! w-1.5! mt-auto mb-auto cursor-ew-resize";
     default:
       return "";
   }

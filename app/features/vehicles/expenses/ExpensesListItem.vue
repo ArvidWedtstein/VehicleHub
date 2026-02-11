@@ -16,7 +16,7 @@ defineProps<Props>();
     </template>
 
     <template #subtitle>
-      <dl class="flex items-center flex-nowrap divide-x-1 divide-neutral">
+      <dl class="flex items-center flex-nowrap divide-x divide-neutral">
         <div class="flex items-center gap-1 not-first:ps-2 not-last:pe-2">
           <Icon name="mdi:calendar" />
           <NuxtTime
