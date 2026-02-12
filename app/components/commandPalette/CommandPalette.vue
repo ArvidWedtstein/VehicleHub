@@ -130,7 +130,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="rounded-md p-0 flex justify-center border border-neutral relative z-[1]"
+    class="rounded-md p-0 flex justify-center border border-neutral relative z-1"
   >
     <div class="flex flex-col min-h-0 min-w-0 divide-y divide-neutral flex-1">
       <div class="relative inline-flex items-center [&>input]:h-12">
@@ -182,7 +182,7 @@ onMounted(() => {
               class="isolate menu menu-md w-full p-1"
               role="group"
             >
-              <li v-if="label" class="menu-title text-xs font-semibold !py-1.5">
+              <li v-if="label" class="menu-title text-xs font-semibold py-1.5!">
                 {{ label }}
               </li>
 

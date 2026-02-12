@@ -35,8 +35,8 @@ const activeTab = computed({
 
     const currentTab = tabs.find(({ value }) =>
       currentRoute.matched.some(({ name }) =>
-        name?.toString().startsWith(value)
-      )
+        name?.toString().startsWith(value),
+      ),
     );
 
     const tab = currentTab?.value || tabs[0]?.value;

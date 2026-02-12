@@ -11,6 +11,7 @@ onMounted(async () => {
     error,
   } = await supabase.auth.getSession();
 
+  console.info("LOGO9OOG");
   if (error) {
     console.error("Callback error:", error);
     router.push("/login");

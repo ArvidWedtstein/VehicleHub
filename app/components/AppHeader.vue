@@ -1,18 +1,30 @@
 <script setup lang="ts">
 const LoginModal = defineAsyncComponent(
-  async () => await import("~/features/auth/LoginModal.vue")
+  async () => await import("~/features/auth/LoginModal.vue"),
 );
 
 const user = useSupabaseUser();
 const client = useSupabaseClient();
+const router = useRouter();
 
 const loginModalRef = ref<InstanceType<typeof LoginModal>>();
 
 const handleSignIn = () => {
   loginModalRef.value?.open();
 };
-const handleSignOut = () => {
-  client.auth.signOut();
+const handleSignOut = async () => {
+  const { error } = await client.auth.signOut({
+    scope: "global",
+  });
+  if (error) {
+    console.error("Error signing out:", error);
+    toast.error(`Error signing out: ${error}`);
+
+    return;
+  }
+
+  toast.success("Signed out successfully");
+  router.push("/");
 };
 </script>
 
@@ -31,10 +43,11 @@ const handleSignOut = () => {
       <ul class="menu menu-horizontal px-1 gap-2">
         <li>
           <NuxtLink
-            to="/"
+            :to="{ name: 'index' }"
             class="btn btn-sm capitalize"
             activeClass="btn-primary"
           >
+            <Icon name="mdi:home" class="sm:block hidden" />
             Home
           </NuxtLink>
         </li>

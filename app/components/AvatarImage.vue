@@ -80,7 +80,7 @@ const handleError = (event: Event) => {
       <img
         v-if="!loading"
         role="img"
-        :src="src || ''"
+        :src="src || fallbackSrc"
         :alt="alt || ''"
         decoding="async"
         :loading="imageLoading"
