@@ -44,9 +44,6 @@ type Props = {
 
   menuSize?: "xs" | "sm" | "md" | "lg";
 
-  /**
-   * TODO: implement this
-   */
   items?: MenuItem[];
 };
 
@@ -90,7 +87,7 @@ useClickOutside(
 
     // dropdownRef.value.blur();
   },
-  props.autoClose
+  props.autoClose,
 );
 
 const handleToggleDropdown = () => {
@@ -199,9 +196,9 @@ const [DefineMenuItem, ReuseMenuItem] = useReusableTemplate<{
 <style scoped>
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition-property: color, background-color, border-color,
-    text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter,
-    backdrop-filter !important;
+  transition-property:
+    color, background-color, border-color, text-decoration-color, fill, stroke,
+    opacity, box-shadow, transform, filter, backdrop-filter !important;
   transition-timing-function: cubic-bezier(0, 0, 0.2, 1) !important;
   transition-duration: 0.2s !important;
 }
