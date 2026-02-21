@@ -39,11 +39,6 @@ const submitPicture = async () => {
   modalRef.value?.modalRef?.close();
 };
 
-const handleSelectDevice = (deviceId: string) => () => {
-  selectedDeviceId.value = deviceId;
-  restartCamera();
-};
-
 const open = async () => {
   modalRef.value?.modalRef?.showModal();
 
@@ -67,7 +62,7 @@ defineExpose({
 
 <template>
   <Modal id="cameraModal" ref="modalRef" title="Camera" @close="close">
-    <div class="relative aspect-video mb-2">
+    <div class="relative flex items-center justify-center aspect-video mb-2">
       <video
         ref="videoRef"
         autoplay
@@ -77,12 +72,12 @@ defineExpose({
       ></video>
       <canvas
         ref="canvasRef"
-        class="w-full h-full rounded-md border border-neutral"
+        class="rounded-md border border-neutral"
         v-show="hasTakenPicture"
       ></canvas>
 
       <div
-        class="skeleton w-full h-full rounded-md flex items-center justify-center"
+        class="absolute inset-0 skeleton w-full h-full rounded-md flex items-center justify-center"
         v-if="isLoading"
       >
         Starting camera...
@@ -95,7 +90,7 @@ defineExpose({
 
     <template #actions>
       <button
-        class="btn btn-outline"
+        class="btn btn-outline me-auto"
         value="cancel"
         formmethod="dialog"
         formnovalidate
@@ -107,13 +102,14 @@ defineExpose({
         v-if="devices.length > 0"
         type="select"
         v-model="selectedDeviceId"
-        wrapperClass="me-auto -mt-1"
+        wrapperClass="-mt-1"
         :options="
           devices.map((d) => ({
             label: d.label || 'Unknown Camera',
             value: d.deviceId,
           }))
         "
+        @change="restartCamera"
         size="sm"
       />
 

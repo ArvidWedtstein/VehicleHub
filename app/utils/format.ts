@@ -3,12 +3,12 @@ export const formatDate = (
   options: Intl.DateTimeFormatOptions = {
     dateStyle: "long",
     timeStyle: undefined,
-  }
+  },
 ) => {
   const language = useNuxtLocale();
   const formattedDateTime = new Date(dateTime).toLocaleString(
     language.value,
-    options
+    options,
   );
 
   return formattedDateTime;
@@ -26,7 +26,7 @@ export const formatFileSize = (
   size: number,
   options: Omit<Intl.NumberFormatOptions, "style" | "unit"> = {
     maximumFractionDigits: 2,
-  }
+  },
 ) => {
   const i = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
 
@@ -63,7 +63,7 @@ export const formatListDisjunction = (items: string[]): string => {
  */
 export const formatNumber = (
   num: number | bigint | undefined | null = 0,
-  options: Intl.NumberFormatOptions = { style: "decimal" }
+  options: Intl.NumberFormatOptions = { style: "decimal" },
 ) => {
   if (!num && num !== 0) return "";
   const language = useNuxtLocale();
@@ -147,7 +147,7 @@ export const convertBytes = (value: number, fromUnit: Bytes, toUnit: Bytes) => {
 
   if (!units[fromUnit] || !units[toUnit]) {
     throw new Error(
-      "Invalid unit specified. Supported units are: bytes, kilobytes, megabytes, gigabytes, terabytes."
+      "Invalid unit specified. Supported units are: bytes, kilobytes, megabytes, gigabytes, terabytes.",
     );
   }
 
@@ -156,7 +156,7 @@ export const convertBytes = (value: number, fromUnit: Bytes, toUnit: Bytes) => {
 
 export const inchesToMetric = (
   inches: number,
-  unit: "mm" | "cm" | "m" | "auto" = "auto"
+  unit: "mm" | "cm" | "m" | "auto" = "auto",
 ): string => {
   if (inches < 0) return "Invalid measurement"; // Handle negative values
 
@@ -253,4 +253,15 @@ export const convertImageUrlToBase64 = (url: string): Promise<string> => {
     });
     image.addEventListener("error", reject);
   });
+};
+
+export const mimeToExtension = (mime: string): string => {
+  const map: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/heic": "heic",
+  };
+
+  return map[mime] ?? "jpg"; // safe fallback
 };
