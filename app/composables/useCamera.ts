@@ -1,7 +1,4 @@
-export const useCamera = (
-  videoRef: Ref<HTMLVideoElement | null>,
-  canvasRef: Ref<HTMLCanvasElement | null>,
-) => {
+export const useCamera = (videoRef: Ref<HTMLVideoElement | null>) => {
   const stream = ref<MediaStream | null>(null);
   const devices = ref<MediaDeviceInfo[]>([]);
   const selectedDeviceId = ref<string | null>(null);
@@ -9,6 +6,9 @@ export const useCamera = (
   const isLoading = ref(false);
   const hasTakenPicture = ref(false);
   const error = ref<string | null>(null);
+  const previewUrl = ref<string | null>(null);
+
+  let lastBlob: Blob | null = null;
 
   const handleError = (err: unknown) => {
     if (err instanceof DOMException) {
@@ -40,6 +40,13 @@ export const useCamera = (
       if (device) {
         selectedDeviceId.value = device.deviceId;
       }
+    }
+  };
+
+  const revokePreview = () => {
+    if (previewUrl.value) {
+      URL.revokeObjectURL(previewUrl.value);
+      previewUrl.value = null;
     }
   };
 
@@ -79,18 +86,21 @@ export const useCamera = (
     await startCamera();
   };
 
-  const capture = async (options?: { autoStop?: boolean }) => {
-    const canvas = canvasRef.value;
+  const capture = async (
+    type = "image/jpeg",
+    quality = 0.9,
+  ): Promise<Blob | null> => {
     const video = videoRef.value;
-    if (!video || !canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!video) return null;
 
     const { videoWidth, videoHeight } = video;
 
+    const canvas = document.createElement("canvas");
     canvas.width = videoWidth;
     canvas.height = videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
 
     const bitmap = await createImageBitmap(video, {
       imageOrientation: "from-image",
@@ -98,25 +108,36 @@ export const useCamera = (
     ctx.drawImage(bitmap, 0, 0, videoWidth, videoHeight);
     bitmap.close();
 
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, type, quality),
+    );
+
+    if (!blob) return null;
+
+    lastBlob = blob;
+
+    revokePreview();
+    previewUrl.value = URL.createObjectURL(blob);
+
     hasTakenPicture.value = true;
 
-    if (options?.autoStop ?? true) {
-      stopCamera();
-    }
+    stopCamera();
+
+    return blob;
   };
 
   const reset = async () => {
     hasTakenPicture.value = false;
+    revokePreview();
     await startCamera();
   };
 
-  const getBlob = async (type = "image/jpeg", quality = 0.9) => {
-    return new Promise<Blob | null>((resolve) =>
-      canvasRef.value?.toBlob(resolve, type, quality),
-    );
-  };
+  const getBlob = () => lastBlob;
 
-  onUnmounted(stopCamera);
+  onUnmounted(() => {
+    stopCamera();
+    revokePreview();
+  });
 
   return {
     isLoading,
@@ -124,6 +145,7 @@ export const useCamera = (
     devices,
     selectedDeviceId,
     hasTakenPicture,
+    previewUrl,
 
     startCamera,
     stopCamera,

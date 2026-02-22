@@ -7,7 +7,6 @@ const emit = defineEmits<{
 }>();
 
 const videoRef = ref<HTMLVideoElement | null>(null);
-const canvasRef = ref<HTMLCanvasElement | null>(null);
 
 const {
   selectedDeviceId,
@@ -15,22 +14,19 @@ const {
   error,
   hasTakenPicture,
   isLoading,
+  previewUrl,
   startCamera,
   stopCamera,
   restartCamera,
   reset,
   capture,
-} = useCamera(videoRef, canvasRef);
+  getBlob,
+} = useCamera(videoRef);
 
 const submitPicture = async () => {
-  const canvas = canvasRef.value;
-  if (!canvas) return;
-
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, "image/jpeg", 0.9),
-  );
+  const blob = getBlob();
   if (!blob) {
-    toast.error("Failed to capture the picture. Please try again.");
+    toast.error("No picture taken yet. Please try again.");
     return;
   }
 
@@ -70,11 +66,12 @@ defineExpose({
         class="w-full h-full rounded-md border border-neutral"
         v-show="!hasTakenPicture"
       ></video>
-      <canvas
-        ref="canvasRef"
-        class="rounded-md border border-neutral"
-        v-show="hasTakenPicture"
-      ></canvas>
+
+      <img
+        v-if="previewUrl && hasTakenPicture"
+        :src="previewUrl"
+        class="w-full h-full rounded-md border border-neutral object-contain"
+      />
 
       <div
         class="absolute inset-0 skeleton w-full h-full rounded-md flex items-center justify-center"
