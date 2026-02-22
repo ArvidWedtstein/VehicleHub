@@ -86,27 +86,37 @@ export const useCamera = (videoRef: Ref<HTMLVideoElement | null>) => {
     await startCamera();
   };
 
-  const capture = async (
-    type = "image/jpeg",
-    quality = 0.9,
-  ): Promise<Blob | null> => {
+  const capture = async (options?: {
+    type?: string;
+    quality?: number;
+    maxWidth?: number;
+    maxHeight?: number;
+  }): Promise<Blob | null> => {
     const video = videoRef.value;
     if (!video) return null;
 
+    const {
+      maxWidth = 1280,
+      maxHeight = 1280,
+      type = "image/jpeg",
+      quality = 0.85,
+    } = options || {};
+
     const { videoWidth, videoHeight } = video;
 
+    const ratio = Math.min(maxWidth / videoWidth, maxHeight / videoHeight, 1);
+
+    const targetWidth = Math.floor(videoWidth * ratio);
+    const targetHeight = Math.floor(videoHeight * ratio);
+
     const canvas = document.createElement("canvas");
-    canvas.width = videoWidth;
-    canvas.height = videoHeight;
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
 
-    const bitmap = await createImageBitmap(video, {
-      imageOrientation: "from-image",
-    });
-    ctx.drawImage(bitmap, 0, 0, videoWidth, videoHeight);
-    bitmap.close();
+    ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
 
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, type, quality),
