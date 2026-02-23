@@ -79,6 +79,8 @@ export const useCamera = (videoRef: Ref<HTMLVideoElement | null>) => {
   const stopCamera = () => {
     stream.value?.getTracks().forEach((track) => track.stop());
     stream.value = null;
+
+    hasTakenPicture.value = false;
   };
 
   const restartCamera = async () => {
