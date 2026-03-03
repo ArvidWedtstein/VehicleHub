@@ -24,7 +24,7 @@ definePageMeta({
 
 const ExpenseDialog = defineAsyncComponent(
   async () =>
-    await import("~/features/vehicles/expenses/expenseDialog/ExpenseDialog.vue")
+    await import("~/features/vehicles/expenses/expenseDialog/ExpenseDialog.vue"),
 );
 
 const vehicleId = useRouteParam("id", "number");
@@ -37,61 +37,6 @@ const {
   execute,
 } = await useVehicleExpenses(vehicleId, filters);
 const expenseDialog = ref<InstanceType<typeof ExpenseDialog>>();
-
-// const handleExpensesExport = async (type: string) => {
-//   const columnsToExport: Array<keyof Tables<'VehicleExpenses'>> = [
-//     'type',
-//     'vehicle_id',
-//     'date',
-//     'cost',
-//     'currency',
-//     'amount',
-//     'unit',
-//     'price_per_unit',
-//     'mileage',
-//     'notes',
-//   ];
-
-//   const table = parseRowsToTable(expenses.value, columnsToExport);
-
-//   let blob: Blob | null = null;
-
-//   switch (type) {
-//     case 'txt':
-//       blob = exportToTxt(table);
-//       break;
-//     case 'csv':
-//       blob = exportToCSV(expenses.value, columnsToExport);
-//       break;
-//     case 'pdf':
-//       const expensesWithPeriod = expenses.value.map(expense => ({
-//         ...expense,
-//         period: toLocalPeriod(new Date(expense.date)),
-//         formattedDate: formatDate(expense.date),
-//         groupHeader: new Date(expense.date).toLocaleString('en-GB', {
-//           month: 'long',
-//           year: 'numeric',
-//         }),
-//       }));
-
-//       blob = await generateExpenseReport(
-//         expensesWithPeriod,
-//         'period',
-//         'groupHeader',
-//         [
-//           { field: 'formattedDate', width: 150 },
-//           { field: 'type' },
-//           { field: 'notes' },
-//           { field: 'cost' },
-//         ],
-//       );
-//       break;
-//   }
-
-//   if (!blob) return;
-
-//   downloadBlob(blob, `expenses.${type}`);
-// };
 
 const exportOptions = [
   {
@@ -127,7 +72,7 @@ const groupedExpenses = computed(() => {
   const sorted = dynamicSort(
     expenses.value,
     sortControl.key,
-    sortControl.direction
+    sortControl.direction,
   );
 
   const enriched = sorted.map((expense) => ({
@@ -136,7 +81,7 @@ const groupedExpenses = computed(() => {
       expense.date,
       sortControl.key === "date"
         ? { year: "numeric", month: "long" }
-        : { year: "numeric" }
+        : { year: "numeric" },
     ),
   }));
 
@@ -156,7 +101,7 @@ const handleCreateExpense = () => {
 };
 
 const handleFilterApply = async (
-  buildFilters: Ref<Array<FilterOption<Tables<"VehicleExpenses">>>>
+  buildFilters: Ref<Array<FilterOption<Tables<"VehicleExpenses">>>>,
 ) => {
   filters.value = buildFilters.value;
   execute();
@@ -193,7 +138,7 @@ const handleFilterApply = async (
             :alignMenu="'end'"
           >
             <Icon name="mdi:sort" class="sm:block hidden" />
-            Sorted on:
+            <span class="sm:block hidden">Sorted on: </span>
             <span class="badge badge-neutral">
               {{
                 sortControl.options.find((o) => o.value === sortControl.key)
