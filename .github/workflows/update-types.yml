@@ -14,14 +14,17 @@ jobs:
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       PROJECT_REF: ${{ secrets.SUPABASE_REF_ID }}
+      TARGET_BRANCH: dev
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ env.TARGET_BRANCH }}
           persist-credentials: false
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - run: npm run update-types
       - name: check for file changes
         id: git_status
@@ -34,9 +37,10 @@ jobs:
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git commit -m "Updated DB Types 😎" -a
+
       - name: Push changes
         if: ${{contains(steps.git_status.outputs.status, ' ')}}
-        uses: ad-m/github-push-action@dev
+        uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+          branch: ${{ env.TARGET_BRANCH }}
