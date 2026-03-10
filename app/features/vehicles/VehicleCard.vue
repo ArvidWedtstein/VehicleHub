@@ -11,7 +11,7 @@ const shareVehicleDialogRef = ref<InstanceType<
 > | null>(null);
 
 const changelogDrawerRef = ref<InstanceType<typeof ChangelogDrawer> | null>(
-  null
+  null,
 );
 
 const { vehicle } = defineProps<{
@@ -56,7 +56,7 @@ const openChangelogDrawer = () => {
         Back to Vehicles
       </NuxtLink>
       <div class="flex justify-between items-center gap-6">
-        <h2 class="card-title mb-0!">
+        <h2 class="card-title mb-0! text-nowrap">
           {{
             [`${vehicle.make} ${vehicle.model}`, vehicle.model_year]
               .filter(Boolean)
@@ -67,7 +67,7 @@ const openChangelogDrawer = () => {
         <div class="flex justify-end items-center gap-1">
           <button
             type="button"
-            class="btn btn-sm btn-outline"
+            class="btn btn-sm btn-outline hidden md:inline-flex"
             title="Edit"
             @click="editVehicle"
           >
@@ -77,7 +77,7 @@ const openChangelogDrawer = () => {
 
           <button
             type="button"
-            class="btn btn-sm btn-outline"
+            class="btn btn-sm btn-outline hidden md:inline-flex"
             @click="openChangelogDrawer"
           >
             <Icon name="mdi:history" />
@@ -103,7 +103,7 @@ const openChangelogDrawer = () => {
 
           <button
             type="button"
-            class="btn btn-sm btn-secondary btn-outline"
+            class="btn btn-sm btn-secondary btn-outline hidden md:inline-flex"
             title="Share"
             @click="openShareVehicleDialog"
           >

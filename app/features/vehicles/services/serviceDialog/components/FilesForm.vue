@@ -4,10 +4,10 @@ import { deleteVehicleDocument } from "~/features/vehicles/documents/useVehicleD
 import type { TablesInsert, TablesUpdate } from "~/types/supabase";
 
 const FilePreviewModal = defineAsyncComponent(
-  async () => await import("~/components/file/FilePreviewModal.vue")
+  async () => await import("~/components/file/FilePreviewModal.vue"),
 );
 const CameraModal = defineAsyncComponent(
-  async () => await import("~/components/file/CameraModal.vue")
+  async () => await import("~/components/file/CameraModal.vue"),
 );
 
 const service = defineModel<
@@ -27,13 +27,15 @@ const handleFileUpload = async (uploadedFiles: Array<File>) => {
 };
 
 const handlePictureUpload = async (picture: Blob) => {
-  const file = new File(
-    [picture],
-    `service_${service.value.id}_${new Date().toISOString()}.png`,
-    {
-      type: "image/png",
-    }
-  );
+  const extension = mimeToExtension(picture.type);
+
+  const fileName = service.value.id
+    ? `service_${service.value.id}_${new Date().toISOString()}.${extension}`
+    : `service_${new Date().toISOString()}.${extension}`;
+
+  const file = new File([picture], fileName, {
+    type: picture.type,
+  });
 
   files.value = [...files.value, file];
 };
@@ -56,7 +58,7 @@ const handleFileDelete = (file: File) => {
 
   files.value = files.value.filter(
     (uploadedFile) =>
-      uploadedFile.name !== file.name && uploadedFile.size !== file.size
+      uploadedFile.name !== file.name && uploadedFile.size !== file.size,
   );
 
   //   if (documentFile) {
@@ -72,7 +74,7 @@ const handleFileDelete = (file: File) => {
   //     return;
   //   }
 
-  toast.success(`Successfully deleted file ${file.name}`);
+  toast.success(`Successfully deleted file ${file.name || ""}`);
 };
 </script>
 

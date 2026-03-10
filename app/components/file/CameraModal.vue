@@ -6,117 +6,88 @@ const emit = defineEmits<{
   pictureTaken: [blob: Blob];
 }>();
 
-const video = ref<HTMLVideoElement | null>(null);
-const imageCanvas = ref<HTMLCanvasElement | null>(null);
+const videoRef = ref<HTMLVideoElement | null>(null);
 
-type CameraState = {
-  stream: MediaStream | null;
-  hasTakenPicture: boolean;
-};
-const cameraState = reactive<CameraState>({
-  stream: null,
-  hasTakenPicture: false,
-});
+const {
+  selectedDeviceId,
+  devices,
+  error,
+  hasTakenPicture,
+  isLoading,
+  previewUrl,
+  startCamera,
+  stopCamera,
+  restartCamera,
+  reset,
+  capture,
+  getBlob,
+} = useCamera(videoRef);
 
-const initCamera = async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-
-    if (!video.value) {
-      console.log("Video element not found");
-      return;
-    }
-
-    video.value.srcObject = stream;
-    video.value.play();
-
-    cameraState.stream = stream;
-  } catch (error) {
-    console.error("Error accessing the camera: ", error);
+const submitPicture = async () => {
+  const blob = getBlob();
+  if (!blob) {
+    toast.error("No picture taken yet. Please try again.");
+    return;
   }
-};
 
-const captureImage = () => {
-  if (!imageCanvas.value) return;
-  const context = imageCanvas.value.getContext("2d");
-
-  if (!context) return;
-  if (!video.value) return;
-
-  imageCanvas.value.width = video.value.videoWidth;
-  imageCanvas.value.height = video.value.videoHeight;
-
-  context.drawImage(
-    video.value,
-    0,
-    0,
-    imageCanvas.value.width,
-    imageCanvas.value.height
-  );
-
-  video.value.pause();
-  cameraState.hasTakenPicture = true;
-};
-
-const resetPicture = () => {
-  if (!video.value) return;
-
-  video.value.play();
-  cameraState.hasTakenPicture = false;
-};
-
-const submitPicture = () => {
-  if (!imageCanvas.value) return;
-
-  imageCanvas.value.toBlob((blob) => {
-    if (!blob) return;
-    emit("pictureTaken", blob);
-  });
+  emit("pictureTaken", blob);
 
   modalRef.value?.modalRef?.close();
 };
 
-const handleOpen = async () => {
-  await modalRef.value?.modalRef?.showModal();
+const open = async () => {
+  modalRef.value?.modalRef?.showModal();
 
   await nextTick();
-  await initCamera();
+  await startCamera();
 };
 
-onUnmounted(() => {
-  if (cameraState.stream) {
-    cameraState.stream.getTracks().forEach((track) => track.stop());
-  }
-});
+const close = () => {
+  stopCamera();
+  modalRef.value?.modalRef?.close();
+};
+
+onUnmounted(stopCamera);
 
 defineExpose({
   modalRef,
-  open: handleOpen,
-  close: () => {
-    modalRef.value?.modalRef?.close();
-  },
+  open,
+  close,
 });
 </script>
 
 <template>
-  <Modal id="cameraModal" ref="modalRef" title="Camera" @close="resetPicture">
-    <div class="relative">
+  <Modal id="cameraModal" ref="modalRef" title="Camera" @close="close">
+    <div class="relative flex items-center justify-center aspect-video mb-2">
       <video
-        ref="video"
+        ref="videoRef"
         autoplay
+        playsinline
         class="w-full h-full rounded-md border border-neutral"
-        :class="[cameraState.hasTakenPicture ? 'hidden' : '']"
+        v-show="!hasTakenPicture"
       ></video>
-      <canvas
-        ref="imageCanvas"
-        class="w-full h-full rounded-md border border-neutral"
-        :class="[cameraState.hasTakenPicture ? '' : 'hidden']"
-      ></canvas>
+
+      <img
+        v-if="previewUrl && hasTakenPicture"
+        :src="previewUrl"
+        class="w-full h-full rounded-md border border-neutral object-contain"
+      />
+
+      <div
+        class="absolute inset-0 skeleton w-full h-full rounded-md flex items-center justify-center"
+        v-if="isLoading"
+      >
+        Starting camera...
+      </div>
+
+      <div v-if="error" class="text-error flex items-center justify-center">
+        {{ error }}
+      </div>
     </div>
 
     <template #actions>
       <button
-        class="btn btn-outline mt-2 me-auto float-start"
+        class="btn btn-outline me-auto"
         value="cancel"
         formmethod="dialog"
         formnovalidate
@@ -124,22 +95,38 @@ defineExpose({
         Cancel
       </button>
 
+      <FormInput
+        v-if="devices.length > 0"
+        type="select"
+        v-model="selectedDeviceId"
+        wrapperClass="-mt-1"
+        :options="
+          devices.map((d) => ({
+            label: d.label || 'Unknown Camera',
+            value: d.deviceId,
+          }))
+        "
+        @change="restartCamera"
+        size="sm"
+      />
+
       <button
-        v-if="cameraState.hasTakenPicture"
-        class="btn btn-outline btn-secondary mt-2"
-        @click="resetPicture"
+        v-if="hasTakenPicture"
+        type="button"
+        class="btn btn-outline btn-secondary"
+        @click="reset"
       >
         Try Again
       </button>
-      <button v-else class="btn btn-primary mt-2" @click="captureImage">
-        Capture
+      <button v-else type="button" class="btn btn-primary" @click="capture()">
+        <Icon name="mdi:camera" />
       </button>
       <button
-        v-if="cameraState.hasTakenPicture"
-        class="btn btn-primary mt-2"
+        v-if="hasTakenPicture"
+        class="btn btn-primary"
         @click="submitPicture"
       >
-        Ok
+        Save
       </button>
     </template>
   </Modal>

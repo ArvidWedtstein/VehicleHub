@@ -1,0 +1,13 @@
+name: Supabase
+
+on:
+  schedule:
+    - cron: "0 0 */3 * *"  
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -H "apikey: ${{ secrets.SUPABASE_ACCESS_TOKEN }}" \
+          https://akhxphgocxpyoofvdqwi.supabase.co/rest/v1/

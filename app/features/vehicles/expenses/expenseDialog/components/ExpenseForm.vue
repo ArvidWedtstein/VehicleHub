@@ -16,35 +16,16 @@ const expense = defineModel<
 </script>
 
 <template>
-  <div class="my-2 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6 flex-1">
+  <div class="my-2 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-4 flex-1">
     <FormInput
-      wrapperClass="sm:col-span-3"
+      wrapperClass="sm:col-span-4"
       label="Date"
       type="datetime-local"
       v-model="expense.date"
       required
     />
 
-    <FormInput
-      wrapperClass="sm:col-span-3"
-      label="Type"
-      type="select"
-      v-model="expense.type"
-      required
-      :options="[
-        { value: 'Fuel' },
-        {
-          value: 'Other',
-        },
-      ]"
-      placeholder="Please select a type"
-    >
-      <template #icon>
-        <Icon name="mdi:fuel" size="1.2em" />
-      </template>
-    </FormInput>
-
-    <FormInputGroup class="sm:col-span-3">
+    <FormInputGroup class="sm:col-span-2">
       <FormInput
         required
         label="Amount"
@@ -71,7 +52,7 @@ const expense = defineModel<
       />
     </FormInputGroup>
 
-    <FormInputGroup class="sm:col-span-3">
+    <FormInputGroup class="sm:col-span-2">
       <FormInput
         label="Cost"
         type="text"
@@ -103,7 +84,7 @@ const expense = defineModel<
 
     <FormInput
       label="Odometer Reading"
-      wrapperClass="sm:col-span-3"
+      wrapperClass="sm:col-span-2"
       type="text"
       inputmode="numeric"
       v-model="expense.mileage"
@@ -123,7 +104,7 @@ const expense = defineModel<
 
     <FormInput
       label="Notes"
-      wrapperClass="sm:col-span-3"
+      wrapperClass="sm:col-span-2"
       type="textarea"
       class="w-full"
       v-model="expense.notes"

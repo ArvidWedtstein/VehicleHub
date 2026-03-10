@@ -54,7 +54,7 @@ const applyFilters = async () => {
     "
   >
     <Icon name="mdi:filter-variant" />
-    Filter
+    <span class="sm:block hidden">Filter</span>
   </button>
 
   <Drawer ref="drawerRef" title="Filter" direction="bottom" v-model:open="open">
