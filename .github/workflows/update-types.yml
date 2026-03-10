@@ -35,7 +35,7 @@ jobs:
           git commit -m "Updated DB Types 😎" -a
       - name: Push changes
         if: ${{contains(steps.git_status.outputs.status, ' ')}}
-        uses: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@dev
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
