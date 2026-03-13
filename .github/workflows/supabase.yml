@@ -9,5 +9,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -H "apikey: ${{ secrets.SUPABASE_ACCESS_TOKEN }}" \
+          curl -H "apikey: ${{ secrets.SUPABASE_SECRET_TOKEN }}" \
           https://akhxphgocxpyoofvdqwi.supabase.co/rest/v1/
