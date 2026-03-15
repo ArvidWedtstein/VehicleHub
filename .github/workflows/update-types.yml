@@ -40,7 +40,7 @@ jobs:
 
       - name: Push changes
         if: ${{contains(steps.git_status.outputs.status, ' ')}}
-        uses: ad-m/github-push-action@dev
+        uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ env.TARGET_BRANCH }}
