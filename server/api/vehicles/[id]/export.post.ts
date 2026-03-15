@@ -1,12 +1,9 @@
-import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server";
+import { serverSupabaseClient } from "#supabase/server";
 import { Database, Tables } from "~/types/supabase";
 import { gzipSync } from "zlib";
 
-export default defineEventHandler(async (event) => {
+export default defineAuthenticatedEventHandler(async (event) => {
   const vehicleId = getRouterParam(event, "id");
-  const user = await serverSupabaseUser(event);
-  if (!user)
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
 
   const body = await readBody(event);
 
@@ -56,7 +53,7 @@ export default defineEventHandler(async (event) => {
   setHeader(
     event,
     "Content-Disposition",
-    `attachment; filename=${table}-export.csv`
+    `attachment; filename=${table}-export.csv`,
   );
 
   return csv;

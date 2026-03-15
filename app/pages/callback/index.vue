@@ -7,19 +7,19 @@ const router = useRouter();
 
 onMounted(async () => {
   const {
-    data: { session },
+    data: { user },
     error,
-  } = await supabase.auth.getSession();
+  } = await supabase.auth.getUser();
 
   console.info("LOGO9OOG");
   if (error) {
     console.error("Callback error:", error);
     router.push("/login");
-  } else if (!session) {
-    console.warn("No session found");
+  } else if (!user) {
+    console.warn("No user found");
     router.push("/login");
   } else {
-    console.log("Logged in user:", session.user);
+    console.log("Logged in user:", user);
     router.push("/"); // redirect to dashboard/home
   }
 });

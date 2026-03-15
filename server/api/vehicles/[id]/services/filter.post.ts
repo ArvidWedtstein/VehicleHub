@@ -1,7 +1,15 @@
 import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server";
-import { Database } from "~/types/supabase";
+import { Database, Tables } from "~/types/supabase";
 
-export default defineEventHandler(async (event) => {
+type FilterBody = {
+  filters?: FilterOption<Tables<"vehicleservicelogs_with_items">>[];
+  pagination?: {
+    limit: number;
+    offset: number;
+  };
+};
+
+export default defineAuthenticatedEventHandler(async (event) => {
   const id = getRouterParam(event, "id");
   if (!id)
     throw createError({
@@ -9,13 +17,28 @@ export default defineEventHandler(async (event) => {
       statusMessage: "No vehicle id provided",
     });
 
-  const body = await readBody(event);
+  const result = await readValidatedBody<FilterBody>(event, (data) => {
+    if (!data) {
+      throw createError({ statusCode: 400, statusMessage: "Body required" });
+    }
 
-  if (!body) {
-    throw createError({ statusCode: 400, statusMessage: "Body required" });
-  }
+    if (typeof data !== "object" || data === null) {
+      throw createError({ statusCode: 400 });
+    }
 
-  const filters = body.filters;
+    const b = data as Record<string, unknown>;
+
+    if (b.filters && !Array.isArray(b.filters)) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Filters should be an array",
+      });
+    }
+
+    return data;
+  });
+
+  const filters = result.filters || [];
 
   const client = await serverSupabaseClient<Database>(event);
 
@@ -28,12 +51,12 @@ export default defineEventHandler(async (event) => {
   if (filters && filters.length > 0) {
     query = applyFilters<"vehicleservicelogs_with_items", typeof query>(
       query,
-      filters
+      filters,
     );
   }
 
-  if (body.pagination) {
-    const { limit, offset } = body.pagination;
+  if (result.pagination) {
+    const { limit, offset } = result.pagination;
     query = query.range(offset, offset + limit - 1);
   }
 

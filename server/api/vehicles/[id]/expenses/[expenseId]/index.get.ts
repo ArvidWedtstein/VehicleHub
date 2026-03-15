@@ -1,13 +1,7 @@
 import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server";
 import { Database } from "~/types/supabase";
 
-export default defineEventHandler(async (event) => {
-  const user = await serverSupabaseUser(event);
-
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
-  }
-
+export default defineAuthenticatedEventHandler(async (event) => {
   const vehicleId = getRouterParam(event, "id");
   const expenseId = getRouterParam(event, "expenseId");
 

@@ -1,7 +1,8 @@
-import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server";
+import { serverSupabaseClient } from "#supabase/server";
 import { Database } from "~/types/supabase";
+import defineAuthenticatedEventHandler from "~~/server/utils/defineAuthenticatedEventHandler";
 
-export default defineEventHandler(async (event) => {
+export default defineAuthenticatedEventHandler(async (event) => {
   const client = await serverSupabaseClient<Database>(event);
 
   const { data, error } = await client
