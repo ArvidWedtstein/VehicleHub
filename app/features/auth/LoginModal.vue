@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { toDisplayString } from "vue";
 import type Modal from "~/components/Modal.vue";
 
 const modalRef = ref<InstanceType<typeof Modal> | null>(null);

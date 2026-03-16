@@ -24,18 +24,18 @@ export const useExpenseForm = () => {
 
   const initialize = async (
     vehicleId: Tables<"VehicleExpenses">["vehicle_id"],
-    expenseId?: TablesUpdate<"VehicleExpenses">["id"]
+    expenseId?: TablesUpdate<"VehicleExpenses">["id"],
   ) => {
     const { data: vehicleData } = await useVehicle(vehicleId);
     vehicle.value = vehicleData.value;
 
     if (expenseId) {
-      const { data: editExpense, error } = await useVehicleExpense(
+      const { data: editExpense, error } = useVehicleExpense(
         vehicleId,
-        expenseId
+        expenseId,
       );
 
-      if (error) throw error;
+      if (error.value) throw error.value;
 
       expense.value = {
         ...editExpense.value,
@@ -73,7 +73,7 @@ export const useExpenseForm = () => {
       console.log(
         "Saving expense:",
         expense.value,
-        convertLocalToUTC(expense.value.date)
+        convertLocalToUTC(expense.value.date),
       );
 
       let expenseId = expense.value.id;

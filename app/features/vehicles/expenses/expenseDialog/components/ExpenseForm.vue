@@ -88,11 +88,9 @@ const expense = defineModel<
       type="text"
       inputmode="numeric"
       v-model="expense.mileage"
+      icon="mdi:gauge-empty"
     >
-      <template #icon>
-        <Icon name="mdi:gauge-empty" size="1.2em" />
-      </template>
-      <template #addon>
+      <template #trailing>
         {{
           formatNumber(0, {
             style: "unit",

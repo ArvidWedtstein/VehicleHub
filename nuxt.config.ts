@@ -21,6 +21,9 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: ["@vue/devtools-core", "@vue/devtools-kit"],
+    },
   },
   css: ["~/assets/app.css"],
   modules: ["@nuxtjs/supabase", "@nuxt/icon"],

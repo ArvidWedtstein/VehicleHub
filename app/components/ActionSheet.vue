@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends string | number = string">
-import type Drawer from "~/components/Drawer.vue";
+import type Drawer from "./Drawer.vue";
 
 type Option<T extends string | number> = {
   label?: string;

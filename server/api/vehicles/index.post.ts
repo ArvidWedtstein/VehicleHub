@@ -1,6 +1,5 @@
 import { serverSupabaseClient } from "#supabase/server";
 import { Database } from "~/types/supabase";
-import defineAuthenticatedEventHandler from "~~/server/utils/defineAuthenticatedEventHandler";
 
 export default defineAuthenticatedEventHandler(async (event) => {
   const body = await readBody(event);

@@ -1,5 +1,5 @@
 // TODO: use vehicleManufacturers api instead
-export const vehicleManufacturersCodes = new Map<string, string>([
+const vehicleManufacturersCodes = new Map<string, string>([
   ["AAA", "Audi South Africa made by Volkswagen of South Africa"],
   ["AAK", "FAW Vehicle Manufacturers SA (PTY) Ltd."],
   ["AAM", "MAN Automotive (South Africa) (Pty) Ltd. (includes VW Truck & Bus)"],
@@ -116,8 +116,8 @@ export const vehicleManufacturersCodes = new Map<string, string>([
     "JMY",
     "Mitsubishi Motors (left-hand drive) for South America & Middle East",
   ],
-  ["JMZ", "Mazda for Europe export"],
-  ["JM0", "Mazda for Oceania export"],
+  ["JMZ", "Mazda for Europe \export"],
+  ["JM0", "Mazda for Oceania \export"],
   ["JM1", "Mazda car"],
   ["JM2", "Mazda truck"],
   ["JM3", "Mazda MPV/SUV"],
@@ -225,7 +225,7 @@ export const vehicleManufacturersCodes = new Map<string, string>([
   ["KNA", "Kia car"],
   ["KNC", "Kia truck"],
   ["KND", "Kia MPV/SUV & Hyundai Entourage"],
-  ["KNE", "Kia for Europe export"],
+  ["KNE", "Kia for Europe \export"],
   ["KNF", "Kia, special vehicles"],
   ["KNG", "Kia minibus/bus"],
   ["KNJ", "Ford Festiva & Aspire made by Kia"],
@@ -510,7 +510,7 @@ export const vehicleManufacturersCodes = new Map<string, string>([
   ["MAN", "Eicher Polaris Multix"],
   ["MAT", "Tata Motors, Rover CityRover"],
   ["MA1", "Mahindra & Mahindra"],
-  ["MA3", "Maruti Suzuki India (domestic & export)"],
+  ["MA3", "Maruti Suzuki India (domestic & \export)"],
   ["MA6", "GM India"],
   [
     "MA7",
@@ -519,7 +519,7 @@ export const vehicleManufacturersCodes = new Map<string, string>([
   ["MBF", "Royal Enfield"],
   [
     "MBH",
-    "Suzuki (for export) & Nissan Pixo made by Maruti Suzuki India Limited",
+    "Suzuki (for \export) & Nissan Pixo made by Maruti Suzuki India Limited",
   ],
   ["MBJ", "Toyota Kirloskar Motor Pvt. Ltd."],
   ["MBK", "MAN Trucks India Pvt. Ltd."],
@@ -605,7 +605,7 @@ export const vehicleManufacturersCodes = new Map<string, string>([
   ],
   [
     "MNA",
-    "Ford Thailand (Ford-Mazda AutoAlliance Thailand plant) for Australia/New Zealand export",
+    "Ford Thailand (Ford-Mazda AutoAlliance Thailand plant) for Australia/New Zealand \export",
   ],
   [
     "MNB",
@@ -2182,7 +2182,7 @@ export const vehicleManufacturersCodes = new Map<string, string>([
   ["4P3", "Plymouth car made by Diamond-Star Motors factory 1990–1994"],
   [
     "4P3",
-    "Mitsubishi Motors SUV made by Mitsubishi Motor Manufacturing of America 2013–2015 for export only",
+    "Mitsubishi Motors SUV made by Mitsubishi Motor Manufacturing of America 2013–2015 for \export only",
   ],
   ["4RK", "Nova Bus & Prevost made by Nova Bus (US) Inc."],
   ["4S1", "Isuzu truck made by Subaru Isuzu Automotive"],
@@ -2268,7 +2268,7 @@ export const vehicleManufacturersCodes = new Map<string, string>([
   ["5GT", "Hummer H3"],
   ["5GZ", "Saturn MPV/SUV"],
   ["5G8", "Holden Volt"],
-  ["5HD", "Harley-Davidson for export markets"],
+  ["5HD", "Harley-Davidson for \export markets"],
   ["5J6", "Honda SUV made by Honda of America Mfg. in Ohio"],
   ["5J8", "Acura SUV made by Honda of America Mfg. in Ohio"],
   ["5KB", "Honda car made by Honda Manufacturing of Alabama"],
@@ -2280,7 +2280,7 @@ export const vehicleManufacturersCodes = new Map<string, string>([
   ["5LD", "Ford & Lincoln incomplete vehicle – limousine (2010–2014)"],
   ["5LM", "Lincoln SUV"],
   ["5LT", "Lincoln truck"],
-  ["5MZ", "Buell Motorcycle Company for export markets"],
+  ["5MZ", "Buell Motorcycle Company for \export markets"],
   ["5N1", "Nissan & Infiniti SUV"],
   ["5N3", "Infiniti SUV"],
   ["5NH", "Forest River"],
@@ -2514,7 +2514,7 @@ export const vehicleManufacturersCodes = new Map<string, string>([
   ["9V8", "Peugeot made by Nordex S.A. (Expert)"],
 ]);
 
-export const vinCountryCodes = new Map<string, string>([
+const vinCountryCodes = new Map<string, string>([
   ["AA-AH", "South Africa"],
   ["AJ-AN", "Ivory Coast"],
   ["AP-A0", "not assigned"],
@@ -2636,7 +2636,7 @@ type VINData = {
   sequentialNumber: string;
 };
 
-export const vinRegex = /^[A-HJ-NPR-Z0-9]{17}$/;
+const vinRegex = /^[A-HJ-NPR-Z0-9]{17}$/;
 
 /**
  * Decodes a Vehicle Identification Number (VIN) and returns the data.
@@ -2733,8 +2733,8 @@ export const decodeVIN = (vin: string): VINData | null => {
 
   const adjustedYears: Record<string, number> = Object.fromEntries(
     Object.entries(years).filter(
-      ([key], index, arr) => arr.findIndex(([k]) => k === key) === index
-    )
+      ([key], index, arr) => arr.findIndex(([k]) => k === key) === index,
+    ),
   );
 
   const [country] = getCountryFromCode(countryCode);
@@ -2785,7 +2785,7 @@ const isInRange = (range: string, code: string): boolean => {
 
 const getCountryFromCode = (code: string) => {
   const matches = Array.from(vinCountryCodes.entries()).filter(([range]) =>
-    isInRange(range, code)
+    isInRange(range, code),
   );
 
   return matches.map(([, country]) => country);

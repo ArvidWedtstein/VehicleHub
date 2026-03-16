@@ -1,28 +1,32 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
 export function useVehicles(filters: FilterOption<Tables<"Vehicles">>[] = []) {
-  return useAsyncData("vehicles", async () => {
+  return useAsyncData("vehicles", async (_nuxtApp, { signal }) => {
     return await $fetch<Tables<"Vehicles">[]>("/api/vehicles/filter", {
       method: "post",
       body: {
         filters,
       },
-      headers: useRequestHeaders(["cookie"]),
+      credentials: "include",
+      headers: import.meta.server ? useRequestHeaders(["cookie"]) : undefined,
+      signal,
     });
   });
 }
 
-export const useVehicle = (id?: string | number) => {
-  return useAsyncData(`vehicle-${id}`, (_nuxtApp, { signal }) =>
-    $fetch<
-      Tables<"Vehicles"> & {
-        shares: (Tables<"VehicleShares"> & { profile: Tables<"Profiles"> })[];
-      }
-    >(`/api/vehicles/${id}`, {
-      credentials: "include",
-      headers: useRequestHeaders(["cookie"]),
-      signal,
-    }),
+export const useVehicle = (id?: MaybeRef<Tables<"Vehicles">["id"]>) => {
+  return useAsyncData(
+    () => `vehicle-${unref(id)}`,
+    (_nuxtApp, { signal }) =>
+      $fetch<
+        Tables<"Vehicles"> & {
+          shares: (Tables<"VehicleShares"> & { profile: Tables<"Profiles"> })[];
+        }
+      >(`/api/vehicles/${unref(id)}`, {
+        credentials: "include",
+        headers: import.meta.server ? useRequestHeaders(["cookie"]) : undefined,
+        signal,
+      }),
   );
 };
 
@@ -38,16 +42,19 @@ export async function createVehicle(patch: Partial<TablesInsert<"Vehicles">>) {
 }
 
 export async function updateVehicle(
-  id: string | number,
+  id: MaybeRef<Tables<"Vehicles">["id"]>,
   patch: Partial<TablesUpdate<"Vehicles">>,
 ) {
-  const vehicle = await $fetch<Tables<"Vehicles">>(`/api/vehicles/${id}`, {
-    method: "put",
-    body: patch,
-    headers: useRequestHeaders(["cookie"]),
-  });
+  const vehicle = await $fetch<Tables<"Vehicles">>(
+    `/api/vehicles/${unref(id)}`,
+    {
+      method: "put",
+      body: patch,
+      headers: useRequestHeaders(["cookie"]),
+    },
+  );
   refreshNuxtData("vehicles");
-  refreshNuxtData(`vehicle-${id}`);
+  refreshNuxtData(`vehicle-${unref(id)}`);
 
   return vehicle;
 }
