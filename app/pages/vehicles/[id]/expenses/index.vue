@@ -121,7 +121,7 @@ const handleFilterApply = async (
         @click="handleCreateExpense"
       >
         <Icon name="mdi:plus" />
-        Add Expense
+        Add
       </button>
 
       <div class="flex items-center gap-2">

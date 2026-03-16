@@ -44,7 +44,7 @@ type Props = {
 
   menuSize?: "xs" | "sm" | "md" | "lg";
 
-  items?: MenuItem[];
+  items?: MenuItem[] | MenuItem[][];
 };
 
 const props = withDefaults(defineProps<Props>(), {
