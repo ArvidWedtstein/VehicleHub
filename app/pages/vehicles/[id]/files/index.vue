@@ -20,10 +20,8 @@ const vehicleId = useRouteParam("id", "number");
 const { data: documents } = await useVehicleDocuments(vehicleId.value);
 
 const filePreviewModal = ref<InstanceType<typeof FilePreviewModal> | null>(
-  null
+  null,
 );
-
-console.log("documents", documents.value);
 
 const files = computed(() => {
   return documents.value
@@ -41,7 +39,7 @@ const files = computed(() => {
 const handleFilePreview = (file: File) => {
   const fileToPreview = documents.value?.find(
     ({ name, file_size }) =>
-      name === file.name && (file_size || 0) === file.size
+      name === file.name && (file_size || 0) === file.size,
   );
 
   if (!fileToPreview || !fileToPreview.file_path) {
@@ -57,7 +55,7 @@ const handleFilePreview = (file: File) => {
 const handleFileDownload = async (file: File) => {
   try {
     const fileToPreview = files.value?.find(
-      ({ file: previewFile }) => previewFile.name === file.name
+      ({ file: previewFile }) => previewFile.name === file.name,
     );
     if (!fileToPreview) return;
     if (!fileToPreview.path) return;
@@ -82,7 +80,7 @@ const handleFileDelete = async (file: File) => {
   try {
     const fileToDelete = documents.value?.find(
       ({ name, file_size }) =>
-        name === file.name && (file_size || 0) === file.size
+        name === file.name && (file_size || 0) === file.size,
     );
     if (!fileToDelete) return;
 
@@ -116,7 +114,7 @@ const uploadFile = async (files: File[]) => {
   } catch (error: unknown) {
     console.error(error);
     toast.error(
-      `Failed to upload file.\n${(error as { message: string })?.message}`
+      `Failed to upload file.\n${(error as { message: string })?.message}`,
     );
   }
 };
@@ -158,7 +156,7 @@ const generateFileGridActions = (file: File) => {
     <DropArea @upload="uploadFile">
       <FileAreaInput @upload="uploadFile" multiple />
 
-      <FileGrid class="mt-2" :files="files?.map(p => p.file as File)">
+      <FileGrid class="mt-2" :files="files?.map((p) => p.file as File)">
         <template #actions="{ file }">
           <Menu
             btnClass="btn btn-sm btn-ghost m-1"

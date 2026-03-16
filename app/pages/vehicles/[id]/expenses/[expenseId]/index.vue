@@ -20,7 +20,7 @@ definePageMeta({
 
 const ExpenseDialog = defineAsyncComponent(
   async () =>
-    await import("~/features/vehicles/expenses/expenseDialog/ExpenseDialog.vue")
+    await import("~/features/vehicles/expenses/expenseDialog/ExpenseDialog.vue"),
 );
 
 const vehicleId = useRouteParam("id", "number");
@@ -39,13 +39,18 @@ const expenseDialog = ref<InstanceType<typeof ExpenseDialog>>();
 /** TODO: remove & move to fetching of expense instead */
 const createdBy = computed(() => {
   return profiles.value?.find(
-    ({ user_id }) => user_id === expense.value?.createdby_id
+    ({ user_id }) => user_id === expense.value?.createdby_id,
   );
 });
 
 const handleEditExpense = () => {
   if (!vehicleId.value) return;
 
+  console.log(
+    "Opening expense dialog for expense",
+    expense.value,
+    expenseDialog.value,
+  );
   expenseDialog.value?.open(vehicleId.value, expense.value?.id);
 };
 
@@ -76,6 +81,8 @@ const handleExpenseDelete = async () => {
 
 <template>
   <div>
+    <ExpenseDialog ref="expenseDialog" />
+
     <NuxtLink
       :to="{
         name: 'vehicles-id-expenses',

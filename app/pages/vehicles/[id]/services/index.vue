@@ -27,7 +27,7 @@ const {
 
 const ServiceDialog = defineAsyncComponent(
   async () =>
-    await import("~/features/vehicles/services/serviceDialog/ServiceDialog.vue")
+    await import("~/features/vehicles/services/serviceDialog/ServiceDialog.vue"),
 );
 
 const serviceDialogRef = ref<InstanceType<typeof ServiceDialog>>();
@@ -89,7 +89,7 @@ const groupedServices = computed(() => {
       service.date || "",
       sortControl.key === "date"
         ? { year: "numeric", month: "long" }
-        : { year: "numeric" }
+        : { year: "numeric" },
     ),
   }));
 
@@ -108,7 +108,7 @@ const handleCreateService = () => {
 };
 
 const handleFilterApply = async (
-  buildFilters: Ref<Array<FilterOption<Tables<"VehicleServiceLogs">>>>
+  buildFilters: Ref<Array<FilterOption<Tables<"VehicleServiceLogs">>>>,
 ) => {
   filters.value = buildFilters.value;
   refresh();
@@ -126,7 +126,7 @@ const handleFilterApply = async (
         @click="handleCreateService"
       >
         <Icon name="mdi:plus" />
-        Add Service
+        Add
       </button>
 
       <div class="flex items-center gap-2">

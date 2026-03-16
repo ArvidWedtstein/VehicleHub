@@ -90,11 +90,9 @@ const handleAddItem = () => {
       inputmode="decimal"
       v-model="service.mileage"
       :min="0"
+      icon="mdi:speedometer-slow"
     >
-      <template #icon>
-        <Icon name="mdi:speedometer-slow" />
-      </template>
-      <template #addon>
+      <template #trailing>
         {{
           formatNumber(0, {
             style: "unit",

@@ -1,7 +1,7 @@
 import { serverSupabaseClient } from "#supabase/server";
 import { Database, TablesInsert } from "~/types/supabase";
 
-export default defineEventHandler(async (event) => {
+export default defineAuthenticatedEventHandler(async (event) => {
   const body = await readBody<{
     service: TablesInsert<"VehicleServiceLogs">;
     items?: TablesInsert<"VehicleServiceLogsItems">[];

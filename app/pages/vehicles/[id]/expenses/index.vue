@@ -75,6 +75,8 @@ const groupedExpenses = computed(() => {
     sortControl.direction,
   );
 
+  if (!sorted || !Array.isArray(sorted)) return {};
+
   const enriched = sorted.map((expense) => ({
     ...expense,
     monthYear: formatDate(
@@ -119,7 +121,7 @@ const handleFilterApply = async (
         @click="handleCreateExpense"
       >
         <Icon name="mdi:plus" />
-        Add Expense
+        Add
       </button>
 
       <div class="flex items-center gap-2">

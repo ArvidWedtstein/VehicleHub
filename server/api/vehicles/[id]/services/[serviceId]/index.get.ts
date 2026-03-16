@@ -1,7 +1,7 @@
 import { serverSupabaseClient } from "#supabase/server";
 import { Database } from "~/types/supabase";
 
-export default defineEventHandler(async (event) => {
+export default defineAuthenticatedEventHandler(async (event) => {
   const vehicleId = getRouterParam(event, "id");
   const serviceId = getRouterParam(event, "serviceId");
 
@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
       *,
       items:VehicleServiceLogsItems (*),
       files:VehicleDocuments (*)
-    `
+    `,
     )
     .eq("vehicle_id", parseInt(vehicleId))
     .eq("id", parseInt(serviceId))
@@ -51,7 +51,7 @@ export default defineEventHandler(async (event) => {
 
   const totalCost = service?.items.reduce(
     (sum, item) => sum + (item.cost || 0),
-    0
+    0,
   );
   return {
     ...service,

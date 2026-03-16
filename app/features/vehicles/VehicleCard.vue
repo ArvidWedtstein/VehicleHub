@@ -165,7 +165,10 @@ const openChangelogDrawer = () => {
         {{ currentVehicleOwner?.name }}
       </div>
 
-      <div v-show="vehicle.shares.length > 0" class="flex gap-1 items-center">
+      <div
+        v-show="vehicle.shares && vehicle.shares?.length > 0"
+        class="flex gap-1 items-center"
+      >
         <span class="">Shared with:</span>
         <div class="avatar-group -space-x-2 rtl:space-x-reverse">
           <span v-for="share in vehicle.shares" :key="share.id">

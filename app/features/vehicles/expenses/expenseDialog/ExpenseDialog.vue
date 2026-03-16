@@ -10,11 +10,17 @@ const { expense, vehicle, isEdit, initialize, save } = useExpenseForm();
 
 const handleOpen = async (
   vehicle_id: Tables<"VehicleExpenses">["vehicle_id"],
-  expense_id?: Tables<"VehicleExpenses">["id"]
+  expense_id?: Tables<"VehicleExpenses">["id"],
 ) => {
-  await initialize(vehicle_id, expense_id);
+  try {
+    await initialize(vehicle_id, expense_id);
 
-  modalRef.value?.modalRef?.showModal();
+    modalRef.value?.modalRef?.showModal();
+  } catch (err: unknown) {
+    const error = err as Error;
+    const errorMessage = error?.message || "Unknown error";
+    toast.error(`Failed to open expense dialog. ${errorMessage}`);
+  }
 };
 
 const onFormSubmit = async () => {
@@ -23,7 +29,7 @@ const onFormSubmit = async () => {
     await save();
 
     toast.success(
-      `Successfully ${expense.value.id ? "updated" : "created"} expense`
+      `Successfully ${expense.value.id ? "updated" : "created"} expense`,
     );
 
     modalRef.value.modalRef?.close();

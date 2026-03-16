@@ -1,7 +1,7 @@
 import { serverSupabaseClient } from "#supabase/server";
 import { Database } from "~/types/supabase";
 
-export default defineEventHandler(async (event) => {
+export default defineAuthenticatedEventHandler(async (event) => {
   const id = getRouterParam(event, "id");
   const expenseId = getRouterParam(event, "expenseId");
   if (!id)

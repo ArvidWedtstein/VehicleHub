@@ -1,7 +1,7 @@
 import { serverSupabaseClient } from "#supabase/server";
 import { Database, TablesUpdate } from "~/types/supabase";
 
-export default defineEventHandler(async (event) => {
+export default defineAuthenticatedEventHandler(async (event) => {
   const { id: vehicleId, shareId } = event.context.params as {
     id: string;
     shareId: string;

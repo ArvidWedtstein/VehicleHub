@@ -4,9 +4,12 @@
   generic="M extends string | number | boolean | undefined | null"
 >
 import { computed, type InputTypeHTMLAttribute, useId } from "vue";
+import {
+  useInputIcons,
+  type UseInputIconsProps,
+} from "~/composables/useInputIcons";
 /**
  * TODO: add loading state
- * TODO: fix select input blocking icons (wait for Daisy UI v5.0.5)
  */
 
 type Option = {
@@ -15,9 +18,9 @@ type Option = {
   disabled?: boolean;
 };
 
-type Props = {
+interface Props extends UseInputIconsProps {
   wrapperClass?: string;
-  class?: string;
+  class?: any;
   type?: InputTypeHTMLAttribute | "select" | "textarea";
   options?: Option[];
   disabled?: boolean;
@@ -67,7 +70,7 @@ type Props = {
     | "text"
     | "url";
   tabindex?: number;
-};
+}
 
 const props = withDefaults(defineProps<Props>(), {
   type: "text",
@@ -92,12 +95,12 @@ const model = defineModel<
         | undefined
         | null
     : Props["type"] extends "number" | "range"
-    ? number | undefined | null
-    : Props["type"] extends "checkbox"
-    ? boolean | undefined | null
-    : Props["type"] extends "text"
-    ? string | undefined | null
-    : M,
+      ? number | undefined | null
+      : Props["type"] extends "checkbox"
+        ? boolean | undefined | null
+        : Props["type"] extends "text"
+          ? string | undefined | null
+          : M,
   PropertyKey
 >({
   required: false,
@@ -107,7 +110,7 @@ const id = useId();
 
 const computedType = computed(() => {
   return ["select", "range", "textarea", "checkbox", "radio"].includes(
-    props.type
+    props.type,
   )
     ? (props.type as "select" | "textarea" | "range" | "checkbox" | "radio")
     : "input";
@@ -127,6 +130,9 @@ const computedClass = computed(() => {
     props.class,
   ];
 });
+
+const { isLeading, isTrailing, leadingIconName, trailingIconName } =
+  useInputIcons(props);
 
 const onInput = (event: Event) => {
   const target = event.target as
@@ -189,7 +195,18 @@ const onChange = (event: Event) => {
     ></textarea>
 
     <label v-else :class="computedClass">
-      <slot name="icon"></slot>
+      <slot v-if="isLeading || !!avatar || !!$slots.leading" name="leading">
+        <span
+          v-if="isLeading && leadingIconName && loading"
+          :class="leadingIconName"
+        ></span>
+        <Icon
+          v-else-if="isLeading && leadingIconName"
+          :name="leadingIconName"
+          size="1.2em"
+        />
+        <AvatarImage v-else-if="!!avatar" v-bind="avatar" />
+      </slot>
 
       <slot name="input">
         <select
@@ -243,7 +260,17 @@ const onChange = (event: Event) => {
         />
       </slot>
 
-      <slot name="addon"></slot>
+      <slot v-if="isTrailing || !!$slots.trailing" name="trailing">
+        <span
+          v-if="trailingIconName && loading"
+          :class="trailingIconName"
+        ></span>
+        <Icon
+          v-else-if="trailingIconName"
+          :name="trailingIconName"
+          size="1.2em"
+        />
+      </slot>
     </label>
 
     <div

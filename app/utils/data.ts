@@ -11,16 +11,16 @@ export const pluralize = (
   count: number,
   noun: string,
   suffix = "s",
-  includeCount: boolean = true
+  includeCount: boolean = true,
 ): string => `${includeCount ? count : ""} ${noun}${count !== 1 ? suffix : ""}`;
 
 // Helper function to safely access nested properties with strict typing
 export const getNestedProperty = <
   T extends Record<string, unknown>, // Base object type
-  K extends Array<keyof T> // Array of keys (generic)
+  K extends Array<keyof T>, // Array of keys (generic)
 >(
   obj: T,
-  keys: K
+  keys: K,
 ) => {
   return keys.reduce<unknown>((acc, currentKey) => {
     if (acc && typeof acc === "object" && currentKey in acc) {
@@ -32,7 +32,7 @@ export const getNestedProperty = <
 
 export const groupBy = <T extends Record<string, unknown>>(
   array: T[],
-  key: keyof T | ((item: T) => string | number)
+  key: keyof T | ((item: T) => string | number),
 ): { [groupKey: string]: T[] } => {
   return array.reduce((acc: { [groupKey: string]: T[] }, obj: T) => {
     let groupKey: string | number | unknown;
@@ -64,7 +64,7 @@ export const groupBy = <T extends Record<string, unknown>>(
  */
 export const debounce = <T extends (...args: unknown[]) => void>(
   func: T,
-  delay: number
+  delay: number,
 ): ((...args: Parameters<T>) => void) => {
   let timeoutId: ReturnType<typeof setTimeout>;
   return (...args: Parameters<T>): void => {
@@ -119,7 +119,7 @@ type Change<T> = {
 
 export const calculateJsonChanges = <T>(
   oldValues: Partial<T> | undefined,
-  newValues: Partial<T> | undefined
+  newValues: Partial<T> | undefined,
 ): Change<T>[] => {
   const changes: Change<T>[] = [];
 
@@ -178,8 +178,12 @@ type SortOrder = "asc" | "desc";
 export const dynamicSort = <T extends Record<string, unknown>>(
   array: T[],
   key: keyof T,
-  order: SortOrder = "asc"
+  order: SortOrder = "asc",
 ): T[] => {
+  if (!Array.isArray(array) || array.length === 0) {
+    return array;
+  }
+
   return array.slice().sort((a, b) => {
     const getValue = (obj: T, path: string): unknown => {
       return path.split(".").reduce((value, part) => {
@@ -204,7 +208,7 @@ export const dynamicSort = <T extends Record<string, unknown>>(
       valueB === null
     ) {
       throw new Error(
-        `Property "${key.toString()}" does not exist on some objects.`
+        `Property "${key.toString()}" does not exist on some objects.`,
       );
     }
 
@@ -216,22 +220,23 @@ export const dynamicSort = <T extends Record<string, unknown>>(
 /** Removes key from object */
 export const removeKeys = <T extends Record<string, unknown>>(
   obj: T,
-  keysToRemove: (keyof T)[]
+  keysToRemove: (keyof T)[],
 ): Partial<T> => {
   return Object.fromEntries(
     Object.entries(obj).filter(
-      ([key]) => !keysToRemove.includes(key as keyof T)
-    )
+      ([key]) => !keysToRemove.includes(key as keyof T),
+    ),
   ) as Partial<T>;
 };
 
-type ExtractKey<T> = T extends Array<infer U>
-  ? U extends object
-    ? keyof U
-    : never
-  : T extends object
-  ? keyof T
-  : never;
+type ExtractKey<T> =
+  T extends Array<infer U>
+    ? U extends object
+      ? keyof U
+      : never
+    : T extends object
+      ? keyof T
+      : never;
 
 /**
  * Returns the sum of an array of numbers.
@@ -243,10 +248,12 @@ type ExtractKey<T> = T extends Array<infer U>
  * sum([1, 2, 3, 4]); // 10
  */
 export const sum = <
-  T extends (number | { [key: string]: unknown })[] | { [key: string]: unknown }
+  T extends
+    | (number | { [key: string]: unknown })[]
+    | { [key: string]: unknown },
 >(
   input: T,
-  key?: ExtractKey<T>
+  key?: ExtractKey<T>,
 ): number => {
   if (Array.isArray(input)) {
     return input.reduce((acc: number, item) => {
@@ -286,7 +293,7 @@ export const sum = <
       } else if (typeof value === "object" && value !== null) {
         total += sum(
           value as { [key: string]: unknown },
-          key as ExtractKey<typeof value>
+          key as ExtractKey<typeof value>,
         );
       }
     }

@@ -1,4 +1,4 @@
-export const downloadBlob = (blob: Blob, fileName: string) => {
+export function downloadBlob(blob: Blob, fileName: string) {
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement("a");
@@ -8,19 +8,19 @@ export const downloadBlob = (blob: Blob, fileName: string) => {
   a.click();
   URL.revokeObjectURL(url);
   document.body.removeChild(a);
-};
+}
 
-export const openBlob = (blob: Blob) => {
+export function openBlob(blob: Blob) {
   const url = URL.createObjectURL(blob);
 
   window.open(url);
-};
+}
 
-export const exportToTxt = (text: string) => {
+export function exportToTxt(text: string) {
   return new Blob([text], { type: "text/plain" });
-};
+}
 
-export const exportToCSV = <T>(rows: T[], columns: (keyof T)[]) => {
+export function exportToCSV<T>(rows: T[], columns: (keyof T)[]) {
   const header = columns.join(",");
 
   const dataRows = rows.map((row) => {
@@ -38,12 +38,12 @@ export const exportToCSV = <T>(rows: T[], columns: (keyof T)[]) => {
   const csvContent = [header, ...dataRows].join("\n");
 
   return new Blob([csvContent], { type: "text/csv" });
-};
+}
 
-export const parseRowsToTable = <T extends Record<string, unknown>>(
+export function parseRowsToTable<T extends Record<string, unknown>>(
   rows: T[],
-  columns: Array<keyof T>
-) => {
+  columns: Array<keyof T>,
+) {
   const divider = "|";
   const headerRowDivider = "-";
 
@@ -59,9 +59,9 @@ export const parseRowsToTable = <T extends Record<string, unknown>>(
   const columnsLength = columns.map((col) => {
     const maxColumnLength = Math.max(
       ...formattedRows.map(
-        (row) => String(row[col]).replace(/(?:\r\n|\r|\n)/g, "").length
+        (row) => String(row[col]).replace(/(?:\r\n|\r|\n)/g, "").length,
       ),
-      String(col).length
+      String(col).length,
     );
 
     return {
@@ -85,7 +85,7 @@ export const parseRowsToTable = <T extends Record<string, unknown>>(
       return columnsLength
         .map(({ column, length }) => {
           return `${String(row[column])}${" ".repeat(
-            length - String(row[column]).length
+            length - String(row[column]).length,
           )}`;
         })
         .join(divider);
@@ -93,15 +93,14 @@ export const parseRowsToTable = <T extends Record<string, unknown>>(
     .join("\n");
 
   return `${headerRow}\n${dividerRow}\n${rowsString}`;
-};
+}
 
 /**
  * PDF Report generator
  * @param expenses
  * @returns
- *
  */
-export const generateExpenseReport = async <T extends Record<string, unknown>>(
+export async function generateExpenseReport<T extends Record<string, unknown>>(
   expenses: T[],
   sortByKey: keyof T,
   groupByKey: keyof T,
@@ -109,8 +108,8 @@ export const generateExpenseReport = async <T extends Record<string, unknown>>(
     field: keyof T;
     /** Default is 100px */
     width?: number;
-  }[]
-) => {
+  }[],
+) {
   const page = {
     width: 595,
     height: 842,
@@ -142,7 +141,7 @@ export const generateExpenseReport = async <T extends Record<string, unknown>>(
     padding,
     header.y - header.fontSize / 2,
     page.width - padding,
-    header.y - header.fontSize / 2
+    header.y - header.fontSize / 2,
   );
 
   const table = {
@@ -176,7 +175,7 @@ export const generateExpenseReport = async <T extends Record<string, unknown>>(
     table.y -= 5;
 
     const tableData = expenses.map((expense) =>
-      columns.map((col) => (expense[col.field] ?? "None").toString())
+      columns.map((col) => (expense[col.field] ?? "None").toString()),
     );
 
     const { content: tableContent, height } = addTable(
@@ -185,7 +184,7 @@ export const generateExpenseReport = async <T extends Record<string, unknown>>(
       table.y, // Start Y position
       columns.map(({ width }) => width ?? 100), // Column widths
       15, // Row height
-      10 // Font size
+      10, // Font size
     );
     content += tableContent;
 
@@ -202,25 +201,25 @@ export const generateExpenseReport = async <T extends Record<string, unknown>>(
   const blob = new Blob([pdfContent], { type: "application/pdf" });
 
   return blob;
-};
+}
 
 // Generates ics file, which is used to add events to calendar
-export const generateICSFile = (event: {
+export function generateICSFile(event: {
   title: string | null;
   description: string | null;
   location: string | null;
   startDate: Date;
   endDate: Date;
-}): void => {
+}): void {
   const { title, description, location, startDate, endDate } = event;
   const pad = (num: number) => num.toString().padStart(2, "0");
 
   // Convert Date to ICS-compliant format: YYYYMMDDTHHMMSSZ (UTC)
   const formatICSDate = (date: Date): string => {
     return `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(
-      date.getUTCDate()
+      date.getUTCDate(),
     )}T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${pad(
-      date.getUTCSeconds()
+      date.getUTCSeconds(),
     )}Z`;
   };
 
@@ -261,4 +260,4 @@ END:VCALENDAR`;
   const blob = new Blob([icsContent], { type: "text/calendar" });
 
   downloadBlob(blob, "event.ics");
-};
+}

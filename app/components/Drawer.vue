@@ -76,7 +76,7 @@ const dragEndTime = ref<Date | null>(null);
 
 const setStyle = (
   element: HTMLElement | null,
-  styles: { [k: string]: string }
+  styles: { [k: string]: string },
 ) => {
   if (!element) return;
   const originalStyles: { [k: string]: string } = {};
@@ -108,7 +108,7 @@ const {
 });
 
 const isVertical = computed(
-  () => props.direction === "top" || props.direction === "bottom"
+  () => props.direction === "top" || props.direction === "bottom",
 );
 
 const snapPointHeight = computed(() => {
@@ -125,11 +125,11 @@ const updateSizes = () => {
   screenSize.value = isVertical.value ? window.innerHeight : window.innerWidth;
 
   const snaps = (props.snapPoints ?? [0, 1]).map(
-    (p) => clamp(Number(p) || 0, 0, 1) * screenSize.value
+    (p) => clamp(Number(p) || 0, 0, 1) * screenSize.value,
   );
   // ensure 0 and max present
   const set = Array.from(new Set([...snaps, 0, screenSize.value])).sort(
-    (a, b) => a - b
+    (a, b) => a - b,
   );
   snapPointsPx.value = set;
   // if currentSnapPx is outside bounds, snap to nearest valid
@@ -318,13 +318,13 @@ const onPointerUp = (ev: PointerEvent) => {
 
   const visibleDrawerHeight = Math.min(
     drawerRef.value.getBoundingClientRect().height ?? 0,
-    window.innerHeight
+    window.innerHeight,
   );
 
   console.log(
     "visible",
     swipeAmount,
-    visibleDrawerHeight * props.closeThreshold
+    visibleDrawerHeight * props.closeThreshold,
   );
   if (swipeAmount >= visibleDrawerHeight * props.closeThreshold) {
     toggleDrawer(false);
@@ -358,7 +358,7 @@ const drawerClass = computed(() => {
         "flex-col-reverse top-0 left-0 w-full h-auto rounded-b-box mb-24";
       break;
     case "bottom":
-      baseClass = "flex-col h-auto max-h-[96%] rounded-t-box mt-24"; //  bottom-0 left-0
+      baseClass = "flex-col h-auto w-full max-h-[96%] rounded-t-box mt-24"; //  bottom-0 left-0
       break;
     case "left":
       baseClass = "flex-row-reverse top-0 left-0 h-full w-auto rounded-r-box";
