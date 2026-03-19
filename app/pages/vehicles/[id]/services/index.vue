@@ -102,8 +102,9 @@ const setSortKey = (key: keyof Tables<"VehicleServiceLogs">) => {
   sortControl.key = key;
 };
 
-const handleCreateService = () => {
+const handleCreateService = async () => {
   if (!vehicleId.value) return;
+
   serviceDialogRef.value?.open(vehicleId.value);
 };
 
