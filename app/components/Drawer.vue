@@ -358,7 +358,7 @@ const drawerClass = computed(() => {
         "flex-col-reverse top-0 left-0 w-full h-auto rounded-b-box mb-24";
       break;
     case "bottom":
-      baseClass = "flex-col h-auto w-full max-h-[96%] rounded-t-box mt-24"; //  bottom-0 left-0
+      baseClass = "flex-col h-auto w-auto max-h-[96%] rounded-t-box mt-24"; //  bottom-0 left-0
       break;
     case "left":
       baseClass = "flex-row-reverse top-0 left-0 h-full w-auto rounded-r-box";
@@ -467,7 +467,7 @@ defineExpose({
           :id="id"
           ref="drawerRef"
           v-if="drawerOpen"
-          class="fixed bg-base-200 text-base-content shadow-lg flex transform transition-transform duration-75 hover:select-none pointer-fine:select-none"
+          class="drawer fixed bg-base-200 text-base-content shadow-lg flex transform transition-transform duration-75 hover:select-none pointer-fine:select-none"
           :class="[drawerClass, drawerClasses]"
           :style="{ '--snap-point-height': snapPointHeight }"
           :data-drawer-direction="direction"

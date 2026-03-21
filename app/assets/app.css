@@ -37,10 +37,16 @@
 }
 
 @plugin "daisyui" {
-  themes: light --default, VehicleHub --prefersdark;
+  themes:
+    light --default,
+    VehicleHub --prefersdark;
   logs: true;
 }
 
 :root {
   --header-height: calc(var(--spacing) * 16);
+}
+
+:root:has(:is(.drawer[data-state="open"])) {
+  --page-overflow: hidden;
 }

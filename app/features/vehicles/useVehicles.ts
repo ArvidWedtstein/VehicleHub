@@ -1,48 +1,29 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
-// export function useVehicles(filters: FilterOption<Tables<"Vehicles">>[] = []) {
-//   return useAsyncData(
-//     "vehicles",
-//     (_nuxtApp, { signal }) =>
-//       $fetch<Tables<"Vehicles">[]>("/api/vehicles/filter", {
-//         method: "post",
-//         body: {
-//           filters,
-//         },
-//         credentials: "include",
-//         headers: import.meta.server ? useRequestHeaders(["cookie"]) : undefined,
-//         signal,
-//       }),
-//     { default: () => [] },
-//   );
-// }
-
 export function useVehicles(filters: FilterOption<Tables<"Vehicles">>[] = []) {
   return useFetch<Tables<"Vehicles">[]>("/api/vehicles/filter", {
     method: "post",
     body: {
       filters,
     },
-    key: () => `vehicles-${JSON.stringify(filters)}`,
+    key: `vehicles`,
     default: () => [],
     watch: [() => filters],
   });
 }
 
 export const useVehicle = (id?: MaybeRef<Tables<"Vehicles">["id"]>) => {
-  return useAsyncData(
-    () => `vehicle-${unref(id)}`,
-    (_nuxtApp, { signal }) =>
-      $fetch<
-        Tables<"Vehicles"> & {
-          shares: (Tables<"VehicleShares"> & { profile: Tables<"Profiles"> })[];
-        }
-      >(`/api/vehicles/${unref(id)}`, {
-        credentials: "include",
-        headers: import.meta.server ? useRequestHeaders(["cookie"]) : undefined,
-        signal,
-      }),
-  );
+  const vehicleId = computed(() => unref(id));
+
+  return useFetch<
+    Tables<"Vehicles"> & {
+      shares: (Tables<"VehicleShares"> & { profile: Tables<"Profiles"> })[];
+    }
+  >(() => `/api/vehicles/${vehicleId.value}`, {
+    key: `vehicle-${vehicleId.value}`,
+    immediate: !!vehicleId.value,
+    watch: [vehicleId],
+  });
 };
 
 export async function createVehicle(patch: Partial<TablesInsert<"Vehicles">>) {
@@ -65,7 +46,6 @@ export async function updateVehicle(
     {
       method: "put",
       body: patch,
-      headers: useRequestHeaders(["cookie"]),
     },
   );
   refreshNuxtData("vehicles");
