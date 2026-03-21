@@ -5,7 +5,7 @@ type useSnapPointsProps = {
   drawerRef: Ref<HTMLElement | null>;
   onSnapPointChange: (
     activeSnapPointIndex: number,
-    snapPointsOffset: number[]
+    snapPointsOffset: number[],
   ) => void;
   direction: Ref<Direction>;
 };
@@ -22,7 +22,7 @@ export const useSnapPoints = ({
 
   const setStyle = (
     element: HTMLElement | null,
-    styles: { [k: string]: string }
+    styles: { [k: string]: string },
   ) => {
     if (!element) return;
     const originalStyles: { [k: string]: string } = {};
@@ -44,7 +44,7 @@ export const useSnapPoints = ({
           innerWidth: window.innerWidth,
           innerHeight: window.innerHeight,
         }
-      : undefined
+      : undefined,
   );
 
   const isLastSnapPoint = computed(
@@ -52,7 +52,7 @@ export const useSnapPoints = ({
       (snapPoints.value &&
         activeSnapPoint.value ===
           snapPoints.value[snapPoints.value.length - 1]) ??
-      null
+      null,
   );
 
   const activeSnapPointIdx = computed(() => {
@@ -73,8 +73,8 @@ export const useSnapPoints = ({
           const height = isPx
             ? snapPointAsNum
             : windowSize.value
-            ? snapPoint * windowSize.value.innerHeight
-            : 0;
+              ? snapPoint * windowSize.value.innerHeight
+              : 0;
 
           // console.log("snap", snapPoint, "|", height, "|", windowSize.value);
           if (windowSize.value) {
@@ -89,8 +89,8 @@ export const useSnapPoints = ({
         const width = isPx
           ? snapPointAsNum
           : windowSize.value
-          ? snapPoint * windowSize.value.innerWidth
-          : 0;
+            ? snapPoint * windowSize.value.innerWidth
+            : 0;
 
         if (windowSize.value)
           return direction.value === "right"
@@ -98,19 +98,19 @@ export const useSnapPoints = ({
             : -windowSize.value.innerWidth + width;
 
         return width;
-      }) ?? []
+      }) ?? [],
   );
 
   const activeSnapPointOffset = computed(() =>
     activeSnapPointIdx.value != null
       ? snapPointsOffset.value?.[activeSnapPointIdx.value]
-      : null
+      : null,
   );
 
   const snapToPoint = (dim: number) => {
     const newSnapPointIndex =
       snapPointsOffset.value?.findIndex(
-        (snapPointDim) => snapPointDim === dim
+        (snapPointDim) => snapPointDim === dim,
       ) ?? null;
 
     nextTick(() => {
@@ -124,7 +124,7 @@ export const useSnapPoints = ({
 
     activeSnapPoint.value =
       newSnapPointIndex !== null
-        ? snapPoints.value?.[newSnapPointIndex] ?? null
+        ? (snapPoints.value?.[newSnapPointIndex] ?? null)
         : null;
   };
 
@@ -135,7 +135,7 @@ export const useSnapPoints = ({
 
       const newIdx =
         snapPoints.value?.findIndex(
-          (snapPoint) => snapPoint === activeSnapPoint.value
+          (snapPoint) => snapPoint === activeSnapPoint.value,
         ) ?? -1;
 
       if (
@@ -148,7 +148,7 @@ export const useSnapPoints = ({
     },
     {
       immediate: true,
-    }
+    },
   );
 
   const onDrag = ({ draggedDistance }: { draggedDistance: number }) => {
@@ -162,8 +162,6 @@ export const useSnapPoints = ({
     const lastSnapOffset =
       snapPointsOffset.value[snapPointsOffset.value.length - 1] || 0;
 
-    console.log("last snap offset", lastSnapOffset, "|", newValue);
-    console.log("active snap offset", activeSnapPointOffset.value);
     if (
       (direction.value === "bottom" || direction.value === "right") &&
       newValue < lastSnapOffset
@@ -209,7 +207,7 @@ export const useSnapPoints = ({
 
     if (velocity > 2 && hasDraggedUp && snapPointsOffset && snapPoints.value) {
       snapToPoint(
-        snapPointsOffset.value[snapPoints.value.length - 1] as number
+        snapPointsOffset.value[snapPoints.value.length - 1] as number,
       );
       return;
     }
@@ -236,7 +234,7 @@ export const useSnapPoints = ({
 
       if (dragDirection > 0 && isLastSnapPoint) {
         snapToPoint(
-          snapPointsOffset.value[(snapPoints.value?.length ?? 0) - 1] || 0
+          snapPointsOffset.value[(snapPoints.value?.length ?? 0) - 1] || 0,
         );
         return;
       }
@@ -246,7 +244,7 @@ export const useSnapPoints = ({
       if (activeSnapPointIdx.value == null) return;
 
       snapToPoint(
-        snapPointsOffset.value[activeSnapPointIdx.value + dragDirection] || 0
+        snapPointsOffset.value[activeSnapPointIdx.value + dragDirection] || 0,
       );
       return;
     }
