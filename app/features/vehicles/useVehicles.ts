@@ -1,16 +1,31 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
+// export function useVehicles(filters: FilterOption<Tables<"Vehicles">>[] = []) {
+//   return useAsyncData(
+//     "vehicles",
+//     (_nuxtApp, { signal }) =>
+//       $fetch<Tables<"Vehicles">[]>("/api/vehicles/filter", {
+//         method: "post",
+//         body: {
+//           filters,
+//         },
+//         credentials: "include",
+//         headers: import.meta.server ? useRequestHeaders(["cookie"]) : undefined,
+//         signal,
+//       }),
+//     { default: () => [] },
+//   );
+// }
+
 export function useVehicles(filters: FilterOption<Tables<"Vehicles">>[] = []) {
-  return useAsyncData("vehicles", async (_nuxtApp, { signal }) => {
-    return await $fetch<Tables<"Vehicles">[]>("/api/vehicles/filter", {
-      method: "post",
-      body: {
-        filters,
-      },
-      credentials: "include",
-      headers: import.meta.server ? useRequestHeaders(["cookie"]) : undefined,
-      signal,
-    });
+  return useFetch<Tables<"Vehicles">[]>("/api/vehicles/filter", {
+    method: "post",
+    body: {
+      filters,
+    },
+    key: () => `vehicles-${JSON.stringify(filters)}`,
+    default: () => [],
+    watch: [() => filters],
   });
 }
 

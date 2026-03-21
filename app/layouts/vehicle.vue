@@ -66,6 +66,7 @@ onMounted(() => {
 </script>
 
 <template>
+  <NuxtLoadingIndicator />
   <NuxtLayout name="default">
     <div>
       <div class="relative flex flex-col gap-3 flex-1 w-full p-4">

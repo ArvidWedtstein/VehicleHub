@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import type { Tables } from "~/types/supabase";
 import VehicleListItem from "./VehicleListItem.vue";
+import { useVehicles } from "~/features/vehicles/useVehicles";
 
-const { vehicles } = defineProps<{
-  vehicles: Tables<"Vehicles">[];
-}>();
+const { data: vehicles } = await useVehicles();
 </script>
 
 <template>
@@ -13,10 +11,6 @@ const { vehicles } = defineProps<{
 
     <span v-if="!vehicles.length">No vehicles</span>
     <TransitionGroup name="fade">
-      <!-- <template v-if="loading">
-        <VehicleCardSkeletonLoader v-for="i in 6" :key="i" />
-      </template> -->
-
       <VehicleListItem
         v-for="vehicle in vehicles"
         :key="vehicle.id"
