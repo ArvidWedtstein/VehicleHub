@@ -59,6 +59,15 @@ const activeSnapPoint = defineModel<string | number>("activeSnapPoint", {
 const drawerRef = ref<HTMLElement | null>(null);
 const handleRef = ref<HTMLElement | null>(null);
 
+const isServer = import.meta.server;
+const isMounted = ref(false);
+
+const toggleDrawer = (open: boolean, reason?: string) => {
+  drawerOpen.value = open;
+
+  nextTick(() => (open ? emit("shown", reason) : emit("hidden", reason)));
+};
+
 const setStyle = (el: HTMLElement | null, styles: Record<string, string>) => {
   if (!el) return;
   Object.entries(styles).forEach(([k, v]) => {
@@ -85,88 +94,84 @@ const {
   direction: toRef(props, "direction"),
 });
 
-const toggleDrawer = (open: boolean, reason?: string) => {
-  drawerOpen.value = open;
+if (!isServer) {
+  useDrag({
+    vertical: isVertical.value,
+    handleRef,
+    containerRef: drawerRef,
+    onDrag: ({ delta }) => {
+      const directionMultiplier =
+        props.direction === "bottom" || props.direction === "right" ? 1 : -1;
 
-  nextTick(() => (open ? emit("shown", reason) : emit("hidden", reason)));
-};
+      const draggedDistance = delta * directionMultiplier;
+      const isDraggingInDirection = draggedDistance > 0;
 
-useDrag({
-  vertical: isVertical.value,
-  handleRef,
-  containerRef: drawerRef,
-  onDrag: ({ delta }) => {
-    const directionMultiplier =
-      props.direction === "bottom" || props.direction === "right" ? 1 : -1;
+      const noCloseSnapPointsPreCondition =
+        props.snapPoints && !props.dismissible && !isDraggingInDirection;
 
-    const draggedDistance = delta * directionMultiplier;
-    const isDraggingInDirection = draggedDistance > 0;
+      if (noCloseSnapPointsPreCondition && !activeSnapPointIdx.value) return;
 
-    const noCloseSnapPointsPreCondition =
-      props.snapPoints && !props.dismissible && !isDraggingInDirection;
+      const absDraggedDistance = Math.abs(draggedDistance);
 
-    if (noCloseSnapPointsPreCondition && !activeSnapPointIdx.value) return;
+      if (props.snapPoints) {
+        onDragSnapPoints({ draggedDistance });
+      }
 
-    const absDraggedDistance = Math.abs(draggedDistance);
+      if (isDraggingInDirection && !props.snapPoints) {
+        console.log("dragged distance", draggedDistance);
+        const dampenedDraggedDistance = 8 * (Math.log(draggedDistance + 1) - 2);
 
-    if (props.snapPoints) {
-      onDragSnapPoints({ draggedDistance });
-    }
+        const translateValue =
+          Math.min(dampenedDraggedDistance * -1, 0) * directionMultiplier;
 
-    if (isDraggingInDirection && !props.snapPoints) {
-      console.log("dragged distance", draggedDistance);
-      const dampenedDraggedDistance = 8 * (Math.log(draggedDistance + 1) - 2);
+        setStyle(drawerRef.value, {
+          transform: isVertical.value
+            ? `translate3d(0, ${translateValue}px, 0)`
+            : `translate3d(${translateValue}px, 0, 0)`,
+        });
 
-      const translateValue =
-        Math.min(dampenedDraggedDistance * -1, 0) * directionMultiplier;
+        return;
+      }
 
-      setStyle(drawerRef.value, {
-        transform: isVertical.value
-          ? `translate3d(0, ${translateValue}px, 0)`
-          : `translate3d(${translateValue}px, 0, 0)`,
-      });
+      if (!props.snapPoints) {
+        const translateValue = absDraggedDistance * directionMultiplier;
 
-      return;
-    }
+        setStyle(drawerRef.value, {
+          transform: isVertical.value
+            ? `translate3d(0, ${translateValue}px, 0)`
+            : `translate3d(${translateValue}px, 0, 0)`,
+        });
+      }
+    },
+    onRelease: ({ delta, velocity }) => {
+      const directionMultiplier =
+        props.direction === "bottom" || props.direction === "right" ? 1 : -1;
 
-    if (!props.snapPoints) {
-      const translateValue = absDraggedDistance * directionMultiplier;
+      if (props.snapPoints) {
+        onReleaseSnapPoints({
+          draggedDistance: delta * directionMultiplier,
+          closeDrawer: () => toggleDrawer(false),
+          velocity,
+          dismissible: props.dismissible,
+        });
 
-      setStyle(drawerRef.value, {
-        transform: isVertical.value
-          ? `translate3d(0, ${translateValue}px, 0)`
-          : `translate3d(${translateValue}px, 0, 0)`,
-      });
-    }
-  },
-  onRelease: ({ delta, velocity }) => {
-    const directionMultiplier =
-      props.direction === "bottom" || props.direction === "right" ? 1 : -1;
+        return;
+      }
 
-    if (props.snapPoints) {
-      onReleaseSnapPoints({
-        draggedDistance: delta * directionMultiplier,
-        closeDrawer: () => toggleDrawer(false),
-        velocity,
-        dismissible: props.dismissible,
-      });
+      if (velocity > props.closeThreshold) {
+        toggleDrawer(false);
+        return;
+      }
 
-      return;
-    }
-
-    if (velocity > props.closeThreshold) {
-      toggleDrawer(false);
-      return;
-    }
-
-    setStyle(drawerRef.value, { transform: "translate3d(0,0,0)" });
-  },
-});
+      setStyle(drawerRef.value, { transform: "translate3d(0,0,0)" });
+    },
+  });
+}
 
 // ============ Computed classes/styles ============
 const baseClassMap = {
   top: "flex-col-reverse top-0 left-0 w-full h-auto rounded-b-box mb-24",
-  bottom: "flex-col h-auto max-h-[96%] rounded-t-box mt-24",
+  bottom: "flex-col h-auto bottom-0 max-h-[96%] rounded-t-box mt-24",
   left: "flex-row-reverse top-0 left-0 h-full w-auto rounded-r-box",
   right: "flex-row top-0 right-0 h-full w-auto rounded-l-box",
 };
@@ -178,18 +183,21 @@ const insetClassMap = {
   right: "rounded-r-box inset-y-4 right-4 after:hidden",
 };
 const nonInsetClassMap = {
-  top: "inset-x-0 top-0",
-  bottom: "inset-x-0 bottom-0",
-  left: "inset-y-0 left-0",
-  right: "inset-y-0 right-0",
+  top: "inset-x-0",
+  bottom: "inset-x-0",
+  left: "inset-y-0",
+  right: "inset-y-0",
 };
 
 const drawerClass = computed(() => {
-  let base = baseClassMap[props.direction] ?? "";
-
-  base += ` ${props.inset ? (insetClassMap[props.direction] ?? "") : (nonInsetClassMap[props.direction] ?? "")}`;
-
-  return base + (props.drawerClasses ? " " + props.drawerClasses : "");
+  if (!isMounted.value || isServer) return baseClassMap[props.direction] ?? "";
+  return [
+    baseClassMap[props.direction],
+    props.inset
+      ? insetClassMap[props.direction]
+      : nonInsetClassMap[props.direction],
+    props.drawerClasses,
+  ];
 });
 
 const snapPointHeight = computed(() => {
@@ -209,6 +217,10 @@ const handlePositionClass = computed(
   () => handleClassMap[props.direction] ?? "",
 );
 
+onMounted(() => {
+  isMounted.value = true;
+});
+
 defineExpose({
   open: (reason?: string) => toggleDrawer(true, reason),
   close: (reason?: string) => toggleDrawer(false, reason),
@@ -218,7 +230,10 @@ defineExpose({
 
 <template>
   <Teleport to="body">
-    <div class="fixed inset-0 z-50" :class="{ invisible: !drawerOpen }">
+    <div
+      class="fixed inset-0 z-50"
+      :class="{ invisible: !drawerOpen || !isMounted }"
+    >
       <!-- Backdrop -->
       <Transition name="fade">
         <div
@@ -231,7 +246,7 @@ defineExpose({
       <Transition :name="`slide-${direction}`">
         <div
           ref="drawerRef"
-          v-show="drawerOpen"
+          v-show="drawerOpen && isMounted"
           class="drawer fixed bg-base-200 text-base-content shadow-lg flex transform transition-transform duration-75 hover:select-none pointer-fine:select-none"
           :class="drawerClass"
           :style="{ '--snap-point-height': snapPointHeight }"

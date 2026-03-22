@@ -106,7 +106,6 @@ export function useDrag(options: UseDragOptions) {
   };
 
   onMounted(() => {
-    console.log("USE DRAG", containerRef?.value);
     bindHandle();
     bindContainer();
   });
