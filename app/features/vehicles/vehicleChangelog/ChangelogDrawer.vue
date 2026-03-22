@@ -7,11 +7,11 @@ import ChangelogListItem from "./components/ChangelogListItem.vue";
 import ChangelogList from "./components/ChangelogList.vue";
 
 const props = defineProps<{ vehicleId: number }>();
-const { isMd } = useBreakpoints();
+
 const drawerRef = ref<InstanceType<typeof Drawer> | null>(null);
 
 const { data: changelog, pending: loading } = useVehicleChangelog(
-  props.vehicleId
+  props.vehicleId,
 );
 
 type TableNames = keyof Database[Extract<keyof Database, "public">]["Tables"];
@@ -92,7 +92,7 @@ const generateChangelogSentence = (entry: Tables<"changelog_with_profile">) => {
 
     let formattedMapping = mapping.replace(
       /\{\{\s*on\s*\}\}/g,
-      oldChanges?.["name"] || ""
+      oldChanges?.["name"] || "",
     );
 
     if (newChanges) {
@@ -101,11 +101,11 @@ const generateChangelogSentence = (entry: Tables<"changelog_with_profile">) => {
         .replace(/\{\{\s*nn\s*\}\}/g, newChanges?.["name"] || "")
         .replace(
           "expense",
-          `<a href="/vehicles/${vehicle_id}/expenses/${newChanges["id"]}" class="font-semibold text-base-content text-nowrap link">Expense</a>`
+          `<a href="/vehicles/${vehicle_id}/expenses/${newChanges["id"]}" class="font-semibold text-base-content text-nowrap link">Expense</a>`,
         )
         .replace(
           "service",
-          `<a href="/vehicles/${vehicle_id}/services/${newChanges["id"]}" class="font-semibold text-base-content text-nowrap link">Service</a>`
+          `<a href="/vehicles/${vehicle_id}/services/${newChanges["id"]}" class="font-semibold text-base-content text-nowrap link">Service</a>`,
         );
     }
 
@@ -119,7 +119,7 @@ const generateChangelogSentence = (entry: Tables<"changelog_with_profile">) => {
           ({ field, oldValue, newValue }) =>
             `<code>${field}</code> ${
               oldValue ? `from '${oldValue}' ` : ""
-            }to '${newValue}'`
+            }to '${newValue}'`,
         )
         .join(", ")}`;
     }
@@ -161,12 +161,7 @@ defineExpose({
 </script>
 
 <template>
-  <Drawer
-    ref="drawerRef"
-    :direction="isMd ? 'left' : 'bottom'"
-    title="Changelog"
-    disableSwipe
-  >
+  <Drawer ref="drawerRef" direction="left" title="Changelog" disableSwipe>
     <template #header>
       <h3 class="text-lg font-bold">Changelog</h3>
       <button

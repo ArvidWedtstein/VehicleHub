@@ -160,7 +160,7 @@ const handleFilterApply = async (
       </div>
     </div>
 
-    <ListGroup class="flex-1 overflow-hidden" ignoreListClass>
+    <ListGroup class="flex-1 overflow-hidden mb-16" ignoreListClass>
       <template v-if="loading">
         LOADING
         <!-- <ExpenseListItemSkeleton v-for="i in 10" :key="i" /> -->

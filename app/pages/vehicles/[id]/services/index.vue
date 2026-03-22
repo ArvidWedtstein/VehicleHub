@@ -5,6 +5,11 @@ import ServicesListItem from "~/features/vehicles/services/ServicesListItem.vue"
 import { useVehicleServices } from "~/features/vehicles/services/useVehicleServices";
 import type { Tables } from "~/types/supabase";
 
+const ServiceDialog = defineAsyncComponent(
+  async () =>
+    await import("~/features/vehicles/services/serviceDialog/ServiceDialog.vue"),
+);
+
 useHead({
   title: "Services",
 });
@@ -21,12 +26,7 @@ const {
   data: services,
   refresh,
   pending: loading,
-} = await useVehicleServices(vehicleId, filters);
-
-const ServiceDialog = defineAsyncComponent(
-  async () =>
-    await import("~/features/vehicles/services/serviceDialog/ServiceDialog.vue"),
-);
+} = useVehicleServices(vehicleId, filters);
 
 const serviceDialogRef = ref<InstanceType<typeof ServiceDialog>>();
 
@@ -164,7 +164,7 @@ const handleFilterApply = async (
       </div>
     </div>
 
-    <ListGroup class="flex-1" ignoreListClass>
+    <ListGroup class="flex-1 overflow-hidden mb-16" ignoreListClass>
       <template v-if="loading">
         loading
         <!-- <ServiceListItemSkeleton v-for="idx in 10" :key="`skeleton-${idx}`" /> -->

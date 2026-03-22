@@ -59,8 +59,6 @@ const activeSnapPoint = defineModel<string | number>("activeSnapPoint", {
 const drawerRef = ref<HTMLElement | null>(null);
 const handleRef = ref<HTMLElement | null>(null);
 
-const id = useId();
-
 const setStyle = (el: HTMLElement | null, styles: Record<string, string>) => {
   if (!el) return;
   Object.entries(styles).forEach(([k, v]) => {
@@ -232,52 +230,53 @@ defineExpose({
         ></div>
       </Transition>
 
-      <Transition :name="`slide-${direction}`">
-        <div
-          :id="id"
-          ref="drawerRef"
-          v-show="drawerOpen"
-          class="drawer fixed bg-base-200 text-base-content shadow-lg flex transform transition-transform duration-75 hover:select-none pointer-fine:select-none"
-          :class="drawerClass"
-          :style="{ '--snap-point-height': snapPointHeight }"
-          :data-drawer-direction="direction"
-          role="dialog"
-          :data-state="drawerOpen ? 'open' : 'closed'"
-          tabindex="-1"
-          @keydown.esc="toggleDrawer(false, 'close')"
-        >
+      <ClientOnly>
+        <Transition :name="`slide-${direction}`">
           <div
-            v-if="handle"
-            ref="handleRef"
-            class="shrink-0 bg-neutral rounded cursor-grab active:cursor-grabbing hover:bg-neutral/80"
-            :class="handlePositionClass"
-          ></div>
+            ref="drawerRef"
+            v-show="drawerOpen"
+            class="drawer fixed bg-base-200 text-base-content shadow-lg flex transform transition-transform duration-75 hover:select-none pointer-fine:select-none"
+            :class="drawerClass"
+            :style="{ '--snap-point-height': snapPointHeight }"
+            :data-drawer-direction="direction"
+            role="dialog"
+            :data-state="drawerOpen ? 'open' : 'closed'"
+            tabindex="-1"
+            @keydown.esc="toggleDrawer(false, 'close')"
+          >
+            <div
+              v-if="handle"
+              ref="handleRef"
+              class="shrink-0 bg-neutral rounded cursor-grab active:cursor-grabbing hover:bg-neutral/80"
+              :class="handlePositionClass"
+            ></div>
 
-          <slot name="content">
-            <div class="w-full flex flex-col gap-4 p-4 overflow-y-auto">
-              <!-- Header -->
-              <div class="flex items-center justify-between">
-                <slot name="header">
-                  <h2 v-if="title" class="text-lg font-bold">
-                    {{ title }}
-                  </h2>
-                </slot>
-              </div>
+            <slot name="content">
+              <div class="w-full flex flex-col gap-4 p-4 overflow-y-auto">
+                <!-- Header -->
+                <div class="flex items-center justify-between">
+                  <slot name="header">
+                    <h2 v-if="title" class="text-lg font-bold">
+                      {{ title }}
+                    </h2>
+                  </slot>
+                </div>
 
-              <div v-if="!!$slots.body" class="flex-1">
-                <slot name="body"></slot>
-              </div>
+                <div v-if="!!$slots.body" class="flex-1">
+                  <slot name="body"></slot>
+                </div>
 
-              <div
-                v-if="!!$slots.footer"
-                class="flex gap-1 md:justify-end justify-items-stretch py-4 shrink-0"
-              >
-                <slot name="footer" :toggleDrawer="toggleDrawer"></slot>
+                <div
+                  v-if="!!$slots.footer"
+                  class="flex gap-1 md:justify-end justify-items-stretch py-4 shrink-0"
+                >
+                  <slot name="footer" :toggleDrawer="toggleDrawer"></slot>
+                </div>
               </div>
-            </div>
-          </slot>
-        </div>
-      </Transition>
+            </slot>
+          </div>
+        </Transition>
+      </ClientOnly>
     </div>
   </Teleport>
 </template>

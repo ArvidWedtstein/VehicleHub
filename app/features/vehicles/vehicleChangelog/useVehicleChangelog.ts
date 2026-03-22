@@ -2,20 +2,20 @@ import { useProfile } from "~/features/profiles/useProfiles";
 import type { Tables } from "~/types/supabase";
 
 export function useVehicleChangelog(
-  vehicleId?: MaybeRef<string | number | undefined>
+  vehicleId?: MaybeRef<string | number | undefined>,
 ) {
-  return useAsyncData(`vehicles-${unref(vehicleId)}_changelog`, async () => {
-    return await $fetch<Tables<"changelog_with_profile">[]>(
-      `/api/vehicles/${unref(vehicleId)}/changelog`,
-      {
-        headers: useRequestHeaders(["cookie"]),
-      }
-    );
-  });
+  return useFetch<Tables<"changelog_with_profile">[]>(
+    `/api/vehicles/${unref(vehicleId)}/changelog`,
+    {
+      key: `vehicles-${unref(vehicleId)}_changelog`,
+      immediate: !!unref(vehicleId),
+      default: () => [],
+    },
+  );
 }
 
 export const initChangelogRealtime = (
-  vehicleId?: MaybeRef<string | number | undefined>
+  vehicleId?: MaybeRef<string | number | undefined>,
 ) => {
   try {
     const client = useSupabaseClient();
@@ -36,7 +36,7 @@ export const initChangelogRealtime = (
 
           useAsyncData(`vehicles-${unref(vehicleId)}_changelog`, async () => {
             const { data: profile } = await useProfile(
-              payload.new["createdby_id"]
+              payload.new["createdby_id"],
             );
 
             const newEntryWithProfile: Tables<"changelog_with_profile"> = {
@@ -47,7 +47,7 @@ export const initChangelogRealtime = (
             };
             return [newEntryWithProfile];
           });
-        }
+        },
       )
       .subscribe();
   } catch (error) {

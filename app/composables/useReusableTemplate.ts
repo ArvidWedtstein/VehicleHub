@@ -10,21 +10,24 @@ import {
 } from "vue";
 
 type SlotsFromSlotMap<
-  T extends Record<string, Record<string, any> | undefined>
+  T extends Record<string, Record<string, any> | undefined>,
 > = {
   [K in keyof T]: Slot<T[K]>;
 };
 
 type DefineTemplateComponent<
   Bindings extends Record<string, any>,
-  MapSlotNameToSlotProps extends Record<string, Record<string, any> | undefined>
+  MapSlotNameToSlotProps extends Record<
+    string,
+    Record<string, any> | undefined
+  >,
 > = DefineComponent & {
   new (): {
     $slots: {
       default: (
         _: Bindings & {
           $slots: SlotsFromSlotMap<MapSlotNameToSlotProps>;
-        }
+        },
       ) => any;
     };
   };
@@ -32,7 +35,10 @@ type DefineTemplateComponent<
 
 type ReuseTemplateComponent<
   Bindings extends Record<string, any>,
-  MapSlotNameToSlotProps extends Record<string, Record<string, any> | undefined>
+  MapSlotNameToSlotProps extends Record<
+    string,
+    Record<string, any> | undefined
+  >,
 > = DefineComponent<Bindings> & {
   new (): { $slots: SlotsFromSlotMap<MapSlotNameToSlotProps> };
 };
@@ -55,7 +61,7 @@ export function useReusableTemplate<
     string,
     Record<string, any> | undefined
   > = Record<"default", undefined>,
-  Props extends Record<string, any> = Record<string, any>
+  Props extends Record<string, any> = Record<string, any>,
 >(options: ReusableTemplateOptions<Bindings> = {}) {
   const { inheritAttrs = true } = options;
 
@@ -75,7 +81,7 @@ export function useReusableTemplate<
     setup(props, { attrs, slots }) {
       return () => {
         if (!renderFn.value) {
-          throw new Error("Failed to get definition of template");
+          throw createError("Failed to get definition of template");
         }
 
         const node = renderFn.value({

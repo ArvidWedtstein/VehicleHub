@@ -3,7 +3,7 @@ export const useBreakpoints = () => {
 
   const updateWidth = () => {
     width.value = window?.innerWidth || 0;
-    // checkBreakpoints();
+    checkBreakpoints();
   };
 
   // Define breakpoints based on Tailwind's default breakpoints
@@ -35,15 +35,17 @@ export const useBreakpoints = () => {
     is2Xl.value = w >= xxl;
   };
 
-  onMounted(() => {
-    updateWidth();
-    checkBreakpoints();
-    window.addEventListener("resize", updateWidth);
-  });
+  if (import.meta.client) {
+    onMounted(() => {
+      updateWidth();
+      checkBreakpoints();
+      window.addEventListener("resize", updateWidth);
+    });
 
-  onUnmounted(() => {
-    window.removeEventListener("resize", updateWidth);
-  });
+    onUnmounted(() => {
+      window.removeEventListener("resize", updateWidth);
+    });
+  }
 
   return {
     width,

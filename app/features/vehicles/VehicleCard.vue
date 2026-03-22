@@ -34,22 +34,30 @@ const currentVehicleOwner = computed(() => {
 });
 
 const editVehicle = () => {
-  vehicleDialogRef.value?.open(vehicle.id);
+  if (import.meta.client) {
+    vehicleDialogRef.value?.open(vehicle.id);
+  }
 };
 
 const openShareVehicleDialog = async () => {
-  shareVehicleDialogRef.value?.open(vehicle.id);
+  if (import.meta.client) {
+    shareVehicleDialogRef.value?.open(vehicle.id);
+  }
 };
 
 const openChangelogDrawer = () => {
-  changelogDrawerRef.value?.drawerRef?.open();
+  if (import.meta.client) {
+    changelogDrawerRef.value?.drawerRef?.open();
+  }
 };
 </script>
 
 <template>
   <div class="card image-full card-border bg-base-200 shrink">
     <VehicleDialog ref="vehicleDialogRef" />
+
     <ChangelogDrawer ref="changelogDrawerRef" :vehicleId="vehicle.id" />
+
     <ShareVehicleDialog ref="shareVehicleDialogRef" />
 
     <figure>

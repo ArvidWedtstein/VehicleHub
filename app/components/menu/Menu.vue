@@ -87,7 +87,6 @@ useClickOutside(
 
 const handleToggleDropdown = () => {
   isOpen.value = !isOpen.value;
-  console.log("toggle", isOpen.value);
   if (!isOpen.value) {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
