@@ -91,78 +91,76 @@ const toggleDrawer = (open: boolean, reason?: string) => {
   nextTick(() => (open ? emit("shown", reason) : emit("hidden", reason)));
 };
 
-onMounted(() => {
-  useDrag({
-    vertical: isVertical.value,
-    handleRef,
-    containerRef: drawerRef,
-    onDrag: ({ delta }) => {
-      const directionMultiplier =
-        props.direction === "bottom" || props.direction === "right" ? 1 : -1;
+useDrag({
+  vertical: isVertical.value,
+  handleRef,
+  containerRef: drawerRef,
+  onDrag: ({ delta }) => {
+    const directionMultiplier =
+      props.direction === "bottom" || props.direction === "right" ? 1 : -1;
 
-      const draggedDistance = delta * directionMultiplier;
-      const isDraggingInDirection = draggedDistance > 0;
+    const draggedDistance = delta * directionMultiplier;
+    const isDraggingInDirection = draggedDistance > 0;
 
-      const noCloseSnapPointsPreCondition =
-        props.snapPoints && !props.dismissible && !isDraggingInDirection;
+    const noCloseSnapPointsPreCondition =
+      props.snapPoints && !props.dismissible && !isDraggingInDirection;
 
-      if (noCloseSnapPointsPreCondition && !activeSnapPointIdx.value) return;
+    if (noCloseSnapPointsPreCondition && !activeSnapPointIdx.value) return;
 
-      const absDraggedDistance = Math.abs(draggedDistance);
+    const absDraggedDistance = Math.abs(draggedDistance);
 
-      if (props.snapPoints) {
-        onDragSnapPoints({ draggedDistance });
-      }
+    if (props.snapPoints) {
+      onDragSnapPoints({ draggedDistance });
+    }
 
-      if (isDraggingInDirection && !props.snapPoints) {
-        console.log("dragged distance", draggedDistance);
-        const dampenedDraggedDistance = 8 * (Math.log(draggedDistance + 1) - 2);
+    if (isDraggingInDirection && !props.snapPoints) {
+      console.log("dragged distance", draggedDistance);
+      const dampenedDraggedDistance = 8 * (Math.log(draggedDistance + 1) - 2);
 
-        const translateValue =
-          Math.min(dampenedDraggedDistance * -1, 0) * directionMultiplier;
+      const translateValue =
+        Math.min(dampenedDraggedDistance * -1, 0) * directionMultiplier;
 
-        setStyle(drawerRef.value, {
-          transform: isVertical.value
-            ? `translate3d(0, ${translateValue}px, 0)`
-            : `translate3d(${translateValue}px, 0, 0)`,
-        });
+      setStyle(drawerRef.value, {
+        transform: isVertical.value
+          ? `translate3d(0, ${translateValue}px, 0)`
+          : `translate3d(${translateValue}px, 0, 0)`,
+      });
 
-        return;
-      }
+      return;
+    }
 
-      if (!props.snapPoints) {
-        const translateValue = absDraggedDistance * directionMultiplier;
+    if (!props.snapPoints) {
+      const translateValue = absDraggedDistance * directionMultiplier;
 
-        setStyle(drawerRef.value, {
-          transform: isVertical.value
-            ? `translate3d(0, ${translateValue}px, 0)`
-            : `translate3d(${translateValue}px, 0, 0)`,
-        });
-      }
-    },
-    onRelease: ({ delta, velocity }) => {
-      const directionMultiplier =
-        props.direction === "bottom" || props.direction === "right" ? 1 : -1;
+      setStyle(drawerRef.value, {
+        transform: isVertical.value
+          ? `translate3d(0, ${translateValue}px, 0)`
+          : `translate3d(${translateValue}px, 0, 0)`,
+      });
+    }
+  },
+  onRelease: ({ delta, velocity }) => {
+    const directionMultiplier =
+      props.direction === "bottom" || props.direction === "right" ? 1 : -1;
 
-      if (props.snapPoints) {
-        onReleaseSnapPoints({
-          draggedDistance: delta * directionMultiplier,
-          closeDrawer: () => toggleDrawer(false),
-          velocity,
-          dismissible: props.dismissible,
-        });
+    if (props.snapPoints) {
+      onReleaseSnapPoints({
+        draggedDistance: delta * directionMultiplier,
+        closeDrawer: () => toggleDrawer(false),
+        velocity,
+        dismissible: props.dismissible,
+      });
 
-        return;
-      }
+      return;
+    }
 
-      if (velocity > props.closeThreshold) {
-        toggleDrawer(false);
-        return;
-      }
+    if (velocity > props.closeThreshold) {
+      toggleDrawer(false);
+      return;
+    }
 
-      setStyle(drawerRef.value, { transform: "translate3d(0,0,0)" });
-    },
-  });
+    setStyle(drawerRef.value, { transform: "translate3d(0,0,0)" });
+  },
 });
 
 // ============ Computed classes/styles ============
@@ -230,53 +228,51 @@ defineExpose({
         ></div>
       </Transition>
 
-      <ClientOnly>
-        <Transition :name="`slide-${direction}`">
+      <Transition :name="`slide-${direction}`">
+        <div
+          ref="drawerRef"
+          v-show="drawerOpen"
+          class="drawer fixed bg-base-200 text-base-content shadow-lg flex transform transition-transform duration-75 hover:select-none pointer-fine:select-none"
+          :class="drawerClass"
+          :style="{ '--snap-point-height': snapPointHeight }"
+          :data-drawer-direction="direction"
+          role="dialog"
+          :data-state="drawerOpen ? 'open' : 'closed'"
+          tabindex="-1"
+          @keydown.esc="toggleDrawer(false, 'close')"
+        >
           <div
-            ref="drawerRef"
-            v-show="drawerOpen"
-            class="drawer fixed bg-base-200 text-base-content shadow-lg flex transform transition-transform duration-75 hover:select-none pointer-fine:select-none"
-            :class="drawerClass"
-            :style="{ '--snap-point-height': snapPointHeight }"
-            :data-drawer-direction="direction"
-            role="dialog"
-            :data-state="drawerOpen ? 'open' : 'closed'"
-            tabindex="-1"
-            @keydown.esc="toggleDrawer(false, 'close')"
-          >
-            <div
-              v-if="handle"
-              ref="handleRef"
-              class="shrink-0 bg-neutral rounded cursor-grab active:cursor-grabbing hover:bg-neutral/80"
-              :class="handlePositionClass"
-            ></div>
+            v-if="handle"
+            ref="handleRef"
+            class="shrink-0 bg-neutral rounded cursor-grab active:cursor-grabbing hover:bg-neutral/80"
+            :class="handlePositionClass"
+          ></div>
 
-            <slot name="content">
-              <div class="w-full flex flex-col gap-4 p-4 overflow-y-auto">
-                <!-- Header -->
-                <div class="flex items-center justify-between">
-                  <slot name="header">
-                    <h2 v-if="title" class="text-lg font-bold">
-                      {{ title }}
-                    </h2>
-                  </slot>
-                </div>
-
-                <div v-if="!!$slots.body" class="flex-1">
-                  <slot name="body"></slot>
-                </div>
-
-                <div
-                  v-if="!!$slots.footer"
-                  class="flex gap-1 md:justify-end justify-items-stretch py-4 shrink-0"
-                >
-                  <slot name="footer" :toggleDrawer="toggleDrawer"></slot>
-                </div>
+          <slot name="content">
+            <div class="w-full flex flex-col gap-4 p-4 overflow-y-auto">
+              <!-- Header -->
+              <div class="flex items-center justify-between">
+                <slot name="header">
+                  <h2 v-if="title" class="text-lg font-bold">
+                    {{ title }}
+                  </h2>
+                </slot>
               </div>
-            </slot>
-          </div>
-        </Transition>
-      </ClientOnly>
+
+              <div v-if="!!$slots.body" class="flex-1">
+                <slot name="body"></slot>
+              </div>
+
+              <div
+                v-if="!!$slots.footer"
+                class="flex gap-1 md:justify-end justify-items-stretch py-4 shrink-0"
+              >
+                <slot name="footer" :toggleDrawer="toggleDrawer"></slot>
+              </div>
+            </div>
+          </slot>
+        </div>
+      </Transition>
     </div>
   </Teleport>
 </template>

@@ -26,71 +26,13 @@
         </div>
       </div>
 
-      <div class="relative isolate">
-        <img
-          src="/img/StartImg.jpg"
-          alt="Illustration of a car, representing vehicle management and maintenance."
-          width="500"
-          height="500"
-          class="will-change-transform w-full rounded-lg -z-10"
-        />
-        <div
-          class="absolute -top-10 right-1/2 -z-10 block transform-gpu blur-3xl"
-          aria-hidden="true"
-        >
-          <div
-            class="aspect-1097/845 w-274.25 bg-linear-to-tr from-amber-600 via-amber-500 to-green-700 opacity-20"
-            style="
-              clip-path: polygon(
-                74.1% 44.1%,
-                100% 61.6%,
-                97.5% 26.9%,
-                85.5% 0.1%,
-                80.7% 2%,
-                72.5% 32.5%,
-                60.2% 62.4%,
-                52.4% 68.1%,
-                47.5% 58.3%,
-                45.2% 34.5%,
-                27.5% 76.7%,
-                0.1% 64.9%,
-                17.9% 100%,
-                27.6% 76.8%,
-                76.1% 97.7%,
-                74.1% 44.1%
-              );
-            "
-          ></div>
-        </div>
-        <div
-          class="absolute -top-116 left-1/2 -z-10 -translate-x-1/2 transform-gpu blur-3xl ml-16"
-          aria-hidden="true"
-        >
-          <div
-            class="aspect-1097/845 w-274.25 bg-linear-to-tr from-[#ff4694] to-[#776fff] opacity-20"
-            style="
-              clip-path: polygon(
-                74.1% 44.1%,
-                100% 61.6%,
-                97.5% 26.9%,
-                85.5% 0.1%,
-                80.7% 2%,
-                72.5% 32.5%,
-                60.2% 62.4%,
-                52.4% 68.1%,
-                47.5% 58.3%,
-                45.2% 34.5%,
-                27.5% 76.7%,
-                0.1% 64.9%,
-                17.9% 100%,
-                27.6% 76.8%,
-                76.1% 97.7%,
-                74.1% 44.1%
-              );
-            "
-          ></div>
-        </div>
-      </div>
+      <img
+        src="/img/StartImg.jpg"
+        alt="Illustration of a car, representing vehicle management and maintenance."
+        width="500"
+        height="500"
+        class="will-change-transform w-full rounded-lg -z-10"
+      />
     </div>
   </div>
 </template>

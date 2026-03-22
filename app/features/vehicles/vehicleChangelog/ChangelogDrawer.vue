@@ -161,7 +161,7 @@ defineExpose({
 </script>
 
 <template>
-  <Drawer ref="drawerRef" direction="left" title="Changelog" disableSwipe>
+  <Drawer ref="drawerRef" direction="left" title="Changelog">
     <template #header>
       <h3 class="text-lg font-bold">Changelog</h3>
       <button
