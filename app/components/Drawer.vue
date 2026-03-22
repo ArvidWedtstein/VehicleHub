@@ -172,8 +172,8 @@ if (!isServer) {
 const baseClassMap = {
   top: "flex-col-reverse top-0 left-0 w-full h-auto rounded-b-box mb-24",
   bottom: "flex-col h-auto bottom-0 max-h-[96%] rounded-t-box mt-24",
-  left: "flex-row-reverse top-0 left-0 h-full w-auto rounded-r-box",
-  right: "flex-row top-0 right-0 h-full w-auto rounded-l-box",
+  left: "flex-row-reverse top-0 h-full w-auto rounded-r-box",
+  right: "flex-row top-0 h-full w-auto rounded-l-box",
 };
 
 const insetClassMap = {
@@ -185,8 +185,8 @@ const insetClassMap = {
 const nonInsetClassMap = {
   top: "inset-x-0",
   bottom: "inset-x-0",
-  left: "inset-y-0",
-  right: "inset-y-0",
+  left: "inset-y-0 left-0",
+  right: "inset-y-0 right-0",
 };
 
 const drawerClass = computed(() => {

@@ -2,7 +2,6 @@
 import Drawer from "~/components/Drawer.vue";
 import type { FilterSchema } from "~/composables/filterBuilder/filterSchema";
 
-const drawerRef = ref<InstanceType<typeof Drawer> | null>(null);
 const open = ref(false);
 
 const emit = defineEmits<{
@@ -57,7 +56,7 @@ const applyFilters = async () => {
     <span class="sm:block hidden">Filter</span>
   </button>
 
-  <Drawer ref="drawerRef" title="Filter" direction="bottom" v-model:open="open">
+  <Drawer title="Filter" direction="bottom" v-model:open="open">
     <template #body>
       <NuxtLoadingIndicator />
 
@@ -65,8 +64,12 @@ const applyFilters = async () => {
     </template>
 
     <template #footer>
-      <button class="btn btn-primary" @click="applyFilters">Apply</button>
-      <button class="btn btn-soft" @click="resetFilters">Reset</button>
+      <button type="button" class="btn btn-primary" @click="applyFilters">
+        Apply
+      </button>
+      <button type="button" class="btn btn-soft" @click="resetFilters">
+        Reset
+      </button>
     </template>
   </Drawer>
 </template>

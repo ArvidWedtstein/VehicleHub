@@ -128,15 +128,16 @@ const handleFilterApply = async (
         <div class="join">
           <ExpensesFilterDrawer @applyFilters="handleFilterApply" />
 
-          <Menu
+          <ResponsiveMenu
             :items="
               sortControl.options.map((p) => ({
                 label: p.label || p.value,
-                checked: sortControl.key === p.value,
+                value: p.value,
+                active: sortControl.key === p.value,
                 onClick: () => setSortKey(p.value),
               }))
             "
-            :alignMenu="'end'"
+            alignMenu="end"
             #default="{ toggle }"
           >
             <button
@@ -153,7 +154,7 @@ const handleFilterApply = async (
                 }}
               </span>
             </button>
-          </Menu>
+          </ResponsiveMenu>
         </div>
 
         <!-- <ExportButton @export="handleExpensesExport" :types="exportOptions" /> -->
