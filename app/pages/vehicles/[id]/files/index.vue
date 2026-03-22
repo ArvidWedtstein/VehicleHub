@@ -159,10 +159,16 @@ const generateFileGridActions = (file: File) => {
       <FileGrid class="mt-2" :files="files?.map((p) => p.file as File)">
         <template #actions="{ file }">
           <Menu
-            btnClass="btn btn-sm btn-ghost m-1"
             :items="generateFileGridActions(file as File)"
+            #default="{ toggle }"
           >
-            <Icon name="mdi:dots-vertical" size="1.2em" />
+            <button
+              type="button"
+              class="btn btn-sm btn-ghost m-1"
+              @click="toggle()"
+            >
+              <Icon name="mdi:dots-vertical" size="1.2em" />
+            </button>
           </Menu>
         </template>
       </FileGrid>

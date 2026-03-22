@@ -1,25 +1,48 @@
-<script setup lang="ts" generic="T extends string | number = string">
+<script setup lang="ts">
+import type {
+  RouteLocationAsPathGeneric,
+  RouteLocationAsRelativeGeneric,
+} from "vue-router";
+import type { AvatarProps } from "./AvatarImage.vue";
 import type Drawer from "./Drawer.vue";
 
-type Option<T extends string | number> = {
+type ActionSheetItem = {
   label?: string;
-  value: T;
-};
-type Props<T extends string | number> = {
-  options?: Array<Option<T>>;
+
+  active?: boolean;
+  disabled?: boolean;
+
+  href?: string;
+  to?: string | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric;
+
+  avatar?: AvatarProps;
+
+  onClick?: () => void;
+
+  [key: string]: any;
 };
 
-type Emits<T extends string | number> = {
-  select: [option: Option<T>];
+type Props = {
+  items?: Array<ActionSheetItem>;
 };
 
-withDefaults(defineProps<Props<T>>(), {
-  options: () => [],
+type Emits = {
+  select: [item: ActionSheetItem];
+};
+
+withDefaults(defineProps<Props>(), {
+  items: () => [],
 });
 
-const emit = defineEmits<Emits<T>>();
+const emit = defineEmits<Emits>();
 
 const drawerRef = ref<InstanceType<typeof Drawer>>();
+
+const onSelect = (item: ActionSheetItem) => {
+  item?.onClick?.();
+
+  emit("select", item);
+};
 
 defineExpose({
   open: () => {
@@ -28,6 +51,7 @@ defineExpose({
   close: () => {
     drawerRef.value?.close();
   },
+  drawerRef,
 });
 </script>
 <template>
@@ -35,10 +59,11 @@ defineExpose({
     <template #content>
       <ListGroup size="md" divider class="my-3">
         <ListGroupItem
-          v-for="option in options"
-          :key="option.value"
-          :title="option.label"
+          v-for="(item, idx) in items"
+          :key="idx"
+          :title="item.label"
           size="lg"
+          @click="onSelect(item)"
         />
       </ListGroup>
 

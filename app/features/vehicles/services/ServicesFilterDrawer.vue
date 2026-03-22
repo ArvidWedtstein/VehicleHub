@@ -63,9 +63,7 @@ const applyFilters = async () => {
     </template>
 
     <template #footer>
-      <button class="btn btn-primary btn-wide" @click="applyFilters">
-        Apply
-      </button>
+      <button class="btn btn-primary" @click="applyFilters">Apply</button>
       <button class="btn btn-soft" @click="resetFilters">Reset</button>
     </template>
   </Drawer>

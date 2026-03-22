@@ -78,18 +78,22 @@ const handleSignOut = async () => {
         />
       </label>
 
-      <Menu alignMenu="end" menuSize="sm" btnClass="btn btn-ghost btn-circle">
-        <template #default>
-          <AvatarImage
-            tabindex="0"
-            role="button"
-            :src="user?.user_metadata.avatar_url"
-            alt="My Profile Image"
-            :fallbackSrc="`https://ui-avatars.com/api/?name=${
-              user?.user_metadata?.name || 'Unknown User'
-            }`"
-            size="sm"
-          />
+      <Menu alignMenu="end" menuSize="sm">
+        <template #default="{ toggle }">
+          <button
+            type="button"
+            class="btn btn-ghost btn-circle"
+            @click.stop="toggle()"
+          >
+            <AvatarImage
+              :src="user?.user_metadata.avatar_url"
+              alt="My Profile Image"
+              :fallbackSrc="`https://ui-avatars.com/api/?name=${
+                user?.user_metadata?.name || 'Unknown User'
+              }`"
+              size="sm"
+            />
+          </button>
         </template>
 
         <template #items>

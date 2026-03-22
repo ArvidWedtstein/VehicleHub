@@ -59,10 +59,6 @@ const changeStep = (stepIndex: number) => {
 defineExpose({
   open: handleOpen,
 });
-
-onMounted(() => {
-  console.log("mounted");
-});
 </script>
 
 <template>

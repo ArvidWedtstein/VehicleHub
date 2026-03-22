@@ -9,7 +9,6 @@ export type MenuItem = {
   type?: "link" | "label" | "divider" | "checkbox";
 
   class?: string;
-  checked?: boolean;
   onClick?: () => void;
 
   onUpdateChecked?: (value: boolean) => void;
@@ -23,7 +22,6 @@ export type MenuItem = {
 } & MenuItemProps;
 
 type Props = {
-  btnClass?: string;
   menuClass?: string;
   /** Opens dropdown on hover */
   hover?: boolean;
@@ -48,7 +46,6 @@ type Props = {
 };
 
 const props = withDefaults(defineProps<Props>(), {
-  btnClass: "btn",
   menuClass: "w-52",
   hover: false,
   autoClose: "always",
@@ -62,7 +59,8 @@ const emit = defineEmits<{
 }>();
 
 const dropdownRef = ref<HTMLDivElement | null>(null);
-const buttonRef = ref<HTMLButtonElement | null>(null);
+
+const id = useId();
 
 const isOpen = defineModel<boolean>("open", {
   type: Boolean,
@@ -74,16 +72,13 @@ useClickOutside(
   (event) => {
     const target = event.target as Node;
 
-    if (!dropdownRef.value || !buttonRef.value) return;
+    if (!dropdownRef.value) return;
 
     if (!dropdownRef.value.contains(target) && !isOpen.value) return;
 
     isOpen.value = false;
     // console.log("click outside");
     // emit('close');
-
-    // buttonRef.value?.focus();
-    // buttonRef.value.blur();
 
     // dropdownRef.value.blur();
   },
@@ -94,7 +89,9 @@ const handleToggleDropdown = () => {
   isOpen.value = !isOpen.value;
   console.log("toggle", isOpen.value);
   if (!isOpen.value) {
-    buttonRef.value?.blur();
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
 
     emit("close");
   }
@@ -138,16 +135,16 @@ const [DefineMenuItem, ReuseMenuItem] = useReusableTemplate<{
       </template>
     </DefineMenuItem>
 
-    <div
-      ref="buttonRef"
-      tabindex="0"
-      role="button"
-      :class="btnClass"
-      v-bind="$attrs"
-      @click.stop="handleToggleDropdown"
-    >
-      <slot>Click</slot>
-    </div>
+    <slot :open="isOpen" :toggle="handleToggleDropdown">
+      <button
+        type="button"
+        class="btn btn-outline"
+        v-bind="$attrs"
+        @click.stop="handleToggleDropdown"
+      >
+        Click
+      </button>
+    </slot>
 
     <Transition name="dropdown" appear>
       <div

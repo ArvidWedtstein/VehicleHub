@@ -129,7 +129,6 @@ const handleFilterApply = async (
           <ExpensesFilterDrawer @applyFilters="handleFilterApply" />
 
           <Menu
-            btnClass="btn btn-outline join-item"
             :items="
               sortControl.options.map((p) => ({
                 label: p.label || p.value,
@@ -138,15 +137,22 @@ const handleFilterApply = async (
               }))
             "
             :alignMenu="'end'"
+            #default="{ toggle }"
           >
-            <Icon name="mdi:sort" class="sm:block hidden" />
-            <span class="sm:block hidden">Sorted on: </span>
-            <span class="badge badge-neutral">
-              {{
-                sortControl.options.find((o) => o.value === sortControl.key)
-                  ?.label
-              }}
-            </span>
+            <button
+              type="button"
+              class="btn btn-outline join-item"
+              @click="toggle()"
+            >
+              <Icon name="mdi:sort" class="sm:block hidden" />
+              <span class="sm:block hidden">Sorted on: </span>
+              <span class="badge badge-neutral">
+                {{
+                  sortControl.options.find((o) => o.value === sortControl.key)
+                    ?.label
+                }}
+              </span>
+            </button>
           </Menu>
         </div>
 

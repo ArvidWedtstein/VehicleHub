@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type ActionSheet from "~/components/ActionSheet.vue";
 import ExportButton from "~/features/vehicles/ExportButton.vue";
 import ServicesFilterDrawer from "~/features/vehicles/services/ServicesFilterDrawer.vue";
 import ServicesListItem from "~/features/vehicles/services/ServicesListItem.vue";
@@ -17,7 +16,6 @@ definePageMeta({
 const vehicleId = useRouteParam("id", "number");
 
 const filters = ref<FilterOption<Tables<"VehicleServiceLogs">>[]>([]);
-const { isMobile } = useBreakpoints();
 
 const {
   data: services,
@@ -31,7 +29,6 @@ const ServiceDialog = defineAsyncComponent(
 );
 
 const serviceDialogRef = ref<InstanceType<typeof ServiceDialog>>();
-const sortActionSheetRef = ref<ComponentPublicInstance<{ open: () => void }>>();
 
 const handleServicesExport = (type: string) => {
   const columnsToExport: Array<keyof Tables<"VehicleServiceLogs">> = [
@@ -134,44 +131,33 @@ const handleFilterApply = async (
         <div class="join">
           <ServicesFilterDrawer @applyFilters="handleFilterApply" />
 
-          <template v-if="isMobile">
-            <ActionSheet
-              ref="sortActionSheetRef"
-              :options="sortControl.options"
-              @select="(pOpt) => setSortKey(pOpt.value)"
-            />
-
-            <button
-              class="btn btn-outline join-item"
-              @click="sortActionSheetRef?.open()"
-            >
-              <Icon name="mdi:sort" />
-              Sort
-            </button>
-          </template>
-
-          <Menu
-            v-else
-            btnClass="btn hidden md:inline-flex btn-outline join-item"
+          <ResponsiveMenu
             :items="
               sortControl.options.map((p) => ({
                 label: p.label || p.value,
-                checked: sortControl.key === p.value,
+                value: p.value,
+                active: sortControl.key === p.value,
                 onClick: () => setSortKey(p.value),
               }))
             "
           >
-            <template #default>
-              <Icon name="mdi:sort" class="sm:block hidden" />
-              Sorted on:
-              <span class="badge badge-neutral">
-                {{
-                  sortControl.options.find((o) => o.value === sortControl.key)
-                    ?.label
-                }}
-              </span>
+            <template #default="{ toggle }">
+              <button
+                type="button"
+                class="btn btn-outline join-item"
+                @click="toggle()"
+              >
+                <Icon name="mdi:sort" />
+                <span class="sm:block hidden">Sorted on:</span>
+                <span class="badge badge-neutral">
+                  {{
+                    sortControl.options.find((o) => o.value === sortControl.key)
+                      ?.label
+                  }}
+                </span>
+              </button>
             </template>
-          </Menu>
+          </ResponsiveMenu>
         </div>
 
         <ExportButton @export="handleServicesExport" />

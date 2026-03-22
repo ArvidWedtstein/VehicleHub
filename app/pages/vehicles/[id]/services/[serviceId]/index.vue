@@ -19,10 +19,10 @@ definePageMeta({
 
 const ServiceDialog = defineAsyncComponent(
   async () =>
-    await import("~/features/vehicles/services/serviceDialog/ServiceDialog.vue")
+    await import("~/features/vehicles/services/serviceDialog/ServiceDialog.vue"),
 );
 const FilePreviewModal = defineAsyncComponent(
-  async () => await import("~/components/file/FilePreviewModal.vue")
+  async () => await import("~/components/file/FilePreviewModal.vue"),
 );
 
 const vehicleId = useRouteParam("id", "number");
@@ -30,7 +30,7 @@ const serviceId = useRouteParam("serviceId", "number");
 
 const { data: service, pending: loading } = await useVehicleService(
   vehicleId.value,
-  serviceId.value
+  serviceId.value,
 );
 
 const { data: vehicle } = useVehicle(vehicleId.value);
@@ -67,7 +67,7 @@ const handleServiceDelete = async () => {
 
 const handleFilePreview = async (file: File) => {
   const fileToPreview = service.value?.files?.find(
-    ({ name }) => name === file.name
+    ({ name }) => name === file.name,
   );
   if (!fileToPreview) return;
   if (!fileToPreview.file_path) return;
@@ -77,7 +77,7 @@ const handleFilePreview = async (file: File) => {
 const handleFileDownload = async (file: File) => {
   try {
     const fileToPreview = service.value?.files?.find(
-      ({ name }) => name === file.name
+      ({ name }) => name === file.name,
     );
     if (!fileToPreview) return;
     if (!fileToPreview.file_path) return;
@@ -97,7 +97,7 @@ const handleFileDownload = async (file: File) => {
 
 const handleFileDelete = async (file: File) => {
   const fileToDelete = service.value?.files?.find(
-    ({ name }) => name === file.name
+    ({ name }) => name === file.name,
   );
   if (!fileToDelete) return;
   if (!fileToDelete.file_path) return;
@@ -295,11 +295,17 @@ const handleEditService = () => {
         >
           <template #actions="{ file }">
             <Menu
-              btnClass="btn btn-sm btn-ghost"
               alignMenu="end"
               :items="generateFileGridActions(file as File)"
+              #default="{ toggle }"
             >
-              <Icon name="mdi:dots-vertical" size="1.2em" />
+              <button
+                type="button"
+                class="btn btn-sm btn-ghost"
+                @click="toggle()"
+              >
+                <Icon name="mdi:dots-vertical" size="1.2em" />
+              </button>
             </Menu>
           </template>
         </FileGrid>
