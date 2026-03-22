@@ -14,6 +14,13 @@ interface UseDragOptions {
 }
 
 export function useDrag(options: UseDragOptions) {
+  if (import.meta.server)
+    return {
+      isDragging: ref(false),
+      startDrag: () => {},
+      velocity: ref(0),
+    };
+
   const {
     vertical = true,
     handleRef,

@@ -17,6 +17,15 @@ export const useSnapPoints = ({
   onSnapPointChange,
   direction,
 }: useSnapPointsProps) => {
+  if (import.meta.server)
+    return {
+      isLastSnapPoint: computed(() => null),
+      activeSnapPointIdx: computed(() => 0),
+      snapPointsOffset: computed(() => []),
+      onReleaseSnapPoints: () => {},
+      onDrag: () => {},
+    }; // No-op on server, as it relies on DOM events
+
   const isVertical = (direction: Direction) =>
     direction === "top" || direction === "bottom";
 
