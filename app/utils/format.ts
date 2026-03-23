@@ -5,7 +5,7 @@ export const formatDate = (
     timeStyle: undefined,
   },
 ) => {
-  const language = useNuxtLocale();
+  const language = useLocale();
   const formattedDateTime = new Date(dateTime).toLocaleString(
     language.value,
     options,
@@ -66,7 +66,7 @@ export const formatNumber = (
   options: Intl.NumberFormatOptions = { style: "decimal" },
 ) => {
   if (!num && num !== 0) return "";
-  const language = useNuxtLocale();
+  const language = useLocale();
 
   try {
     const formatter = new Intl.NumberFormat(language.value, options);
@@ -265,3 +265,25 @@ export const mimeToExtension = (mime: string): string => {
 
   return map[mime] ?? "jpg"; // safe fallback
 };
+
+export function parseAcceptToDataTypes(accept: string): string[] | undefined {
+  if (!accept || accept === "*") {
+    return undefined;
+  }
+
+  const types = accept
+    .split(",")
+    .map((type) => {
+      const trimmedType = type.trim();
+
+      if (trimmedType.includes("/") && trimmedType.endsWith("/*")) {
+        return trimmedType.split("/")[0] || trimmedType;
+      }
+      return trimmedType;
+    })
+    .filter((type) => {
+      return !type.startsWith(".");
+    });
+
+  return types.length > 0 ? types : undefined;
+}

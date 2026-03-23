@@ -16,7 +16,7 @@ const settings = reactive<Settings>({
   selectedPeriod: formatDateToFormat(new Date(), "yyyy-MM"),
 });
 
-const locale = useNuxtLocale();
+const locale = useLocale();
 
 const daysOfMonth = computed(() => {
   const startOfMonth = adjustCalendarDate(

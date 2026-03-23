@@ -153,6 +153,29 @@ const generateFileGridActions = (file: File) => {
   <div>
     <FilePreviewModal bucket="VehicleDocuments" ref="filePreviewModal" />
 
+    <!-- <FileUpload
+      label="Click to upload or drag & drop"
+      description="Max 5MB"
+      multiple
+      #files="{ files }"
+    >
+      <FileGrid class="mt-2" :files="files">
+        <template #actions="{ file }">
+          <Menu
+            :items="generateFileGridActions(file as File)"
+            #default="{ toggle }"
+          >
+            <button
+              type="button"
+              class="btn btn-sm btn-ghost m-1"
+              @click="toggle()"
+            >
+              <Icon name="mdi:dots-vertical" size="1.2em" />
+            </button>
+          </Menu>
+        </template>
+      </FileGrid>
+    </FileUpload> -->
     <DropArea @upload="uploadFile">
       <FileAreaInput @upload="uploadFile" multiple />
 
