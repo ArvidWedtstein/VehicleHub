@@ -6,7 +6,7 @@ export function useVehicleDocuments(vehicleId?: string | number) {
       `/api/vehicles/${vehicleId}/documents`,
       {
         headers: useRequestHeaders(["cookie"]),
-      }
+      },
     );
   });
 }
@@ -14,7 +14,7 @@ export function useVehicleDocuments(vehicleId?: string | number) {
 export async function uploadVehicleDocument(
   vehicleId: string | number,
   file: File,
-  serviceId?: Tables<"VehicleServiceLogs">["id"]
+  serviceId?: Tables<"VehicleServiceLogs">["id"],
 ) {
   const formData = new FormData();
   formData.append("file", file);
@@ -32,7 +32,7 @@ export async function uploadVehicleDocument(
     {
       method: "POST",
       body: formData,
-    }
+    },
   );
 
   refreshNuxtData(`vehicle-${vehicleId}_documents`);
@@ -44,14 +44,14 @@ export async function uploadVehicleDocument(
 export const updateVehicleDocument = async (
   vehicleId: string | number,
   id: string | number,
-  patch: Partial<TablesUpdate<"VehicleDocuments">>
+  patch: Partial<TablesUpdate<"VehicleDocuments">>,
 ) => {
   const document = await $fetch<Tables<"VehicleDocuments">>(
     `/api/vehicles/${vehicleId}/documents/${id}`,
     {
       method: "put",
       body: patch,
-    }
+    },
   );
   refreshNuxtData(`vehicle-${vehicleId}_documents`);
   refreshNuxtData(`vehicle-${vehicleId}_document-${id}`);
@@ -61,16 +61,20 @@ export const updateVehicleDocument = async (
 
 export const deleteVehicleDocument = async (
   vehicleId: string | number,
-  id: string | number
+  documentId: string | number,
+  filePath: string,
 ) => {
   const document = await $fetch<Tables<"VehicleDocuments">>(
-    `/api/vehicles/${vehicleId}/documents/${id}`,
+    `/api/vehicles/${vehicleId}/documents/${documentId}`,
     {
       method: "delete",
-    }
+      body: {
+        filePath,
+      },
+    },
   );
 
-  clearNuxtData(`vehicle-${vehicleId}_document-${id}`);
+  clearNuxtData(`vehicle-${vehicleId}_document-${documentId}`);
   refreshNuxtData(`vehicle-${vehicleId}_documents`);
 
   return document;

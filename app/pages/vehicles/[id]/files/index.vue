@@ -84,12 +84,23 @@ const handleFileDelete = async (file: File) => {
     );
     if (!fileToDelete) return;
 
-    await deleteVehicleDocument(vehicleId.value, fileToDelete.id);
+    const deletePromise = deleteVehicleDocument(
+      vehicleId.value,
+      fileToDelete.id,
+      fileToDelete.file_path,
+    );
 
-    toast.success(`Successfully deleted file ${fileToDelete.name}`);
+    toast.promise(
+      deletePromise,
+      {
+        loading: `Deleting ${fileToDelete.name}...`,
+        success: `Successfully deleted ${fileToDelete.name}!`,
+        error: `Failed to delete ${fileToDelete.name}.`,
+      },
+      { timeout: 3000 },
+    );
   } catch (error) {
     console.error(error);
-    toast.error(`Failed to delete file ${file.name}.`);
   }
 };
 
@@ -106,11 +117,15 @@ const uploadFile = async (files: File[]) => {
       return data;
     });
 
-    toast.promise(() => Promise.all(uploadPromises), {
-      loading: `Uploading ${pluralFile}...`,
-      success: `Successfully uploaded ${pluralFile}!`,
-      error: `Failed to upload ${pluralFile}.`,
-    });
+    toast.promise(
+      () => Promise.all(uploadPromises),
+      {
+        loading: `Uploading ${pluralFile}...`,
+        success: `Successfully uploaded ${pluralFile}!`,
+        error: `Failed to upload ${pluralFile}.`,
+      },
+      { timeout: 3000 },
+    );
   } catch (error: unknown) {
     console.error(error);
     toast.error(

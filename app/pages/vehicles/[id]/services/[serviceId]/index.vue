@@ -102,7 +102,11 @@ const handleFileDelete = async (file: File) => {
   if (!fileToDelete) return;
   if (!fileToDelete.file_path) return;
 
-  await deleteVehicleDocument(fileToDelete.vehicle_id, fileToDelete.id);
+  await deleteVehicleDocument(
+    fileToDelete.vehicle_id,
+    fileToDelete.id,
+    fileToDelete.file_path,
+  );
 
   toast.success(`Successfully deleted file '${file.name}'`);
 };
