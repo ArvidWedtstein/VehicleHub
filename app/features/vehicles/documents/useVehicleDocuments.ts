@@ -1,14 +1,13 @@
-import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
+import type { Tables, TablesUpdate } from "~/types/supabase";
 
 export function useVehicleDocuments(vehicleId?: string | number) {
-  return useAsyncData(`vehicle-${vehicleId}_documents`, async () => {
-    return await $fetch<Tables<"VehicleDocuments">[]>(
-      `/api/vehicles/${vehicleId}/documents`,
-      {
-        headers: useRequestHeaders(["cookie"]),
-      },
-    );
-  });
+  return useFetch<Tables<"VehicleDocuments">[]>(
+    `/api/vehicles/${vehicleId}/documents`,
+    {
+      key: `vehicle-${vehicleId}_documents`,
+      immediate: !!vehicleId,
+    },
+  );
 }
 
 export async function uploadVehicleDocument(

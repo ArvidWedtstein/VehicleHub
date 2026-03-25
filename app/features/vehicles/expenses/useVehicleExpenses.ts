@@ -4,25 +4,16 @@ export function useVehicleExpenses(
   vehicleId: MaybeRef<string | number | undefined>,
   filters: MaybeRef<FilterOption<Tables<"VehicleExpenses">>[]> = [],
 ) {
-  return useAsyncData(
-    () => `vehicle-${unref(vehicleId)}_expenses`,
-    (_nuxtApp, { signal }) =>
-      $fetch<Tables<"VehicleExpenses">[]>(
-        `/api/vehicles/${unref(vehicleId)}/expenses/filter`,
-        {
-          method: "post",
-          body: {
-            filters: unref(filters),
-          },
-          headers: import.meta.server
-            ? useRequestHeaders(["cookie"])
-            : undefined,
-          signal,
-        },
-      ),
+  return useFetch<Tables<"VehicleExpenses">[]>(
+    `/api/vehicles/${unref(vehicleId)}/expenses/filter`,
     {
-      default: () => [],
+      key: () => `vehicle-${unref(vehicleId)}_expenses`,
+      method: "post",
+      body: {
+        filters: unref(filters),
+      },
       lazy: true,
+      default: () => [],
     },
   );
 }
@@ -31,19 +22,12 @@ export const useVehicleExpense = (
   vehicleId?: MaybeRef<Tables<"VehicleExpenses">["vehicle_id"] | undefined>,
   expenseId?: MaybeRef<Tables<"VehicleExpenses">["id"] | undefined>,
 ) => {
-  return useAsyncData(
-    () => `vehicle-${unref(vehicleId)}_expense-${unref(expenseId)}`,
-    (_nuxtApp, { signal }) =>
-      $fetch<Tables<"VehicleExpenses">>(
-        `/api/vehicles/${unref(vehicleId)}/expenses/${unref(expenseId)}`,
-        {
-          method: "get",
-          headers: import.meta.server
-            ? useRequestHeaders(["cookie"])
-            : undefined,
-          signal,
-        },
-      ),
+  return useFetch(
+    `/api/vehicles/${unref(vehicleId)}/expenses/${unref(expenseId)}`,
+    {
+      key: () => `vehicle-${unref(vehicleId)}_expense-${unref(expenseId)}`,
+      method: "get",
+    },
   );
 };
 
