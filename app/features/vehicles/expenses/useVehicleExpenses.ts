@@ -73,8 +73,6 @@ export async function deleteVehicleExpense(
     `/api/vehicles/${vehicleId}/expenses/${id}`,
     {
       method: "delete",
-      credentials: "include",
-      headers: useRequestHeaders(["cookie"]),
     },
   );
 
