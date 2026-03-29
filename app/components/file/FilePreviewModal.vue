@@ -36,7 +36,7 @@ const handleOpen = async ({ src, path }: { src?: string; path?: string }) => {
     return;
   }
 
-  const res = await fetchUrl(path);
+  await fetchUrl(path);
 
   modalRef.value?.modalRef?.showModal();
 };
@@ -91,29 +91,37 @@ defineExpose({
   <Modal id="filePreviewModal" ref="modalRef" title="Preview" @close="onClose">
     <ul class="menu menu-horizontal bg-base-200 rounded-box mb-2">
       <li>
-        <button type="button" class="btn btn-square" @click="rotate('left')">
-          <Icon name="mdi:rotate-left" size="1.2em" />
-        </button>
-      </li>
-      <li>
-        <button type="button" class="btn btn-square" @click="rotate('right')">
-          <Icon name="mdi:rotate-right" size="1.2em" />
-        </button>
-      </li>
-      <li>
-        <button type="button" class="btn btn-square" @click="zoomIn">
-          <Icon name="mdi:magnify-plus-outline" size="1.2em" />
-        </button>
-      </li>
-      <li>
-        <button type="button" class="btn btn-square" @click="zoomOut">
-          <Icon name="mdi:magnify-minus-outline" size="1.2em" />
+        <button
+          type="button"
+          class="btn btn-sm btn-square"
+          @click="rotate('left')"
+        >
+          <Icon name="mdi:rotate-left" />
         </button>
       </li>
       <li>
         <button
           type="button"
-          class="btn btn-square"
+          class="btn btn-sm btn-square"
+          @click="rotate('right')"
+        >
+          <Icon name="mdi:rotate-right" />
+        </button>
+      </li>
+      <li>
+        <button type="button" class="btn btn-sm btn-square" @click="zoomIn">
+          <Icon name="mdi:magnify-plus-outline" />
+        </button>
+      </li>
+      <li>
+        <button type="button" class="btn btn-sm btn-square" @click="zoomOut">
+          <Icon name="mdi:magnify-minus-outline" />
+        </button>
+      </li>
+      <li>
+        <button
+          type="button"
+          class="btn btn-sm btn-soft btn-error ms-2"
           @click="resetTransformations"
         >
           Reset

@@ -28,7 +28,8 @@ export type AvatarProps = {
 
 const props = withDefaults(defineProps<AvatarProps>(), {
   src: "",
-  alt: (props) => (props.alt || "Unknown") as string,
+  fallbackSrc: "https://ui-avatars.com/api/?name=Unknown",
+  alt: "",
   size: "md",
 
   shape: "circle",
@@ -37,9 +38,7 @@ const props = withDefaults(defineProps<AvatarProps>(), {
   imageLoading: "lazy",
 });
 
-const fallbackSrc = computed(() => {
-  return props.fallbackSrc ?? `https://ui-avatars.com/api/?name=Unknown`;
-});
+const error = ref(false);
 
 const computedClasses = computed(() => {
   const sizeClasses = {
@@ -65,20 +64,31 @@ const computedClasses = computed(() => {
   ];
 });
 
+watch(
+  () => props.src,
+  () => {
+    if (error.value) {
+      error.value = false;
+    }
+  },
+);
+
 const handleError = (event: Event) => {
   const target = event.target as HTMLImageElement;
 
   target.onerror = null;
 
-  target.src = fallbackSrc.value;
+  error.value = true;
+
+  target.src = props.fallbackSrc;
 };
 </script>
 
 <template>
-  <div class="avatar">
+  <div class="avatar" :class="{ 'avatar-placeholder': error }">
     <div class="text-neutral-content" :class="computedClasses">
       <img
-        v-if="!loading"
+        v-if="(src || fallbackSrc) && !error"
         role="img"
         :src="src || fallbackSrc"
         :alt="alt || ''"
@@ -87,7 +97,7 @@ const handleError = (event: Event) => {
         @error="handleError"
       />
 
-      <slot name="fallback"> </slot>
+      <slot v-else name="fallback"></slot>
     </div>
   </div>
 </template>

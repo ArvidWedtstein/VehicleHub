@@ -1,5 +1,3 @@
-import { ref, computed, onMounted, onBeforeUnmount } from "vue";
-
 type DropzoneOptions = {
   /**
    * e.g. 'image/*' or ['image/png', 'image/jpeg']
@@ -16,6 +14,8 @@ type DropzoneOptions = {
    * @default true
    */
   preventDefaults?: boolean;
+
+  maxSize?: number | string;
 
   onDrop?: (files: File[] | null, event: DragEvent) => void;
 };
@@ -65,7 +65,14 @@ export function useDropZone(
       const dataTypesValid = validateAcceptTypes(types);
       const multipleFilesValid = mergedOptions.multiple || items.length <= 1;
 
-      return dataTypesValid && multipleFilesValid;
+      const maxSizeValid = mergedOptions.maxSize
+        ? Array.from(items ?? []).every(
+            (item) =>
+              (item?.getAsFile()?.size || 0) <= Number(mergedOptions.maxSize),
+          )
+        : true;
+
+      return dataTypesValid && multipleFilesValid && maxSizeValid;
     };
 
     const onDragEvent = (
@@ -102,52 +109,19 @@ export function useDropZone(
           if (isValid) {
             files.value = currentFiles;
             mergedOptions.onDrop?.(currentFiles, e);
+          } else {
+            console.warn(
+              "Dropped files do not meet the specified criteria and were rejected.",
+            );
           }
           break;
       }
     };
 
-    const addListeners = () => {
-      const el = unref(target);
-      if (!el) return;
-
-      el.addEventListener("dragenter", (e) =>
-        onDragEvent(e as DragEvent, "enter"),
-      );
-      el.addEventListener("dragleave", (e) =>
-        onDragEvent(e as DragEvent, "leave"),
-      );
-      el.addEventListener("dragover", (e) =>
-        onDragEvent(e as DragEvent, "over"),
-      );
-      el.addEventListener("drop", (e) => onDragEvent(e as DragEvent, "drop"));
-    };
-
-    const removeListeners = () => {
-      const el = unref(target);
-      if (!el) return;
-
-      el.removeEventListener("dragenter", (e) =>
-        onDragEvent(e as DragEvent, "enter"),
-      );
-      el.removeEventListener("dragleave", (e) =>
-        onDragEvent(e as DragEvent, "leave"),
-      );
-      el.removeEventListener("dragover", (e) =>
-        onDragEvent(e as DragEvent, "over"),
-      );
-      el.removeEventListener("drop", (e) =>
-        onDragEvent(e as DragEvent, "drop"),
-      );
-    };
-
-    onMounted(() => {
-      addListeners();
-    });
-
-    onBeforeUnmount(() => {
-      removeListeners();
-    });
+    useEventListener(target, "dragenter", (e) => onDragEvent(e, "enter"));
+    useEventListener(target, "dragleave", (e) => onDragEvent(e, "leave"));
+    useEventListener(target, "dragover", (e) => onDragEvent(e, "over"));
+    useEventListener(target, "drop", (e) => onDragEvent(e, "drop"));
   }
 
   return {

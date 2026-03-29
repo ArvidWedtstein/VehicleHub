@@ -12,6 +12,10 @@ export interface FileUploadProps<M extends boolean = false> {
    */
   accept?: string;
   /**
+   * Max file size in bytes. If a number is provided, it will be used as the maximum file size for uploads.
+   */
+  maxSize?: number;
+  /**
    * @default false
    */
   reset?: boolean;
@@ -71,6 +75,7 @@ const { isDragging, open, inputRef, dropzoneRef } = useFileUpload({
   accept,
   reset,
   multiple: multiple as MaybeRef<boolean>,
+  maxSize: props.maxSize,
   dropzone: props.dropzone,
   onUpdate,
 });
@@ -136,8 +141,9 @@ defineExpose({
   dropzoneRef,
 });
 </script>
+
 <template>
-  <div class="relative flex flex-col gap-2 items-start">
+  <div class="relative flex flex-col gap-2 items-start" :class="class">
     <slot :open="open" :removeFile="removeFile">
       <div
         ref="dropzoneRef"
@@ -147,11 +153,11 @@ defineExpose({
         @click="!disabled && open()"
         @keydown.space.prevent
         @keyup.enter.space="!disabled && open()"
-        class="flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-sm border-2 border-dashed hover:border-opacity-100 dark:border-zinc-500 border-black dark:border-opacity-50 border-opacity-5 transition-colors dark:hover:bg-zinc-700/20"
+        class="flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-sm border-2 border-dashed hover:border-opacity-100 border-base-content/50 transition-colors hover:bg-base-content/10 data-[dragging=true]:bg-base-content/10"
       >
         <span
           v-if="icon || $slots.icon"
-          class="inline-flex items-center justify-center select-none rounded-full align-middle bg-neutral size-8 text-base shrink-0"
+          class="inline-flex items-center justify-center select-none rounded-full align-middle bg-neutral text-white size-8 text-base shrink-0"
         >
           <slot name="icon">
             <Icon :name="icon" />
@@ -200,8 +206,13 @@ defineExpose({
             >
               <slot name="file" :file="file" :index="index">
                 <slot name="fileLeading" :file="file" :index="index">
-                  <AvatarImage size="xs" :src="createObjectUrl(file)" #fallback>
-                    <Icon v-if="fileIcon" :name="fileIcon" />
+                  <AvatarImage
+                    size="xs"
+                    :src="createObjectUrl(file)"
+                    fallbackSrc=""
+                    #fallback
+                  >
+                    <Icon v-if="fileIcon" :name="fileIcon" size="1.6em" />
                   </AvatarImage>
                 </slot>
 

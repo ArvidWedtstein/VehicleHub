@@ -23,7 +23,7 @@ const filePreviewModal = ref<InstanceType<typeof FilePreviewModal> | null>(
   null,
 );
 
-const files = computed(() => {
+const uploadedFiles = computed(() => {
   return documents.value
     ?.filter(({ service_log_id }) => !service_log_id)
     .map(({ name, file_size, created_at, file_path }) => {
@@ -35,6 +35,8 @@ const files = computed(() => {
       };
     });
 });
+
+const files = ref(uploadedFiles.value?.map((p) => p.file as File) || []);
 
 const handleFilePreview = (file: File) => {
   const fileToPreview = documents.value?.find(
@@ -54,7 +56,7 @@ const handleFilePreview = (file: File) => {
 
 const handleFileDownload = async (file: File) => {
   try {
-    const fileToPreview = files.value?.find(
+    const fileToPreview = uploadedFiles.value?.find(
       ({ file: previewFile }) => previewFile.name === file.name,
     );
     if (!fileToPreview) return;
@@ -99,12 +101,15 @@ const handleFileDelete = async (file: File) => {
       },
       { timeout: 3000 },
     );
+    files.value = files.value.filter(
+      (f) => f.name !== file.name && f.size !== file.size,
+    );
   } catch (error) {
     console.error(error);
   }
 };
 
-const uploadFile = async (files: File[]) => {
+const uploadFiles = async (files: File[]) => {
   try {
     if (!vehicleId.value) return;
     if (files.length === 0) return;
@@ -133,6 +138,25 @@ const uploadFile = async (files: File[]) => {
     );
   }
 };
+
+watch(files, (newFiles, oldFiles) => {
+  if (newFiles.length === 0) {
+    files.value = uploadedFiles.value?.map((p) => p.file as File) || [];
+  }
+
+  const newFileNames = newFiles.map((f) => f.name);
+  const oldFileNames = oldFiles.map((f) => f.name);
+  const addedFiles = newFiles.filter((f) => !oldFileNames.includes(f.name));
+  const removedFiles = oldFiles.filter((f) => !newFileNames.includes(f.name));
+
+  if (addedFiles.length > 0) {
+    uploadFiles(addedFiles);
+  }
+
+  if (removedFiles.length > 0) {
+    removedFiles.forEach((file) => handleFileDelete(file));
+  }
+});
 
 const generateFileGridActions = (file: File) => {
   const fileGridActions: MenuItem[] | MenuItem[][] = [
@@ -168,48 +192,21 @@ const generateFileGridActions = (file: File) => {
   <div>
     <FilePreviewModal bucket="VehicleDocuments" ref="filePreviewModal" />
 
-    <!-- <FileUpload
+    <FileUpload
       label="Click to upload or drag & drop"
+      class="mb-2"
       description="Max 5MB"
+      :maxSize="5242880"
       multiple
-      #files="{ files }"
+      fileIcon="mdi:file"
+      v-model="files"
+      @upload="uploadFiles"
     >
-      <FileGrid class="mt-2" :files="files">
-        <template #actions="{ file }">
-          <Menu
-            :items="generateFileGridActions(file as File)"
-            #default="{ toggle }"
-          >
-            <button
-              type="button"
-              class="btn btn-sm btn-ghost m-1"
-              @click="toggle()"
-            >
-              <Icon name="mdi:dots-vertical" size="1.2em" />
-            </button>
-          </Menu>
-        </template>
-      </FileGrid>
-    </FileUpload> -->
-    <DropArea @upload="uploadFile">
-      <FileAreaInput @upload="uploadFile" multiple />
-
-      <FileGrid class="mt-2" :files="files?.map((p) => p.file as File)">
-        <template #actions="{ file }">
-          <Menu
-            :items="generateFileGridActions(file as File)"
-            #default="{ toggle }"
-          >
-            <button
-              type="button"
-              class="btn btn-sm btn-ghost m-1"
-              @click="toggle()"
-            >
-              <Icon name="mdi:dots-vertical" size="1.2em" />
-            </button>
-          </Menu>
-        </template>
-      </FileGrid>
-    </DropArea>
+      <template #fileName="{ file }">
+        <span class="link-hover truncate" @click="handleFilePreview(file)">
+          {{ file.name }}
+        </span>
+      </template>
+    </FileUpload>
   </div>
 </template>

@@ -9,12 +9,17 @@ export interface UseFileUploadOptions {
   reset?: MaybeRef<boolean>;
   multiple?: MaybeRef<boolean>;
   dropzone?: MaybeRef<boolean>;
+  /**
+   * Max file size in bytes
+   */
+  maxSize?: number | string;
 
   onUpdate: (files: File[]) => void;
 }
 
 export function useFileUpload(options: UseFileUploadOptions) {
   const {
+    maxSize,
     accept = "*",
     reset = false,
     multiple = false,
@@ -53,7 +58,7 @@ export function useFileUpload(options: UseFileUploadOptions) {
     onUpdate(files);
   };
 
-  const isDragging = shallowRef(false);
+  const isDragging = ref(false);
   const fileDialog = reactive({
     open: () => {},
   });
@@ -65,6 +70,7 @@ export function useFileUpload(options: UseFileUploadOptions) {
   onMounted(() => {
     const { isOver } = dropzone
       ? useDropZone(dropzoneRef, {
+          maxSize,
           accept: unref(accept),
           onDrop: (files) => onDrop(files, true),
         })
