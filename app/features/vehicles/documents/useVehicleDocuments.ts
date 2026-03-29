@@ -12,11 +12,15 @@ export function useVehicleDocuments(vehicleId?: string | number) {
 
 export async function uploadVehicleDocument(
   vehicleId: string | number,
-  file: File,
+  file: File | File[],
   serviceId?: Tables<"VehicleServiceLogs">["id"],
 ) {
   const formData = new FormData();
-  formData.append("file", file);
+  if (Array.isArray(file)) {
+    file.forEach((f) => formData.append("file", f));
+  } else {
+    formData.append("file", file);
+  }
 
   const params = new URLSearchParams();
 

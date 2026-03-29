@@ -4,11 +4,17 @@ import type { Tables } from "~/types/supabase";
 export function useVehicleChangelog(
   vehicleId?: MaybeRef<string | number | undefined>,
 ) {
+  const id = computed(() => unref(vehicleId));
+
+  const key = computed(() =>
+    id.value ? `vehicle-${id.value}_changelog` : undefined,
+  );
+
   return useFetch<Tables<"changelog_with_profile">[]>(
     `/api/vehicles/${unref(vehicleId)}/changelog`,
     {
-      key: `vehicles-${unref(vehicleId)}_changelog`,
-      immediate: !!unref(vehicleId),
+      key: key.value,
+      watch: [id],
       default: () => [],
     },
   );
@@ -18,7 +24,15 @@ export const initChangelogRealtime = (
   vehicleId?: MaybeRef<string | number | undefined>,
 ) => {
   try {
+    const id = computed(() => unref(vehicleId));
+    const key = computed(() =>
+      id.value ? `vehicle-${id.value}_changelog` : undefined,
+    );
+
     const client = useSupabaseClient();
+    let channel: ReturnType<typeof client.channel> | null = null;
+
+    // TODO: fix potential multiple subscriptions if vehicleId changes, maybe by using a store or by unsubscribing before subscribing again
     client
       .channel("Changelog")
       .on(

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import DropArea from "~/components/file/DropArea.vue";
 import FilePreviewModal from "~/components/file/FilePreviewModal.vue";
 import type { MenuItem } from "~/components/menu/Menu.vue";
 import {
@@ -200,7 +199,6 @@ const generateFileGridActions = (file: File) => {
       multiple
       fileIcon="mdi:file"
       v-model="files"
-      @upload="uploadFiles"
     >
       <template #fileName="{ file }">
         <span class="link-hover truncate" @click="handleFilePreview(file)">
