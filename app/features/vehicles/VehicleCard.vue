@@ -1,45 +1,63 @@
 <script setup lang="ts">
 import type { Tables } from "~/types/supabase";
 import { useProfiles } from "../profiles/useProfiles";
-import VehicleDialog from "./vehicleDialog/VehicleDialog.vue";
 import ChangelogDrawer from "./vehicleChangelog/ChangelogDrawer.vue";
-import ShareVehicleDialog from "./shareVehicleDialog/ShareVehicleDialog.vue";
+
+const VehicleDialog = defineAsyncComponent(
+  () => import("./vehicleDialog/VehicleDialog.vue"),
+);
+
+const ShareVehicleDialog = defineAsyncComponent(
+  () => import("./shareVehicleDialog/ShareVehicleDialog.vue"),
+);
 
 const vehicleDialogRef = ref<InstanceType<typeof VehicleDialog> | null>(null);
 const shareVehicleDialogRef = ref<InstanceType<
   typeof ShareVehicleDialog
 > | null>(null);
 
-const changelogDrawerRef = ref<InstanceType<typeof ChangelogDrawer> | null>(
-  null,
-);
+const changelogDrawerRef = ref<InstanceType<typeof ChangelogDrawer>>();
 
 const { vehicle } = defineProps<{
   vehicle: Tables<"Vehicles"> & { shares: Tables<"VehicleShares">[] };
 }>();
 
-const { data: profiles } = await useProfiles();
+const { data: profiles } = useProfiles();
+const profilesMap = computed(() => {
+  const map = new Map();
+  profiles.value?.forEach((p) => map.set(p.user_id, p));
+  return map;
+});
+
 const currentVehicleOwner = computed(() => {
-  return profiles.value?.find((p) => p.user_id === vehicle.owner_user_id);
+  return profilesMap.value.get(vehicle.owner_user_id);
 });
 
 const editVehicle = () => {
-  vehicleDialogRef.value?.open(vehicle.id);
+  if (import.meta.client) {
+    vehicleDialogRef.value?.open(vehicle.id);
+  }
 };
 
 const openShareVehicleDialog = async () => {
-  shareVehicleDialogRef.value?.open(vehicle.id);
+  if (import.meta.client) {
+    shareVehicleDialogRef.value?.open(vehicle.id);
+  }
 };
 
 const openChangelogDrawer = () => {
-  changelogDrawerRef.value?.drawerRef?.open();
+  if (import.meta.client) {
+    changelogDrawerRef.value?.drawerRef?.open();
+  }
 };
 </script>
 
 <template>
   <div class="card image-full card-border bg-base-200 shrink">
     <VehicleDialog ref="vehicleDialogRef" />
+
     <ChangelogDrawer ref="changelogDrawerRef" :vehicleId="vehicle.id" />
+
     <ShareVehicleDialog ref="shareVehicleDialogRef" />
 
     <figure>
@@ -153,12 +171,15 @@ const openChangelogDrawer = () => {
         v-if="currentVehicleOwner && currentVehicleOwner?.id"
       >
         <span>Owner:</span>
-        <span class="tooltip" :data-tip="currentVehicleOwner.name">
+        <span
+          class="tooltip"
+          :data-tip="currentVehicleOwner?.name || 'Unknown'"
+        >
           <AvatarImage
             size="xxs"
             :src="currentVehicleOwner?.profile_image_url"
             :alt="currentVehicleOwner.name"
-            :fallbackSrc="`https://ui-avatars.com/api/?name=${currentVehicleOwner.name}`"
+            :fallbackSrc="`https://ui-avatars.com/api/?name=${currentVehicleOwner.name || 'Unknown'}`"
           />
         </span>
 
@@ -174,12 +195,9 @@ const openChangelogDrawer = () => {
           <span v-for="share in vehicle.shares" :key="share.id">
             <AvatarImage
               size="xxs"
-              :src="
-                profiles?.find((p) => p.user_id === share.user_id)
-                  ?.profile_image_url
-              "
+              :src="profilesMap.get(share.user_id)?.profile_image_url"
               :fallbackSrc="`https://ui-avatars.com/api/?name=${
-                profiles?.find((p) => p.user_id === share.user_id)?.name
+                profilesMap.get(share.user_id)?.name
               }`"
             />
           </span>

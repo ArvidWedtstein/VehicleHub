@@ -4,14 +4,19 @@ import {
   updateVehicleService,
   useVehicleService,
 } from "../useVehicleServices";
-import { uploadVehicleDocument } from "../../documents/useVehicleDocuments";
+import {
+  uploadVehicleDocument,
+  deleteVehicleDocument,
+} from "../../documents/useVehicleDocuments";
 import { useVehicle } from "../../useVehicles";
 
 type ServiceInsert = TablesInsert<"VehicleServiceLogs"> & {
+  totalCost?: number;
   items?: TablesInsert<"VehicleServiceLogsItems">[];
   files?: Tables<"VehicleDocuments">[];
 };
 type ServiceUpdate = TablesUpdate<"VehicleServiceLogs"> & {
+  totalCost?: number;
   items?: TablesUpdate<"VehicleServiceLogsItems">[];
   files?: Tables<"VehicleDocuments">[];
 };
@@ -29,6 +34,7 @@ const getDefaultServiceValues = (): ServiceUpdate => ({
 export const useServiceForm = () => {
   const service = ref<ServiceInsert | ServiceUpdate>(getDefaultServiceValues());
 
+  const originalServiceFiles = shallowRef<Tables<"VehicleDocuments">[]>([]);
   const serviceFiles = ref<File[]>([]);
 
   const serviceItems = ref<
@@ -40,7 +46,7 @@ export const useServiceForm = () => {
 
   const initialize = async (
     vehicleId: Tables<"VehicleServiceLogs">["vehicle_id"],
-    serviceId?: TablesUpdate<"VehicleServiceLogs">["id"]
+    serviceId?: TablesUpdate<"VehicleServiceLogs">["id"],
   ) => {
     const { data: vehicleData } = await useVehicle(vehicleId);
     vehicle.value = vehicleData.value;
@@ -59,10 +65,11 @@ export const useServiceForm = () => {
             new File(
               [new ArrayBuffer(document.file_size || 0)],
               document.name || "",
-              {}
-            )
+              {},
+            ),
         ) || [];
 
+      originalServiceFiles.value = editService.value?.files || [];
       serviceFiles.value = files;
       serviceItems.value = editService.value?.items || [];
 
@@ -87,6 +94,8 @@ export const useServiceForm = () => {
     };
 
     serviceItems.value = [];
+    serviceFiles.value = [];
+    originalServiceFiles.value = [];
   };
 
   const isEdit = computed(() => !!service.value.id);
@@ -100,6 +109,11 @@ export const useServiceForm = () => {
       let serviceId = service.value.id;
 
       if (isEdit.value && service.value.id) {
+        // TODO: fix this, we should not have to delete these properties to update the service
+        delete service.value.items;
+        delete service.value.files;
+        delete service.value.totalCost;
+
         await updateVehicleService(
           service.value.vehicle_id!,
           service.value.id,
@@ -107,7 +121,7 @@ export const useServiceForm = () => {
             ...service.value,
             date: convertLocalToUTC(service.value.date),
           },
-          serviceItems.value
+          serviceItems.value,
         );
       } else {
         const createdService = await createVehicleService(
@@ -116,20 +130,43 @@ export const useServiceForm = () => {
             ...service.value,
             date: convertLocalToUTC(service.value.date),
           },
-          serviceItems.value
+          serviceItems.value,
         );
         serviceId = createdService.id;
       }
 
       if (serviceId) {
         // TODO: find a better way to do this
-        const unUploadedFiles = serviceFiles.value.filter((p) => p.type != "");
+        const filesToDelete = originalServiceFiles.value.filter(
+          (originalFile) =>
+            !serviceFiles.value.some(
+              (file) =>
+                file.name === originalFile.name &&
+                file.size === originalFile.file_size,
+            ),
+        );
+        for (const file of filesToDelete) {
+          await deleteVehicleDocument(
+            service.value.vehicle_id!,
+            file.id,
+            file.file_path,
+          );
+        }
+
+        const unUploadedFiles = serviceFiles.value.filter(
+          (file) =>
+            !originalServiceFiles.value.some(
+              (originalFile) =>
+                file.name === originalFile.name &&
+                file.size === originalFile.file_size,
+            ),
+        );
 
         unUploadedFiles.forEach(async (file) => {
           await uploadVehicleDocument(
             service.value.vehicle_id!,
             file,
-            serviceId
+            serviceId,
           );
         });
       }

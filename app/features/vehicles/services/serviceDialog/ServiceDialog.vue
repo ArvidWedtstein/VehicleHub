@@ -24,7 +24,7 @@ const {
 
 const handleOpen = async (
   vehicle_id: Tables<"VehicleServiceLogs">["vehicle_id"],
-  service_id?: TablesUpdate<"VehicleServiceLogs">["id"]
+  service_id?: TablesUpdate<"VehicleServiceLogs">["id"],
 ) => {
   stepControl.step = 0;
 
@@ -40,7 +40,7 @@ const onFormSubmit = async () => {
     await save();
 
     toast.success(
-      `Successfully ${service.value.id ? "updated" : "created"} service`
+      `Successfully ${service.value.id ? "updated" : "created"} service`,
     );
 
     modalRef.value?.close();
@@ -52,7 +52,7 @@ const onFormSubmit = async () => {
 const changeStep = (stepIndex: number) => {
   stepControl.step = Math.max(
     0,
-    Math.min(stepControl.steps.length - 1, stepIndex)
+    Math.min(stepControl.steps.length - 1, stepIndex),
   );
 };
 

@@ -1,23 +1,26 @@
-import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
+import type { Tables, TablesUpdate } from "~/types/supabase";
 
 export function useVehicleDocuments(vehicleId?: string | number) {
-  return useAsyncData(`vehicle-${vehicleId}_documents`, async () => {
-    return await $fetch<Tables<"VehicleDocuments">[]>(
-      `/api/vehicles/${vehicleId}/documents`,
-      {
-        headers: useRequestHeaders(["cookie"]),
-      }
-    );
-  });
+  return useFetch<Tables<"VehicleDocuments">[]>(
+    `/api/vehicles/${vehicleId}/documents`,
+    {
+      key: `vehicle-${vehicleId}_documents`,
+      immediate: !!vehicleId,
+    },
+  );
 }
 
 export async function uploadVehicleDocument(
   vehicleId: string | number,
-  file: File,
-  serviceId?: Tables<"VehicleServiceLogs">["id"]
+  file: File | File[],
+  serviceId?: Tables<"VehicleServiceLogs">["id"],
 ) {
   const formData = new FormData();
-  formData.append("file", file);
+  if (Array.isArray(file)) {
+    file.forEach((f) => formData.append("file", f));
+  } else {
+    formData.append("file", file);
+  }
 
   const params = new URLSearchParams();
 
@@ -32,7 +35,7 @@ export async function uploadVehicleDocument(
     {
       method: "POST",
       body: formData,
-    }
+    },
   );
 
   refreshNuxtData(`vehicle-${vehicleId}_documents`);
@@ -44,14 +47,14 @@ export async function uploadVehicleDocument(
 export const updateVehicleDocument = async (
   vehicleId: string | number,
   id: string | number,
-  patch: Partial<TablesUpdate<"VehicleDocuments">>
+  patch: Partial<TablesUpdate<"VehicleDocuments">>,
 ) => {
   const document = await $fetch<Tables<"VehicleDocuments">>(
     `/api/vehicles/${vehicleId}/documents/${id}`,
     {
       method: "put",
       body: patch,
-    }
+    },
   );
   refreshNuxtData(`vehicle-${vehicleId}_documents`);
   refreshNuxtData(`vehicle-${vehicleId}_document-${id}`);
@@ -61,16 +64,20 @@ export const updateVehicleDocument = async (
 
 export const deleteVehicleDocument = async (
   vehicleId: string | number,
-  id: string | number
+  documentId: string | number,
+  filePath: string,
 ) => {
   const document = await $fetch<Tables<"VehicleDocuments">>(
-    `/api/vehicles/${vehicleId}/documents/${id}`,
+    `/api/vehicles/${vehicleId}/documents/${documentId}`,
     {
       method: "delete",
-    }
+      body: {
+        filePath,
+      },
+    },
   );
 
-  clearNuxtData(`vehicle-${vehicleId}_document-${id}`);
+  clearNuxtData(`vehicle-${vehicleId}_document-${documentId}`);
   refreshNuxtData(`vehicle-${vehicleId}_documents`);
 
   return document;

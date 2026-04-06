@@ -1,9 +1,10 @@
 import type { Ref } from "vue";
 
-export const useNuxtLocale = () =>
-  useState<string>("locale", () => useDefaultLocale().value);
+export function useLocale() {
+  return useState<string>("locale", () => useDefaultLocale().value);
+}
 
-export const useDefaultLocale = (fallback = "en-US") => {
+export function useDefaultLocale(fallback = "en-US") {
   const locale = ref(fallback);
   if (import.meta.server) {
     const reqLocale = useRequestHeaders()["accept-language"]?.split(",")[0];
@@ -17,10 +18,10 @@ export const useDefaultLocale = (fallback = "en-US") => {
     }
   }
   return locale;
-};
+}
 
-export const useNuxtLocales = () => {
-  const locale = useNuxtLocale();
+export function useLocales() {
+  const locale = useLocale();
   const locales = ref([
     "en-US",
     "en-GB",
@@ -34,4 +35,4 @@ export const useNuxtLocales = () => {
     locales.value.unshift(locale.value);
   }
   return locales;
-};
+}

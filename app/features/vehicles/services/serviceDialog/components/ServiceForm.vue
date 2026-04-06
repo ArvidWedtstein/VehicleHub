@@ -19,13 +19,19 @@ const serviceItems = defineModel<
   | TablesUpdate<"VehicleServiceLogsItems">[]
 >("serviceItems", { required: true, default: [] });
 
-const handleAddItem = () => {
-  serviceItems.value.push({
-    cost: 0,
-    description: "",
-    quantity: 1,
-  } as TablesInsert<"VehicleServiceLogsItems">);
-};
+const serviceTypeOptions = [
+  "Oil Change",
+  "Timing belt",
+  "Timing Chain",
+  "Brake Pads",
+  "Tires",
+  "Battery",
+  "Spark Plugs",
+  "Air Filter",
+  "Fuel Filter",
+  "Transmission Fluid",
+  "Coolant",
+];
 </script>
 
 <template>
@@ -44,16 +50,12 @@ const handleAddItem = () => {
       type="text"
       v-model="service.type"
       list="service_types"
+      required
     />
 
     <datalist id="service_types">
       <option
-        v-for="(option, optionIndex) in [
-          'Oil Change',
-          'Timing belt',
-          'Timing Chain',
-          'Brake Pads',
-        ]"
+        v-for="(option, optionIndex) in serviceTypeOptions"
         :key="optionIndex"
         :value="option"
       ></option>

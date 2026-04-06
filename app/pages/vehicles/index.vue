@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useVehicles } from "~/features/vehicles/useVehicles";
 import VehiclesList from "~/features/vehicles/VehiclesList.vue";
 
 useHead({
@@ -18,8 +17,6 @@ definePageMeta({
   middleware: "auth",
   layout: "default",
 });
-
-const { data: vehicles } = await useVehicles();
 </script>
 
 <template>
@@ -36,7 +33,7 @@ const { data: vehicles } = await useVehicles();
         </p>
       </div>
 
-      <VehiclesList :key="vehicles?.length" :vehicles="vehicles || []" />
+      <VehiclesList />
     </div>
   </div>
 </template>

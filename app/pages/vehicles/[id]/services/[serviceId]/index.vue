@@ -19,10 +19,10 @@ definePageMeta({
 
 const ServiceDialog = defineAsyncComponent(
   async () =>
-    await import("~/features/vehicles/services/serviceDialog/ServiceDialog.vue")
+    await import("~/features/vehicles/services/serviceDialog/ServiceDialog.vue"),
 );
 const FilePreviewModal = defineAsyncComponent(
-  async () => await import("~/components/file/FilePreviewModal.vue")
+  async () => await import("~/components/file/FilePreviewModal.vue"),
 );
 
 const vehicleId = useRouteParam("id", "number");
@@ -30,10 +30,35 @@ const serviceId = useRouteParam("serviceId", "number");
 
 const { data: service, pending: loading } = await useVehicleService(
   vehicleId.value,
-  serviceId.value
+  serviceId.value,
 );
 
 const { data: vehicle } = useVehicle(vehicleId.value);
+
+const serviceInsights = ref<{
+  previous_date: string | null;
+  previous_mileage: number;
+} | null>(null);
+
+const getServiceInsights = async () => {
+  if (!serviceId.value) return;
+
+  const client = useSupabaseClient();
+  const { data, error } = await client.rpc("get_service_insights", {
+    vehicle_id: vehicleId.value,
+    service_log_id: serviceId.value,
+  });
+
+  if (error) {
+    toast.error("Failed to fetch service insights");
+    return null;
+  }
+
+  console.log("Service insights:", data);
+
+  serviceInsights.value =
+    Array.isArray(data) && data.length > 0 ? data[0] : null;
+};
 
 const serviceDialogRef = ref<InstanceType<typeof ServiceDialog>>();
 const filePreviewRef = ref<InstanceType<typeof FilePreviewModal>>();
@@ -67,7 +92,7 @@ const handleServiceDelete = async () => {
 
 const handleFilePreview = async (file: File) => {
   const fileToPreview = service.value?.files?.find(
-    ({ name }) => name === file.name
+    ({ name }) => name === file.name,
   );
   if (!fileToPreview) return;
   if (!fileToPreview.file_path) return;
@@ -77,7 +102,7 @@ const handleFilePreview = async (file: File) => {
 const handleFileDownload = async (file: File) => {
   try {
     const fileToPreview = service.value?.files?.find(
-      ({ name }) => name === file.name
+      ({ name }) => name === file.name,
     );
     if (!fileToPreview) return;
     if (!fileToPreview.file_path) return;
@@ -97,12 +122,16 @@ const handleFileDownload = async (file: File) => {
 
 const handleFileDelete = async (file: File) => {
   const fileToDelete = service.value?.files?.find(
-    ({ name }) => name === file.name
+    ({ name }) => name === file.name,
   );
   if (!fileToDelete) return;
   if (!fileToDelete.file_path) return;
 
-  await deleteVehicleDocument(fileToDelete.vehicle_id, fileToDelete.id);
+  await deleteVehicleDocument(
+    fileToDelete.vehicle_id,
+    fileToDelete.id,
+    fileToDelete.file_path,
+  );
 
   toast.success(`Successfully deleted file '${file.name}'`);
 };
@@ -150,12 +179,17 @@ const handleEditService = () => {
   if (!vehicleId.value) return;
   serviceDialogRef.value?.open(vehicleId.value, serviceId.value);
 };
+
+onMounted(() => {
+  getServiceInsights();
+});
 </script>
 
 <template>
   <div>
     <ServiceDialog ref="serviceDialogRef" />
     <FilePreviewModal bucket="VehicleDocuments" ref="filePreviewRef" />
+
     <NuxtLink
       :to="{
         name: 'vehicles-id-services',
@@ -192,27 +226,63 @@ const handleEditService = () => {
               <div class="divider divider-horizontal mx-1"></div>
             </template>
 
-            <button
-              type="button"
-              class="btn btn-sm btn-outline btn-secondary"
-              @click="handleEditService"
+            <ResponsiveMenu
+              alignMenu="end"
+              :items="[
+                {
+                  label: 'Edit',
+                  icon: 'mdi:pencil',
+                  onClick: handleEditService,
+                },
+                {
+                  label: 'Delete',
+                  icon: 'mdi:trash',
+                  class: 'text-error',
+                  onClick: handleServiceDelete,
+                },
+              ]"
+              #default="{ toggle }"
             >
-              <Icon name="mdi:pencil" />
-              Edit
-            </button>
-
-            <button
-              type="button"
-              class="btn btn-sm btn-outline btn-error"
-              @click="handleServiceDelete"
-            >
-              <Icon name="mdi:trash" />
-              Delete
-            </button>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline btn-secondary"
+                @click="toggle()"
+              >
+                <Icon name="mdi:dots-vertical" />
+              </button>
+            </ResponsiveMenu>
           </div>
         </div>
 
         <ul class="flex flex-col gap-1 text-sm">
+          <li v-if="serviceInsights" class="inline-flex gap-1 items-center">
+            <span class="font-semibold">Last {{ service.type }}:</span>
+            <span>
+              {{
+                formatNumber(
+                  (service.mileage || 0) - serviceInsights.previous_mileage,
+                  {
+                    style: "unit",
+                    unit: vehicle?.mileage_unit || "kilometer",
+                    compactDisplay: "short",
+                  },
+                )
+              }}
+              ago
+            </span>
+            <span
+              class="w-1 h-1 bg-neutral-content rounded-full inline-block leading-none mx-1"
+            ></span>
+            <NuxtTime
+              v-if="serviceInsights.previous_date"
+              relative
+              :datetime="serviceInsights.previous_date"
+              numeric="always"
+              relativeStyle="long"
+              year="2-digit"
+              month="2-digit"
+            />
+          </li>
           <li class="inline-flex gap-1 items-center">
             <span class="font-semibold">Date:</span>
             <span>
@@ -295,11 +365,17 @@ const handleEditService = () => {
         >
           <template #actions="{ file }">
             <Menu
-              btnClass="btn btn-sm btn-ghost"
               alignMenu="end"
               :items="generateFileGridActions(file as File)"
+              #default="{ toggle }"
             >
-              <Icon name="mdi:dots-vertical" size="1.2em" />
+              <button
+                type="button"
+                class="btn btn-sm btn-ghost"
+                @click="toggle()"
+              >
+                <Icon name="mdi:dots-vertical" />
+              </button>
             </Menu>
           </template>
         </FileGrid>

@@ -16,28 +16,28 @@ const settings = reactive<Settings>({
   selectedPeriod: formatDateToFormat(new Date(), "yyyy-MM"),
 });
 
-const locale = useNuxtLocale();
+const locale = useLocale();
 
 const daysOfMonth = computed(() => {
   const startOfMonth = adjustCalendarDate(
     "start",
     "month",
     new Date(settings.selectedPeriod),
-    1
+    1,
   );
 
   const endOfMonth = adjustCalendarDate(
     "end",
     "month",
     new Date(settings.selectedPeriod),
-    1
+    1,
   );
 
   const startOfWeekInMonth = adjustCalendarDate(
     "start",
     "week",
     startOfMonth,
-    1
+    1,
   );
   const endOfWeekInMonth = adjustCalendarDate("end", "week", endOfMonth, 1);
 
@@ -45,14 +45,14 @@ const daysOfMonth = computed(() => {
     startOfWeekInMonth,
     endOfWeekInMonth,
     "days",
-    "date"
+    "date",
   );
 });
 
 // For selecting year and month
 const years = Array.from(
   { length: 2100 - 1900 + 1 },
-  (_, index) => 1900 + index
+  (_, index) => 1900 + index,
 );
 
 const soYearDate = adjustCalendarDate("start", "year");
@@ -65,7 +65,7 @@ const weekDays = getRangeBetweenDates(
   soWeekDate,
   eoWeekDate,
   "weeks",
-  "date"
+  "date",
 ).map((day) => day.toLocaleDateString(locale.value, { weekday: "narrow" }));
 
 const handleDateSelect = (date: Date) => {
@@ -123,7 +123,11 @@ const setView = (view: Settings["view"]) => {
     menuClass="w-64 max-h-96 bg-base-300 rounded-box"
     autoClose="none"
   >
-    <template #default> Date </template>
+    <template #default="{ toggle }">
+      <button type="button" class="btn btn-outline" @click="toggle()">
+        Date
+      </button>
+    </template>
     <template #items>
       <div
         class="text-center lg:col-start-9 lg:col-end-13 lg:row-start-1 xl:col-start-9"

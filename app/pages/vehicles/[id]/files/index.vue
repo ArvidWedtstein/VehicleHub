@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import DropArea from "~/components/file/DropArea.vue";
 import FilePreviewModal from "~/components/file/FilePreviewModal.vue";
 import type { MenuItem } from "~/components/menu/Menu.vue";
 import {
@@ -23,7 +22,7 @@ const filePreviewModal = ref<InstanceType<typeof FilePreviewModal> | null>(
   null,
 );
 
-const files = computed(() => {
+const uploadedFiles = computed(() => {
   return documents.value
     ?.filter(({ service_log_id }) => !service_log_id)
     .map(({ name, file_size, created_at, file_path }) => {
@@ -35,6 +34,8 @@ const files = computed(() => {
       };
     });
 });
+
+const files = ref(uploadedFiles.value?.map((p) => p.file as File) || []);
 
 const handleFilePreview = (file: File) => {
   const fileToPreview = documents.value?.find(
@@ -54,7 +55,7 @@ const handleFilePreview = (file: File) => {
 
 const handleFileDownload = async (file: File) => {
   try {
-    const fileToPreview = files.value?.find(
+    const fileToPreview = uploadedFiles.value?.find(
       ({ file: previewFile }) => previewFile.name === file.name,
     );
     if (!fileToPreview) return;
@@ -84,16 +85,30 @@ const handleFileDelete = async (file: File) => {
     );
     if (!fileToDelete) return;
 
-    await deleteVehicleDocument(vehicleId.value, fileToDelete.id);
+    const deletePromise = deleteVehicleDocument(
+      vehicleId.value,
+      fileToDelete.id,
+      fileToDelete.file_path,
+    );
 
-    toast.success(`Successfully deleted file ${fileToDelete.name}`);
+    toast.promise(
+      deletePromise,
+      {
+        loading: `Deleting ${fileToDelete.name}...`,
+        success: `Successfully deleted ${fileToDelete.name}!`,
+        error: `Failed to delete ${fileToDelete.name}.`,
+      },
+      { timeout: 3000 },
+    );
+    files.value = files.value.filter(
+      (f) => f.name !== file.name && f.size !== file.size,
+    );
   } catch (error) {
     console.error(error);
-    toast.error(`Failed to delete file ${file.name}.`);
   }
 };
 
-const uploadFile = async (files: File[]) => {
+const uploadFiles = async (files: File[]) => {
   try {
     if (!vehicleId.value) return;
     if (files.length === 0) return;
@@ -106,11 +121,15 @@ const uploadFile = async (files: File[]) => {
       return data;
     });
 
-    toast.promise(() => Promise.all(uploadPromises), {
-      loading: `Uploading ${pluralFile}...`,
-      success: `Successfully uploaded ${pluralFile}!`,
-      error: `Failed to upload ${pluralFile}.`,
-    });
+    toast.promise(
+      () => Promise.all(uploadPromises),
+      {
+        loading: `Uploading ${pluralFile}...`,
+        success: `Successfully uploaded ${pluralFile}!`,
+        error: `Failed to upload ${pluralFile}.`,
+      },
+      { timeout: 3000 },
+    );
   } catch (error: unknown) {
     console.error(error);
     toast.error(
@@ -118,6 +137,25 @@ const uploadFile = async (files: File[]) => {
     );
   }
 };
+
+watch(files, (newFiles, oldFiles) => {
+  if (newFiles.length === 0) {
+    files.value = uploadedFiles.value?.map((p) => p.file as File) || [];
+  }
+
+  const newFileNames = newFiles.map((f) => f.name);
+  const oldFileNames = oldFiles.map((f) => f.name);
+  const addedFiles = newFiles.filter((f) => !oldFileNames.includes(f.name));
+  const removedFiles = oldFiles.filter((f) => !newFileNames.includes(f.name));
+
+  if (addedFiles.length > 0) {
+    uploadFiles(addedFiles);
+  }
+
+  if (removedFiles.length > 0) {
+    removedFiles.forEach((file) => handleFileDelete(file));
+  }
+});
 
 const generateFileGridActions = (file: File) => {
   const fileGridActions: MenuItem[] | MenuItem[][] = [
@@ -153,19 +191,20 @@ const generateFileGridActions = (file: File) => {
   <div>
     <FilePreviewModal bucket="VehicleDocuments" ref="filePreviewModal" />
 
-    <DropArea @upload="uploadFile">
-      <FileAreaInput @upload="uploadFile" multiple />
-
-      <FileGrid class="mt-2" :files="files?.map((p) => p.file as File)">
-        <template #actions="{ file }">
-          <Menu
-            btnClass="btn btn-sm btn-ghost m-1"
-            :items="generateFileGridActions(file as File)"
-          >
-            <Icon name="mdi:dots-vertical" size="1.2em" />
-          </Menu>
-        </template>
-      </FileGrid>
-    </DropArea>
+    <FileUpload
+      label="Click to upload or drag & drop"
+      class="mb-2"
+      description="Max 5MB"
+      :maxSize="5242880"
+      multiple
+      fileIcon="mdi:file"
+      v-model="files"
+    >
+      <template #fileName="{ file }">
+        <span class="link-hover truncate" @click="handleFilePreview(file)">
+          {{ file.name }}
+        </span>
+      </template>
+    </FileUpload>
   </div>
 </template>

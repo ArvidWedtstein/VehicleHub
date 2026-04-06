@@ -128,33 +128,40 @@ const handleFilterApply = async (
         <div class="join">
           <ExpensesFilterDrawer @applyFilters="handleFilterApply" />
 
-          <Menu
-            btnClass="btn btn-outline join-item"
+          <ResponsiveMenu
             :items="
               sortControl.options.map((p) => ({
                 label: p.label || p.value,
-                checked: sortControl.key === p.value,
+                value: p.value,
+                active: sortControl.key === p.value,
                 onClick: () => setSortKey(p.value),
               }))
             "
-            :alignMenu="'end'"
+            alignMenu="end"
+            #default="{ toggle }"
           >
-            <Icon name="mdi:sort" class="sm:block hidden" />
-            <span class="sm:block hidden">Sorted on: </span>
-            <span class="badge badge-neutral">
-              {{
-                sortControl.options.find((o) => o.value === sortControl.key)
-                  ?.label
-              }}
-            </span>
-          </Menu>
+            <button
+              type="button"
+              class="btn btn-outline join-item"
+              @click="toggle()"
+            >
+              <Icon name="mdi:sort" class="sm:block hidden" />
+              <span class="sm:block hidden">Sorted on: </span>
+              <span class="badge badge-neutral">
+                {{
+                  sortControl.options.find((o) => o.value === sortControl.key)
+                    ?.label
+                }}
+              </span>
+            </button>
+          </ResponsiveMenu>
         </div>
 
         <!-- <ExportButton @export="handleExpensesExport" :types="exportOptions" /> -->
       </div>
     </div>
 
-    <ListGroup class="flex-1 overflow-hidden" ignoreListClass>
+    <ListGroup class="flex-1 overflow-hidden mb-16" ignoreListClass>
       <template v-if="loading">
         LOADING
         <!-- <ExpenseListItemSkeleton v-for="i in 10" :key="i" /> -->

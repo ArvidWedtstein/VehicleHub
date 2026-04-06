@@ -8,7 +8,7 @@ const vehicleId = useRouteParam("id", "number");
         :to="{
           name: 'vehicles-id-expenses',
         }"
-        activeClass="dock-active"
+        activeClass="dock-active text-primary"
       >
         <Icon name="mdi:gas-station" size="1.2em" />
         <span class="dock-label">Expenses</span>
@@ -18,7 +18,7 @@ const vehicleId = useRouteParam("id", "number");
         :to="{
           name: 'vehicles-id-services',
         }"
-        activeClass="dock-active"
+        activeClass="dock-active text-primary"
       >
         <Icon name="mdi:wrench" size="1.2em" />
         <span class="dock-label">Services</span>
@@ -28,7 +28,7 @@ const vehicleId = useRouteParam("id", "number");
         :to="{
           name: 'vehicles-id-files',
         }"
-        activeClass="dock-active"
+        activeClass="dock-active text-primary"
       >
         <Icon name="mdi:folder" size="1.2em" />
         <span class="dock-label">Files</span>
