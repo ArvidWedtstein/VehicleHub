@@ -64,10 +64,10 @@ export async function createVehicleService(
 export async function updateVehicleService(
   vehicleId: string | number,
   id: string | number,
-  patch: Partial<TablesUpdate<"VehicleServiceLogs">>,
+  patch: TablesUpdate<"VehicleServiceLogs">,
   itemsPatch?: Partial<TablesUpdate<"VehicleServiceLogsItems">>[],
 ) {
-  const service = await $fetch<Tables<"VehicleServiceLogs">>(
+  await $fetch<Tables<"VehicleServiceLogs">>(
     `/api/vehicles/${vehicleId}/services/${id}`,
     {
       method: "put",
@@ -79,8 +79,6 @@ export async function updateVehicleService(
   );
   refreshNuxtData(`vehicle-${vehicleId}_services`);
   refreshNuxtData(`vehicle-${vehicleId}_service-${id}`);
-
-  return service;
 }
 
 export async function deleteVehicleService(

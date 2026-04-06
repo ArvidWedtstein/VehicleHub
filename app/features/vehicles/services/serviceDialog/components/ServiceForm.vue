@@ -50,6 +50,7 @@ const serviceTypeOptions = [
       type="text"
       v-model="service.type"
       list="service_types"
+      required
     />
 
     <datalist id="service_types">

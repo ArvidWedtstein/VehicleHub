@@ -35,6 +35,31 @@ const { data: service, pending: loading } = await useVehicleService(
 
 const { data: vehicle } = useVehicle(vehicleId.value);
 
+const serviceInsights = ref<{
+  previous_date: string | null;
+  previous_mileage: number;
+} | null>(null);
+
+const getServiceInsights = async () => {
+  if (!serviceId.value) return;
+
+  const client = useSupabaseClient();
+  const { data, error } = await client.rpc("get_service_insights", {
+    vehicle_id: vehicleId.value,
+    service_log_id: serviceId.value,
+  });
+
+  if (error) {
+    toast.error("Failed to fetch service insights");
+    return null;
+  }
+
+  console.log("Service insights:", data);
+
+  serviceInsights.value =
+    Array.isArray(data) && data.length > 0 ? data[0] : null;
+};
+
 const serviceDialogRef = ref<InstanceType<typeof ServiceDialog>>();
 const filePreviewRef = ref<InstanceType<typeof FilePreviewModal>>();
 
@@ -154,6 +179,10 @@ const handleEditService = () => {
   if (!vehicleId.value) return;
   serviceDialogRef.value?.open(vehicleId.value, serviceId.value);
 };
+
+onMounted(() => {
+  getServiceInsights();
+});
 </script>
 
 <template>
@@ -226,17 +255,34 @@ const handleEditService = () => {
         </div>
 
         <ul class="flex flex-col gap-1 text-sm">
-          <!-- TODO:-->
-          <!-- <li class="inline-flex gap-1 items-center">
+          <li v-if="serviceInsights" class="inline-flex gap-1 items-center">
             <span class="font-semibold">Last {{ service.type }}:</span>
             <span>
-              8245,1 km ago
-              <span
-                class="w-1 h-1 bg-neutral-content rounded-full inline-block leading-none mx-1"
-              ></span>
-              9 months ago
+              {{
+                formatNumber(
+                  (service.mileage || 0) - serviceInsights.previous_mileage,
+                  {
+                    style: "unit",
+                    unit: vehicle?.mileage_unit || "kilometer",
+                    compactDisplay: "short",
+                  },
+                )
+              }}
+              ago
             </span>
-          </li> -->
+            <span
+              class="w-1 h-1 bg-neutral-content rounded-full inline-block leading-none mx-1"
+            ></span>
+            <NuxtTime
+              v-if="serviceInsights.previous_date"
+              relative
+              :datetime="serviceInsights.previous_date"
+              numeric="always"
+              relativeStyle="long"
+              year="2-digit"
+              month="2-digit"
+            />
+          </li>
           <li class="inline-flex gap-1 items-center">
             <span class="font-semibold">Date:</span>
             <span>

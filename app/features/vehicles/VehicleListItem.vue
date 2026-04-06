@@ -37,7 +37,7 @@ const vehicleMakeModel = computed(() => {
 
         <AvatarImage
           v-show="vehicle?.thumbnail"
-          :src="`https://akhxphgocxpyoofvdqwi.supabase.co/storage/v1/object/public/${vehicle.thumbnail}`"
+          :src="`https://akhxphgocxpyoofvdqwi.supabase.co/storage/v1/object/public/${vehicle.thumbnail}?Quality=20`"
         />
       </div>
 
