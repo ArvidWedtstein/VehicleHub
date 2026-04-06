@@ -21,7 +21,7 @@ export type MenuItem = {
   children?: MenuItem[] | MenuItem[][];
 } & MenuItemProps;
 
-type Props = {
+export interface MenuProps {
   menuClass?: string;
   /** Opens dropdown on hover */
   hover?: boolean;
@@ -43,9 +43,9 @@ type Props = {
   menuSize?: "xs" | "sm" | "md" | "lg";
 
   items?: MenuItem[] | MenuItem[][];
-};
+}
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<MenuProps>(), {
   menuClass: "w-52",
   hover: false,
   autoClose: "always",

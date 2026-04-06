@@ -7,7 +7,7 @@ const props = withDefaults(
   }>(),
   {
     allowEdit: true,
-  }
+  },
 );
 
 const service = defineModel<
@@ -39,14 +39,13 @@ const handleRemoveItem = (index: number) => {
     <table class="table table-sm table-pin-rows">
       <thead>
         <tr>
-          <th width="30">
+          <th v-if="allowEdit" width="30">
             <button
-              v-if="allowEdit"
               type="button"
               class="btn btn-secondary btn-soft btn-xs btn-square"
               @click="handleAddItem"
             >
-              <Icon name="mdi:plus" size="1.2em" />
+              <Icon name="mdi:plus" />
             </button>
           </th>
           <th>Description</th>
@@ -57,14 +56,13 @@ const handleRemoveItem = (index: number) => {
       </thead>
       <tbody v-if="service">
         <tr v-for="(item, index) in serviceItems" :key="index">
-          <th width="30">{{ index + 1 }}</th>
-          <td>
+          <td :colspan="allowEdit ? 2 : 1">
             <FormInput
               type="text"
               size="sm"
               v-model="item.description"
               :class="{ 'input-ghost': !allowEdit }"
-              placeholder="Item title"
+              placeholder="Item Name"
               :readonly="!allowEdit"
             />
           </td>
@@ -95,19 +93,21 @@ const handleRemoveItem = (index: number) => {
               tabindex="-1"
               @click="handleRemoveItem(index)"
             >
-              <Icon name="mdi:trash" size="1.2em" />
+              <Icon name="mdi:trash" />
               <span class="sr-only">Remove Item</span>
             </button>
           </td>
         </tr>
 
         <tr v-if="serviceItems.length === 0">
-          <td colspan="6" class="text-center">No items found</td>
+          <td :colspan="allowEdit ? 6 : 5" class="text-center">
+            No items found
+          </td>
         </tr>
       </tbody>
       <tfoot>
         <tr>
-          <th colspan="2">Sum:</th>
+          <th :colspan="allowEdit ? 2 : 1">Sum:</th>
           <td>
             {{
               formatNumber(sum(serviceItems || [], "cost"), {

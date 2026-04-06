@@ -11,10 +11,12 @@ import {
 import { useVehicle } from "../../useVehicles";
 
 type ServiceInsert = TablesInsert<"VehicleServiceLogs"> & {
+  totalCost?: number;
   items?: TablesInsert<"VehicleServiceLogsItems">[];
   files?: Tables<"VehicleDocuments">[];
 };
 type ServiceUpdate = TablesUpdate<"VehicleServiceLogs"> & {
+  totalCost?: number;
   items?: TablesUpdate<"VehicleServiceLogsItems">[];
   files?: Tables<"VehicleDocuments">[];
 };
@@ -107,6 +109,11 @@ export const useServiceForm = () => {
       let serviceId = service.value.id;
 
       if (isEdit.value && service.value.id) {
+        // TODO: fix this, we should not have to delete these properties to update the service
+        delete service.value.items;
+        delete service.value.files;
+        delete service.value.totalCost;
+
         await updateVehicleService(
           service.value.vehicle_id!,
           service.value.id,

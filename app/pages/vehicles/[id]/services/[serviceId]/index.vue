@@ -160,6 +160,7 @@ const handleEditService = () => {
   <div>
     <ServiceDialog ref="serviceDialogRef" />
     <FilePreviewModal bucket="VehicleDocuments" ref="filePreviewRef" />
+
     <NuxtLink
       :to="{
         name: 'vehicles-id-services',
@@ -196,27 +197,46 @@ const handleEditService = () => {
               <div class="divider divider-horizontal mx-1"></div>
             </template>
 
-            <button
-              type="button"
-              class="btn btn-sm btn-outline btn-secondary"
-              @click="handleEditService"
+            <ResponsiveMenu
+              alignMenu="end"
+              :items="[
+                {
+                  label: 'Edit',
+                  icon: 'mdi:pencil',
+                  onClick: handleEditService,
+                },
+                {
+                  label: 'Delete',
+                  icon: 'mdi:trash',
+                  class: 'text-error',
+                  onClick: handleServiceDelete,
+                },
+              ]"
+              #default="{ toggle }"
             >
-              <Icon name="mdi:pencil" />
-              Edit
-            </button>
-
-            <button
-              type="button"
-              class="btn btn-sm btn-outline btn-error"
-              @click="handleServiceDelete"
-            >
-              <Icon name="mdi:trash" />
-              Delete
-            </button>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline btn-secondary"
+                @click="toggle()"
+              >
+                <Icon name="mdi:dots-vertical" />
+              </button>
+            </ResponsiveMenu>
           </div>
         </div>
 
         <ul class="flex flex-col gap-1 text-sm">
+          <!-- TODO:-->
+          <!-- <li class="inline-flex gap-1 items-center">
+            <span class="font-semibold">Last {{ service.type }}:</span>
+            <span>
+              8245,1 km ago
+              <span
+                class="w-1 h-1 bg-neutral-content rounded-full inline-block leading-none mx-1"
+              ></span>
+              9 months ago
+            </span>
+          </li> -->
           <li class="inline-flex gap-1 items-center">
             <span class="font-semibold">Date:</span>
             <span>
@@ -308,7 +328,7 @@ const handleEditService = () => {
                 class="btn btn-sm btn-ghost"
                 @click="toggle()"
               >
-                <Icon name="mdi:dots-vertical" size="1.2em" />
+                <Icon name="mdi:dots-vertical" />
               </button>
             </Menu>
           </template>

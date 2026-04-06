@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { MenuItem } from "./menu/Menu.vue";
+import type { MenuItem, MenuProps } from "./menu/Menu.vue";
 
 const { isMobile } = useBreakpoints();
 
-export interface ResponsiveMenuProps {
+export interface ResponsiveMenuProps extends Pick<MenuProps, "alignMenu"> {
   items?: Omit<MenuItem, "children" | "type" | "color">[];
 }
 
@@ -35,7 +35,7 @@ const openActionSheet = () => {
     </template>
 
     <template v-else>
-      <Menu :items="items" v-bind="$attrs">
+      <Menu :items="items" :alignMenu="alignMenu" v-bind="$attrs">
         <template #default="{ toggle }">
           <slot name="default" :toggle="toggle">
             <button type="button" class="btn btn-outline" @click.stop="toggle">
