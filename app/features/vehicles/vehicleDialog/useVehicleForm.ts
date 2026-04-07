@@ -25,7 +25,7 @@ const getDefaultVehicleValues = () => ({
 
 export const useVehicleForm = () => {
   const vehicle = ref<TablesInsert<"Vehicles"> | TablesUpdate<"Vehicles">>(
-    getDefaultVehicleValues()
+    getDefaultVehicleValues(),
   );
 
   const initialVehicleState = ref<
@@ -40,14 +40,13 @@ export const useVehicleForm = () => {
     }
 
     const { data: editVehicle } = await useVehicle(vehicle_id);
-
     if (!editVehicle.value) {
       return;
     }
 
     vehicle.value = {
       ...getDefaultVehicleValues(),
-      ...editVehicle.value,
+      ...omit(editVehicle.value, ["shares"]),
     };
     initialVehicleState.value = { ...vehicle.value };
   };
@@ -72,10 +71,9 @@ export const useVehicleForm = () => {
         vehicleId = createdVehicle.id;
       }
 
-      const documentFile = files[0];
-      if (documentFile && vehicleId) {
+      if (files.length && vehicleId) {
         const formData = new FormData();
-        formData.append("file", documentFile);
+        files.forEach((file) => formData.append("files", file));
 
         const data = await $fetch(`/api/vehicles/${vehicleId}/images/upload`, {
           method: "POST",

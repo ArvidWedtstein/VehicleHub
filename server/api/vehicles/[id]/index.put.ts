@@ -2,7 +2,7 @@ import { serverSupabaseClient } from "#supabase/server";
 import { Database } from "~/types/supabase";
 
 export default defineAuthenticatedEventHandler(async (event) => {
-  const body = await readBody(event);
+  const body = await readBody(event, { strict: true });
   const id = getRouterParam(event, "id");
   if (!id)
     throw createError({ statusCode: 400, statusMessage: "No id provided" });
