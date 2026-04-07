@@ -48,7 +48,6 @@ export function useDrag(options: UseDragOptions) {
         : ev.clientX;
 
   const startDrag = (ev: PointerEvent) => {
-    console.info("Start drag", { ev, disabled });
     if (disabled) return;
 
     isDragging.value = true;
@@ -76,7 +75,6 @@ export function useDrag(options: UseDragOptions) {
     lastPos.value = currentPos;
     dragStartTime.value = performance.now();
 
-    console.info("Drag at", delta, "velocity", velocity.value);
     if (onDrag) onDrag({ delta, velocity: velocity.value });
   };
 

@@ -118,7 +118,6 @@ if (!isServer) {
       }
 
       if (isDraggingInDirection && !props.snapPoints) {
-        console.log("dragged distance", draggedDistance);
         const dampenedDraggedDistance = 8 * (Math.log(draggedDistance + 1) - 2);
 
         const translateValue =

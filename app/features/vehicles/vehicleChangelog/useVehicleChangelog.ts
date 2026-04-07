@@ -11,7 +11,7 @@ export function useVehicleChangelog(
   );
 
   return useFetch<Tables<"changelog_with_profile">[]>(
-    `/api/vehicles/${unref(vehicleId)}/changelog`,
+    `/api/vehicles/${id.value}/changelog`,
     {
       key: key.value,
       watch: [id],
@@ -25,45 +25,63 @@ export const initChangelogRealtime = (
 ) => {
   try {
     const id = computed(() => unref(vehicleId));
-    const key = computed(() =>
-      id.value ? `vehicle-${id.value}_changelog` : undefined,
-    );
+    const key = computed(() => `vehicle-${id.value}_changelog`);
 
     const client = useSupabaseClient();
     let channel: ReturnType<typeof client.channel> | null = null;
 
-    // TODO: fix potential multiple subscriptions if vehicleId changes, maybe by using a store or by unsubscribing before subscribing again
-    client
-      .channel("Changelog")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "Changelog",
-          filter: `vehicle_id=eq.${unref(vehicleId)}`,
-        },
-        async (payload) => {
-          if (payload.errors) throw payload.errors;
+    watch(
+      id,
+      (vehicleId) => {
+        if (!vehicleId) return;
 
-          // Get missing fields from profiles, since realtime does not work views
+        if (channel) {
+          client.removeChannel(channel);
+        }
 
-          useAsyncData(`vehicles-${unref(vehicleId)}_changelog`, async () => {
-            const { data: profile } = await useProfile(
-              payload.new["createdby_id"],
-            );
+        channel = client
+          .channel("Changelog")
+          .on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "Changelog",
+              filter: `vehicle_id=eq.${id.value}`,
+            },
+            async (payload) => {
+              if (payload.errors) throw payload.errors;
 
-            const newEntryWithProfile: Tables<"changelog_with_profile"> = {
-              ...(payload.new as Tables<"Changelog">),
-              createdby_name: profile.value?.name || null,
-              createdby_profile_image_url:
-                profile.value?.profile_image_url || null,
-            };
-            return [newEntryWithProfile];
-          });
-        },
-      )
-      .subscribe();
+              // Get missing fields from profiles, since realtime does not work views
+              const nuxtData = useNuxtData<Tables<"changelog_with_profile">[]>(
+                key.value,
+              );
+              if (!nuxtData.data.value) return;
+
+              const { data: profile } = await useProfile(
+                payload.new["createdby_id"],
+              );
+
+              const newEntry: Tables<"changelog_with_profile"> = {
+                ...(payload.new as Tables<"Changelog">),
+                createdby_name: profile.value?.name || null,
+                createdby_profile_image_url:
+                  profile.value?.profile_image_url || null,
+              };
+
+              nuxtData.data.value.unshift(newEntry);
+            },
+          )
+          .subscribe();
+      },
+      {
+        immediate: true,
+      },
+    );
+
+    onUnmounted(() => {
+      if (channel) client.removeChannel(channel);
+    });
   } catch (error) {
     console.log(error);
   }

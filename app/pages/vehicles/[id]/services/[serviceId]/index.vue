@@ -35,10 +35,15 @@ const { data: service, pending: loading } = await useVehicleService(
 
 const { data: vehicle } = useVehicle(vehicleId.value);
 
-const serviceInsights = ref<{
-  previous_date: string | null;
-  previous_mileage: number;
-} | null>(null);
+const serviceInsights = ref<
+  | {
+      previous_date: string;
+      previous_mileage: number;
+      avg_interval: number;
+      type: string;
+    }
+  | undefined
+>(undefined);
 
 const getServiceInsights = async () => {
   if (!serviceId.value) return;
@@ -55,9 +60,11 @@ const getServiceInsights = async () => {
   }
 
   console.log("Service insights:", data);
+  if (!data || (Array.isArray(data) && data.length === 0)) {
+    return;
+  }
 
-  serviceInsights.value =
-    Array.isArray(data) && data.length > 0 ? data[0] : null;
+  serviceInsights.value = data[0];
 };
 
 const serviceDialogRef = ref<InstanceType<typeof ServiceDialog>>();
