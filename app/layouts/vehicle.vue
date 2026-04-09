@@ -4,7 +4,15 @@ import VehicleCard from "~/features/vehicles/VehicleCard.vue";
 
 const router = useRouter();
 
-const { data: vehicle } = await useVehicle(useRouteParam("id", "number").value);
+const vehicleId = useRouteParam("id", "number");
+
+const { setLastVehicle } = useLastVehicle();
+
+watchEffect(() => {
+  if (vehicleId.value) {
+    setLastVehicle(vehicleId.value);
+  }
+});
 
 const tabs = [
   {
@@ -69,10 +77,11 @@ onMounted(() => {
   <NuxtLoadingIndicator />
   <NuxtRouteAnnouncer />
   <NuxtAnnouncer />
+
   <NuxtLayout name="default">
     <div>
       <div class="relative flex flex-col gap-3 flex-1 w-full p-4">
-        <VehicleCard v-if="vehicle" :vehicle="vehicle" />
+        <VehicleCard />
 
         <Tabs
           class="hidden md:flex"

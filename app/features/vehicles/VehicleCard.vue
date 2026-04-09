@@ -2,6 +2,7 @@
 import type { Tables } from "~/types/supabase";
 import { useProfiles } from "../profiles/useProfiles";
 import ChangelogDrawer from "./vehicleChangelog/ChangelogDrawer.vue";
+import { useVehicle } from "./useVehicles";
 
 const VehicleDialog = defineAsyncComponent(
   () => import("./vehicleDialog/VehicleDialog.vue"),
@@ -18,9 +19,8 @@ const shareVehicleDialogRef = ref<InstanceType<
 
 const changelogDrawerRef = ref<InstanceType<typeof ChangelogDrawer>>();
 
-const { vehicle } = defineProps<{
-  vehicle: Tables<"Vehicles"> & { shares: Tables<"VehicleShares">[] };
-}>();
+const vehicleId = useRouteParam("id", "number");
+const { data: vehicle } = useVehicle(vehicleId.value);
 
 const { data: profiles } = useProfiles();
 const profilesMap = computed(() => {
@@ -30,33 +30,32 @@ const profilesMap = computed(() => {
 });
 
 const currentVehicleOwner = computed(() => {
-  return profilesMap.value.get(vehicle.owner_user_id);
+  return profilesMap.value.get(vehicle.value?.owner_user_id);
 });
 
 const editVehicle = () => {
-  if (import.meta.client) {
-    vehicleDialogRef.value?.open(vehicle.id);
-  }
+  if (!vehicleId.value) return;
+  vehicleDialogRef.value?.open(vehicleId.value);
 };
 
 const openShareVehicleDialog = async () => {
-  if (import.meta.client) {
-    shareVehicleDialogRef.value?.open(vehicle.id);
-  }
+  if (!vehicleId.value) return;
+  shareVehicleDialogRef.value?.open(vehicleId.value);
 };
 
 const openChangelogDrawer = () => {
-  if (import.meta.client) {
-    changelogDrawerRef.value?.drawerRef?.open();
-  }
+  changelogDrawerRef.value?.drawerRef?.open();
 };
 </script>
 
 <template>
-  <div class="card image-full card-border bg-base-200 shrink">
+  <div v-if="vehicle" class="card image-full card-border bg-base-200 shrink">
     <VehicleDialog ref="vehicleDialogRef" />
 
-    <ChangelogDrawer ref="changelogDrawerRef" :vehicleId="vehicle.id" />
+    <!-- Hydration mismatch-->
+    <ClientOnly>
+      <ChangelogDrawer ref="changelogDrawerRef" :vehicleId="vehicle.id" />
+    </ClientOnly>
 
     <ShareVehicleDialog ref="shareVehicleDialogRef" />
 
