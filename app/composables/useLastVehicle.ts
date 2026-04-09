@@ -6,7 +6,6 @@ export const useLastVehicle = () => {
 
   const setLastVehicle = (vehicleId: number) => {
     lastVehicleId.value = vehicleId.toString();
-    console.log("Set last vehicle ID to:", lastVehicleId.value);
   };
 
   return {
