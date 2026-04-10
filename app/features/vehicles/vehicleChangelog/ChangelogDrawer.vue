@@ -8,7 +8,7 @@ import ChangelogList from "./components/ChangelogList.vue";
 
 const props = defineProps<{ vehicleId: number }>();
 
-const drawerRef = ref<InstanceType<typeof Drawer> | null>(null);
+const open = ref(false);
 
 const { data: changelog, pending: loading } = useVehicleChangelog(
   props.vehicleId,
@@ -152,28 +152,22 @@ const formattedChangelog = computed(() => {
 });
 
 const handleClose = () => {
-  drawerRef.value?.close();
+  open.value = false;
 };
 
 defineExpose({
-  drawerRef: drawerRef,
+  open: () => (open.value = true),
+  close: handleClose,
 });
 </script>
 
 <template>
-  <Drawer ref="drawerRef" direction="left" title="Changelog">
-    <template #header>
-      <h3 class="text-lg font-bold">Changelog</h3>
-      <button
-        class="btn btn-circle btn-sm btn-ghost ms-auto"
-        formmethod="dialog"
-        value="cancel"
-        @click="handleClose"
-      >
-        ✕
-      </button>
-    </template>
-
+  <UDrawer
+    ref="drawerRef"
+    direction="left"
+    title="Changelog"
+    v-model:open="open"
+  >
     <template #body>
       <ChangelogList class="md:max-w-96">
         <template v-if="loading">
@@ -194,13 +188,8 @@ defineExpose({
       </ChangelogList>
     </template>
 
-    <template #footer="{ toggleDrawer }">
-      <button
-        @click="toggleDrawer(false, 'clickOutside')"
-        class="btn btn-sm btn-outline"
-      >
-        Close
-      </button>
+    <template #footer>
+      <UButton label="Close" variant="outline" size="sm" @click="handleClose" />
     </template>
-  </Drawer>
+  </UDrawer>
 </template>

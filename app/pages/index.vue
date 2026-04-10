@@ -5,7 +5,6 @@ useHead({
   title: "Vehicle Hub",
 });
 definePageMeta({
-  layout: "default",
   scrollToTop: true,
 });
 </script>

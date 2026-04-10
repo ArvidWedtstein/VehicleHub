@@ -83,16 +83,15 @@ const handleExpenseDelete = async () => {
   <div>
     <ExpenseDialog ref="expenseDialog" />
 
-    <NuxtLink
+    <ULink
       :to="{
         name: 'vehicles-id-expenses',
         params: { id: vehicleId },
       }"
-      class="link link-hover flex items-center gap-2 mb-2"
-    >
-      <Icon name="mdi:chevron-left" />
-      Back to Expenses
-    </NuxtLink>
+      icon="mdi:chevron-left"
+      label="Back to Expenses"
+      prefetch
+    />
 
     <span v-if="error">{{ error }}</span>
     <span v-else-if="loading">loading</span>

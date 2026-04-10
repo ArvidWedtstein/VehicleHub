@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TabsItem } from "@nuxt/ui";
 import { useVehicle } from "~/features/vehicles/useVehicles";
 import VehicleCard from "~/features/vehicles/VehicleCard.vue";
 
@@ -14,7 +15,7 @@ watchEffect(() => {
   }
 });
 
-const tabs = [
+const tabs: TabsItem[] = [
   {
     label: "Expenses",
     value: "vehicles-id-expenses",
@@ -43,7 +44,7 @@ const activeTab = computed({
 
     const currentTab = tabs.find(({ value }) =>
       currentRoute.matched.some(({ name }) =>
-        name?.toString().startsWith(value),
+        name?.toString().startsWith(value?.toString() || ""),
       ),
     );
 
@@ -52,8 +53,9 @@ const activeTab = computed({
     return tab;
   },
   set(tab) {
+    if (!tab) return;
     navigateTo({
-      name: tab,
+      name: tab.toString(),
     });
   },
 });
@@ -63,35 +65,32 @@ onMounted(() => {
 
   const matchedTab = currentRoute.name
     ?.toString()
-    .startsWith(activeTab.value || "");
+    .startsWith(activeTab.value?.toString() || "");
 
   if (!matchedTab) {
     navigateTo({
-      name: activeTab.value,
+      name: activeTab.value?.toString() || "",
     });
   }
 });
 </script>
 
 <template>
-  <NuxtLoadingIndicator />
   <NuxtRouteAnnouncer />
   <NuxtAnnouncer />
 
-  <NuxtLayout name="default">
-    <div>
-      <div class="relative flex flex-col gap-3 flex-1 w-full p-4">
-        <VehicleCard />
+  <div>
+    <div class="relative flex flex-col gap-3 flex-1 w-full p-4">
+      <VehicleCard />
 
-        <Tabs
-          class="hidden md:flex"
-          v-model="activeTab"
-          variant="boxed"
-          :items="tabs"
-          :content="false"
-        ></Tabs>
-        <slot />
-      </div>
+      <UTabs
+        v-model="activeTab"
+        :items="tabs"
+        :content="false"
+        :unmountOnHide="false"
+      />
+
+      <slot />
     </div>
-  </NuxtLayout>
+  </div>
 </template>

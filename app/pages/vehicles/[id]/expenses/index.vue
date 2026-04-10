@@ -115,14 +115,7 @@ const handleFilterApply = async (
     <ExpenseDialog ref="expenseDialog" />
 
     <div class="flex items-center justify-between gap-2 mb-3">
-      <button
-        type="button"
-        class="btn btn-primary w-auto"
-        @click="handleCreateExpense"
-      >
-        <Icon name="mdi:plus" />
-        Add
-      </button>
+      <UButton label="Add" icon="mdi:plus" @click="handleCreateExpense" />
 
       <div class="flex items-center gap-2">
         <div class="join">
@@ -160,6 +153,30 @@ const handleFilterApply = async (
         <!-- <ExportButton @export="handleExpensesExport" :types="exportOptions" /> -->
       </div>
     </div>
+
+    <!-- <UPageList divide>
+      <UPageCard
+        v-for="(expense, index) in expenses"
+        :key="index"
+        variant="ghost"
+        :title="expense.type || ''"
+      >
+        <template #body>
+          <UUser
+            :avatar="{
+              icon: expense.type === 'Fuel' ? 'mdi:gas-station' : 'mdi:cash',
+            }"
+            :name="expense.type || 'Unknown Expense'"
+            :description="
+              formatDate(expense.date, {
+                dateStyle: 'medium',
+              })
+            "
+            size="xl"
+          />
+        </template>
+      </UPageCard>
+    </UPageList> -->
 
     <ListGroup class="flex-1 overflow-hidden mb-16" ignoreListClass>
       <template v-if="loading">

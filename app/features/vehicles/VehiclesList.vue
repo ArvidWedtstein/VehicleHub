@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import VehicleListItem from "./VehicleListItem.vue";
 import { useVehicles } from "~/features/vehicles/useVehicles";
 
 preloadRouteComponents({
@@ -7,19 +6,34 @@ preloadRouteComponents({
   params: { id: "placeholder" },
 });
 
-const { data: vehicles, pending } = await useVehicles();
+const { data: vehicles, pending } = useVehicles();
 </script>
 
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-    <!-- <NewVehicleCard key="new-vehicle" /> -->
-
+  <UPageGrid>
     <span v-if="pending">Loading...</span>
-    <span v-if="vehicles && vehicles.length === 0">No vehicles</span>
-    <VehicleListItem
+
+    <UEmpty
+      v-else-if="vehicles && vehicles.length === 0"
+      title="No Vehicles found"
+      description="It looks like you haven't added any vehicles. Create one to get started."
+    />
+
+    <UPageCard
       v-for="vehicle in vehicles"
       :key="vehicle.id"
-      :vehicle="vehicle"
-    />
-  </div>
+      variant="soft"
+      :title="vehicle.licenseplate_number || vehicle.make || 'Unknown Vehicle'"
+      :description="`${vehicle.model_year || ''} ${vehicle.make} ${vehicle.model}`"
+      :to="`/vehicles/${vehicle.id}/expenses`"
+    >
+      <template #header>
+        <UAvatar
+          v-if="vehicle?.thumbnail"
+          :src="`https://akhxphgocxpyoofvdqwi.supabase.co/storage/v1/object/public/${vehicle.thumbnail}?Quality=20`"
+          size="md"
+        />
+      </template>
+    </UPageCard>
+  </UPageGrid>
 </template>

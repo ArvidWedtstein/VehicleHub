@@ -33,9 +33,14 @@ const currentVehicleOwner = computed(() => {
   return profilesMap.value.get(vehicle.value?.owner_user_id);
 });
 
+const overlay = useOverlay();
+
+const vehicleModal = overlay.create(VehicleDialog);
+
 const editVehicle = () => {
   if (!vehicleId.value) return;
-  vehicleDialogRef.value?.open(vehicleId.value);
+
+  vehicleModal.open({ vehicleId: vehicleId.value });
 };
 
 const openShareVehicleDialog = async () => {
@@ -44,7 +49,7 @@ const openShareVehicleDialog = async () => {
 };
 
 const openChangelogDrawer = () => {
-  changelogDrawerRef.value?.drawerRef?.open();
+  changelogDrawerRef.value?.open();
 };
 </script>
 
@@ -82,24 +87,22 @@ const openChangelogDrawer = () => {
         </h2>
 
         <div class="flex justify-end items-center gap-1">
-          <button
-            type="button"
-            class="btn btn-sm btn-outline hidden md:inline-flex"
-            title="Edit"
+          <UButton
+            label="Edit"
+            variant="soft"
+            color="neutral"
+            icon="mdi:pencil"
             @click="editVehicle"
-          >
-            <Icon name="mdi:pencil" />
-            <span class="hidden md:inline">Edit</span>
-          </button>
+          />
 
-          <button
-            type="button"
-            class="btn btn-sm btn-outline hidden md:inline-flex"
+          <UButton
+            label="Changelog"
+            variant="soft"
+            color="neutral"
+            icon="mdi:history"
             @click="openChangelogDrawer"
-          >
-            <Icon name="mdi:history" />
-            Changelog
-          </button>
+          />
+
           <!-- TODO: finish-->
           <!-- <button
             type="button"
@@ -118,15 +121,13 @@ const openChangelogDrawer = () => {
             </svg>
           </button> -->
 
-          <button
-            type="button"
-            class="btn btn-sm btn-secondary btn-outline hidden md:inline-flex"
-            title="Share"
+          <UButton
+            label="Share"
+            variant="soft"
+            color="secondary"
+            icon="mdi:share-variant"
             @click="openShareVehicleDialog"
-          >
-            <Icon name="mdi:share-variant" />
-            <span class="hidden md:inline">Share</span>
-          </button>
+          />
         </div>
       </div>
 

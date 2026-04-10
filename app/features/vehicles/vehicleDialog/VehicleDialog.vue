@@ -1,114 +1,124 @@
 <script setup lang="ts">
 import type { Tables } from "~/types/supabase";
-import type Modal from "~/components/Modal.vue";
 import { useVehicleForm } from "./useVehicleForm";
-import Stepper from "~/components/Stepper.vue";
 import BasicInfoForm from "./components/BasicInfoForm.vue";
 import EngineForm from "./components/EngineForm.vue";
 import TransmissionForm from "./components/TransmissionForm.vue";
+import type { StepperItem } from "@nuxt/ui";
 
-const modalRef = ref<InstanceType<typeof Modal>>();
+const { vehicleId } = defineProps<{
+  vehicleId?: Tables<"Vehicles">["id"];
+}>();
+
+const emit = defineEmits<{ close: [boolean] }>();
 
 const uploadedDocumentFiles = ref<File[]>([]);
 
 const { vehicle, isEdit, initialize, save } = useVehicleForm();
 
-const stepControl = reactive({
-  step: 0,
-  steps: ["General", "Engine", "Transmission"],
-});
+const stepper = useTemplateRef("stepper");
 
-const changeStep = (stepIndex: number) => {
-  stepControl.step = Math.max(
-    0,
-    Math.min(stepControl.steps.length - 1, stepIndex)
-  );
-};
+const activeStep = ref("general");
+const steps = ref<StepperItem[]>([
+  {
+    title: "General",
+    slot: "general",
+    value: "general",
+  },
+  {
+    title: "Engine",
+    icon: "mdi:engine",
+    value: "engine",
+    slot: "engine",
+  },
+  {
+    title: "Transmission",
+    icon: "mdi:car-shift-pattern",
+    value: "transmission",
+    slot: "transmission",
+  },
+]);
 
-const handleOpen = (vehicle_id?: Tables<"Vehicles">["id"]) => {
-  stepControl.step = 0;
-
-  initialize(vehicle_id);
-
-  modalRef.value?.modalRef?.showModal();
+const onOpen = () => {
+  console.log("Initializing vehicle form with ID:", vehicleId);
+  initialize(vehicleId);
 };
 
 const onFormSubmit = async () => {
-  if (!modalRef.value) return;
   try {
     await save(uploadedDocumentFiles.value);
 
     toast.success(
-      `Successfully ${vehicle.value.id ? "updated" : "created"} vehicle`
+      `Successfully ${vehicle.value.id ? "updated" : "created"} vehicle`,
     );
 
-    modalRef.value.modalRef?.close();
+    emit("close", true);
   } catch (err) {
     toast.error(`Something went wrong.${err}`);
   }
 };
-
-defineExpose({ modalRef: modalRef, open: handleOpen });
 </script>
 
 <template>
-  <Modal ref="modalRef" :title="vehicle.id ? 'Edit Vehicle' : 'Add Vehicle'">
-    <form @submit.prevent="onFormSubmit">
-      <Stepper
-        class="my-2"
-        v-model="stepControl.step"
-        :steps="stepControl.steps"
-      >
-        <template #step-general>
-          <BasicInfoForm
-            :key="vehicle.id"
-            v-model="vehicle"
-            v-model:files="uploadedDocumentFiles"
-          />
-        </template>
-        <template #step-engine>
-          <EngineForm v-model="vehicle" />
-        </template>
-        <template #step-transmission>
-          <TransmissionForm v-model="vehicle" />
-        </template>
-      </Stepper>
-    </form>
-
-    <template #actions>
-      <button type="button" class="btn me-3" @click="modalRef?.close">
-        Cancel
-      </button>
-
-      <button
-        type="button"
-        class="btn btn-outline"
-        @click="changeStep(stepControl.step - 1)"
-        :disabled="stepControl.step === 0"
-      >
-        <Icon name="mdi:chevron-left" />
-        Back
-      </button>
-
-      <button
-        :disabled="stepControl.step === stepControl.steps.length - 1"
-        type="button"
-        class="btn btn-outline"
-        @click="changeStep(stepControl.step + 1)"
-      >
-        Next
-        <Icon name="mdi:chevron-right" />
-      </button>
-
-      <button
-        type="button"
-        @click="onFormSubmit"
-        class="btn btn-primary ms-1"
-        :disabled="!isEdit && stepControl.step !== stepControl.steps.length - 1"
-      >
-        <Icon :name="isEdit ? 'mdi:content-save' : 'mdi:plus'" />
-        {{ isEdit ? "Save" : "Create" }}
-      </button>
+  <UModal
+    :title="vehicle.id ? 'Edit Vehicle' : 'Add Vehicle'"
+    :close="{ onClick: () => emit('close', false) }"
+    @after:enter="onOpen"
+    fullscreen
+    :ui="{ footer: 'justify-end' }"
+  >
+    <template #body>
+      <form @submit.prevent="onFormSubmit">
+        <UStepper
+          ref="stepper"
+          class="my-2 w-full"
+          v-model="activeStep"
+          :items="steps"
+        >
+          <template #general>
+            <BasicInfoForm
+              :key="vehicle.id"
+              v-model="vehicle"
+              v-model:files="uploadedDocumentFiles"
+            />
+          </template>
+          <template #engine>
+            <EngineForm v-model="vehicle" />
+          </template>
+          <template #transmission>
+            <TransmissionForm v-model="vehicle" />
+          </template>
+        </UStepper>
+      </form>
     </template>
-  </Modal>
+
+    <template #footer="{ close }">
+      <UButton color="neutral" label="Cancel" @click="close" />
+      <UButton
+        leadingIcon="mdi:arrow-left"
+        label="Prev"
+        color="neutral"
+        variant="outline"
+        :disabled="!stepper?.hasPrev"
+        @click="stepper?.prev()"
+      />
+
+      <UButton
+        trailingIcon="mdi:arrow-right"
+        label="Next"
+        color="neutral"
+        variant="outline"
+        :disabled="!stepper?.hasNext"
+        @click="stepper?.next()"
+      />
+
+      <UButton
+        :label="isEdit ? 'Save' : 'Create'"
+        color="primary"
+        :icon="isEdit ? 'mdi:content-save' : 'mdi:plus'"
+        :disabled="!isEdit && !stepper?.hasNext"
+        @click="onFormSubmit"
+      />
+    </template>
+  </UModal>
 </template>

@@ -17,7 +17,7 @@ export interface UseFileUploadOptions {
   onUpdate: (files: File[]) => void;
 }
 
-export function useFileUpload(options: UseFileUploadOptions) {
+export function useFileUpload2(options: UseFileUploadOptions) {
   const {
     maxSize,
     accept = "*",

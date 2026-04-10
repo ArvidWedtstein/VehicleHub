@@ -15,7 +15,6 @@ useSeoMeta({
 
 definePageMeta({
   middleware: "auth",
-  layout: "default",
 });
 </script>
 
