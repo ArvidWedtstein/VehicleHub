@@ -5,24 +5,33 @@ import AutoComplete from "~/components/form/AutoComplete.vue";
 import { useProfiles } from "~/features/profiles/useProfiles";
 import type { Tables } from "~/types/supabase";
 
-const modalRef = ref<InstanceType<typeof Modal>>();
+const open = ref(false);
 
 const sessionUser = useSupabaseUser();
 const { data: profiles } = useProfiles();
+
+const profilesList = computed(() => {
+  return profiles.value.map((p) => ({
+    label: p.name || "",
+    avatar: { src: p.profile_image_url || "" },
+    value: p.id,
+    loading: "lazy" as const,
+  }));
+});
 
 const { vehicleShares, initialize, save } = useShareVehicleForm();
 
 const handleOpen = (vehicle_id: Tables<"Vehicles">["id"]) => {
   initialize(vehicle_id);
 
-  modalRef.value?.modalRef?.showModal();
+  open.value = true;
 };
 
 const handleSubmit = async () => {
   console.log("suibmiut");
   await save();
 
-  modalRef.value?.close();
+  open.value = false;
 };
 
 const handleInviteUser = async () => {
@@ -30,97 +39,86 @@ const handleInviteUser = async () => {
   toast.success(`Invite sent`);
 };
 
-defineExpose({ modalRef: modalRef, open: handleOpen });
+defineExpose({ open: handleOpen });
 </script>
 
 <template>
-  <Modal ref="modalRef" title="Share this Vehicle" size="sm">
-    <form id="shareVehicle" @submit.prevent="handleSubmit">
-      <div class="flex items-end gap-2">
-        <AutoComplete
-          :options="profiles"
-          :getOptionLabel="(item) => item.name || ''"
-          :getOptionValue="(item) => item.id || ''"
-          label="Invite others"
-          placeholder="Search by name or email"
-        >
-          <template #option="{ option, selected }">
+  <UModal
+    v-model:open="open"
+    title="Share this Vehicle"
+    :ui="{ footer: 'justify-end' }"
+  >
+    <template #body>
+      <form id="shareVehicle" @submit.prevent="handleSubmit">
+        <div class="flex items-end gap-2">
+          <UFormField label="Invite others">
+            <UInputMenu
+              :items="profilesList"
+              placeholder="Search by name or email"
+            />
+          </UFormField>
+
+          <UButton label="Invite" @click="handleInviteUser" />
+        </div>
+
+        <fieldset class="fieldset my-5">
+          <legend class="fieldset-legend">Who has access</legend>
+
+          <div class="flex flex-col items-start gap-3 grow">
             <div
-              class="flex items-center gap-2"
-              :class="{ 'bg-primary/10': selected }"
+              v-for="(share, idx) in vehicleShares"
+              :key="idx"
+              class="flex items-center flex-nowrap gap-3 w-full"
             >
               <AvatarImage
-                size="xxs"
-                :src="option.profile_image_url"
-                :fallbackSrc="`https://ui-avatars.com/api/?name=${option.name}`"
+                size="xs"
+                :src="share.profile.profile_image_url"
+                :fallbackSrc="`https://ui-avatars.com/api/?name=${share.profile.name}`"
               />
 
-              <span class="text-sm font-medium grow">{{ option.name }}</span>
+              <span class="text-sm font-medium grow">
+                {{ share.profile.name }}
+              </span>
+
+              <FormInput
+                type="select"
+                wrapperClass="py-0"
+                size="xs"
+                color="primary"
+                :options="[
+                  { value: true, label: 'Can View' },
+                  { value: false, label: 'Can Edit' },
+                ]"
+                v-model="share.readonly"
+              />
             </div>
-          </template>
-        </AutoComplete>
+            <div class="flex items-center gap-3 w-full">
+              <AvatarImage
+                size="xs"
+                :src="sessionUser?.user_metadata?.profile_image_url"
+              />
 
-        <button type="button" class="btn btn-primary" @click="handleInviteUser">
-          Invite
-        </button>
-      </div>
+              <span class="text-sm font-medium grow">
+                {{ sessionUser?.user_metadata?.name }}
+                (You)
+              </span>
 
-      <fieldset class="fieldset my-5">
-        <legend class="fieldset-legend">Who has access</legend>
-
-        <div class="flex flex-col items-start gap-3 grow">
-          <div
-            v-for="(share, idx) in vehicleShares"
-            :key="idx"
-            class="flex items-center flex-nowrap gap-3 w-full"
-          >
-            <AvatarImage
-              size="xs"
-              :src="share.profile.profile_image_url"
-              :fallbackSrc="`https://ui-avatars.com/api/?name=${share.profile.name}`"
-            />
-
-            <span class="text-sm font-medium grow">
-              {{ share.profile.name }}
-            </span>
-
-            <FormInput
-              type="select"
-              wrapperClass="py-0"
-              size="xs"
-              color="primary"
-              :options="[
-                { value: true, label: 'Can View' },
-                { value: false, label: 'Can Edit' },
-              ]"
-              v-model="share.readonly"
-            />
+              <span class="text-sm text-primary me-4">owner</span>
+            </div>
           </div>
-          <div class="flex items-center gap-3 w-full">
-            <AvatarImage
-              size="xs"
-              :src="sessionUser?.user_metadata?.profile_image_url"
-            />
-
-            <span class="text-sm font-medium grow">
-              {{ sessionUser?.user_metadata?.name }}
-              (You)
-            </span>
-
-            <span class="text-sm text-primary me-4">owner</span>
-          </div>
-        </div>
-      </fieldset>
-    </form>
-
-    <template #actions>
-      <button type="reset" class="btn btn-neutral" @click="modalRef?.close()">
-        Cancel
-      </button>
-      <button type="submit" form="shareVehicle" class="btn btn-primary">
-        <Icon name="mdi:content-save" />
-        Save
-      </button>
+        </fieldset>
+      </form>
     </template>
-  </Modal>
+
+    <template #footer>
+      <UButton label="Cancel" color="neutral" @click="open = false" />
+      <UButton
+        type="submit"
+        label="Save"
+        color="primary"
+        icon="mdi:content-save"
+        form="shareVehicle"
+      />
+    </template>
+  </UModal>
 </template>

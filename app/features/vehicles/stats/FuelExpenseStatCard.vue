@@ -2,9 +2,8 @@
 import { useVehicleExpenses } from "../expenses/useVehicleExpenses";
 
 const vehicleId = useRouteParam("id", "number");
-const { data: expenses, pending: loading } = await useVehicleExpenses(
-  vehicleId
-);
+const { data: expenses, pending: loading } =
+  await useVehicleExpenses(vehicleId);
 
 const selectedPeriod = ref("month");
 
@@ -13,7 +12,7 @@ const statFuelCostPerMonth = computed(() => {
   const currentPeriod = formatDateToFormat(currentDate, "yyyy-MM");
   const prevPeriod = formatDateToFormat(
     addToDate(currentDate, -1, "month"),
-    "yyyy-MM"
+    "yyyy-MM",
   );
 
   const currentYear = currentDate.getFullYear();
@@ -34,7 +33,7 @@ const statFuelCostPerMonth = computed(() => {
 
   const groupedExpensesPerPeriod = groupBy(
     monthExpenses,
-    selectedPeriod.value === "month" ? "monthYear" : "year"
+    selectedPeriod.value === "month" ? "monthYear" : "year",
   );
 
   const costPrevPeriod =
@@ -42,7 +41,7 @@ const statFuelCostPerMonth = computed(() => {
       groupedExpensesPerPeriod[
         selectedPeriod.value === "month" ? prevPeriod : prevYear
       ] || { cost: 0 },
-      "cost"
+      "cost",
     ) || 0;
 
   const costThisPeriod =
@@ -50,7 +49,7 @@ const statFuelCostPerMonth = computed(() => {
       groupedExpensesPerPeriod[
         selectedPeriod.value === "month" ? currentPeriod : currentYear
       ] || { cost: 0 },
-      "cost"
+      "cost",
     ) || 0;
 
   const percentageDiffToPrevPeriod =
@@ -83,7 +82,7 @@ const statDiffToPrevPeriodText = computed(() => {
       currencyDisplay: "narrowSymbol",
       currency: statFuelCostPerMonth.value.currencies[0] ?? "EUR",
       maximumFractionDigits: 0,
-    }
+    },
   );
 
   const text = `${parsedDiff} ${diffText} than last ${selectedPeriod.value} (${prevPeriodText})`;
@@ -98,25 +97,23 @@ const periodOptions = [
 </script>
 
 <template>
-  <div class="stats">
-    <div class="stat bg-base-200 shadow-lg" v-show="!loading">
-      <div class="stat-figure text-primary">
-        <Icon name="mdi:gas-station" class="inline-block" size="2em" />
+  <UCard variant="soft" v-show="!loading">
+    <template #header>
+      <div class="flex items-center gap-2">
+        <span>Spent on Fuel this:</span>
+        <UTabs
+          v-model="selectedPeriod"
+          :items="periodOptions"
+          :content="false"
+          :unmountOnHide="false"
+          size="sm"
+          color="neutral"
+        />
       </div>
-      <div class="stat-title">
-        <div class="flex items-center gap-2">
-          <span>Spent on Fuel this:</span>
-          <FormInput
-            type="select"
-            size="sm"
-            :validate="false"
-            wrapperClass="min-w-28 w-auto"
-            :options="periodOptions"
-            v-model="selectedPeriod"
-          />
-        </div>
-      </div>
-      <div class="stat-value text-primary">
+    </template>
+
+    <template #default>
+      <div class="text-2xl font-bold">
         {{
           formatNumber(statFuelCostPerMonth.costThisPeriod, {
             style: "currency",
@@ -125,7 +122,9 @@ const periodOptions = [
           })
         }}
       </div>
-      <div class="stat-desc flex items-center gap-2">
+    </template>
+    <template #footer>
+      <div class="flex items-center gap-2">
         <Transition name="fade" mode="out-in">
           <Icon
             :name="
@@ -142,6 +141,6 @@ const periodOptions = [
         </Transition>
         {{ statDiffToPrevPeriodText }}
       </div>
-    </div>
-  </div>
+    </template>
+  </UCard>
 </template>

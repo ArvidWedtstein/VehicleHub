@@ -4,6 +4,7 @@ import type Modal from "~/components/Modal.vue";
 import { useServiceForm } from "./useServiceForm";
 import FilesForm from "./components/FilesForm.vue";
 import ServiceForm from "./components/ServiceForm.vue";
+import type { StepperItem } from "@nuxt/ui";
 
 const modalRef = ref<InstanceType<typeof Modal>>();
 
@@ -11,6 +12,22 @@ const stepControl = reactive({
   step: 0,
   steps: ["Service", "Files"],
 });
+
+const stepper = useTemplateRef("stepper");
+
+const activeStep = ref("service");
+const steps = ref<StepperItem[]>([
+  {
+    title: "Service",
+    slot: "service",
+    value: "service",
+  },
+  {
+    title: "Files",
+    slot: "files",
+    value: "files",
+  },
+]);
 
 const {
   service,
@@ -69,49 +86,50 @@ defineExpose({
     @submit="onFormSubmit"
   >
     <form @submit.prevent="onFormSubmit">
-      <Stepper
-        class="my-2"
-        v-model="stepControl.step"
-        :steps="stepControl.steps"
+      <UStepper
+        ref="stepper"
+        class="my-2 w-full"
+        v-model="activeStep"
+        :items="steps"
       >
-        <template #step-service>
+        <template #service>
           <ServiceForm
             v-model="service"
             v-model:serviceItems="serviceItems"
             :mileage_unit="vehicle?.mileage_unit || 'kilometer'"
           />
         </template>
-        <template #step-files>
+        <template #files>
           <FilesForm v-model="service" v-model:files="serviceFiles" />
         </template>
-      </Stepper>
+      </UStepper>
     </form>
 
     <template #actions>
-      <button
-        type="button"
-        class="btn btn-outline"
-        @click="changeStep(stepControl.step - 1)"
-        :disabled="stepControl.step === 0"
-      >
-        <Icon name="mdi:chevron-left" size="1.2em" />
-        Back
-      </button>
-      <button
-        type="button"
-        class="btn btn-outline"
-        @click="changeStep(stepControl.step + 1)"
-        :disabled="stepControl.step === stepControl.steps.length - 1"
-      >
-        Next
-        <Icon name="mdi:chevron-right" size="1.2em" />
-      </button>
+      <UButton
+        leadingIcon="mdi:arrow-left"
+        label="Prev"
+        color="neutral"
+        variant="outline"
+        :disabled="!stepper?.hasPrev"
+        @click="stepper?.prev()"
+      />
 
-      <button type="button" @click="onFormSubmit" class="btn btn-primary ms-1">
-        <Icon :name="isEdit ? 'mdi:content-save' : 'mdi:plus'" size="1.2em" />
+      <UButton
+        trailingIcon="mdi:arrow-right"
+        label="Next"
+        color="neutral"
+        variant="outline"
+        :disabled="!stepper?.hasNext"
+        @click="stepper?.next()"
+      />
 
-        {{ isEdit ? "Save" : "Create" }}
-      </button>
+      <UButton
+        :label="isEdit ? 'Save' : 'Create'"
+        color="primary"
+        :icon="isEdit ? 'mdi:content-save' : 'mdi:plus'"
+        @click="onFormSubmit"
+      />
     </template>
   </Modal>
 </template>

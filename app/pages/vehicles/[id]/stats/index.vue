@@ -13,10 +13,9 @@ definePageMeta({
 </script>
 
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+  <UPageGrid :ui="{ base: 'lg:grid-cols-2' }">
     <FuelExpenseStatCard class="md:col-span-2" />
-
-    <ExpensesStatCard class="col-span-1" />
-    <ServicesStatCard class="col-span-1" />
-  </div>
+    <ExpensesStatCard />
+    <ServicesStatCard />
+  </UPageGrid>
 </template>

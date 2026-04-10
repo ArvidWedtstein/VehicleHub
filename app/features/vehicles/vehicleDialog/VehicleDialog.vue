@@ -92,8 +92,7 @@ const onFormSubmit = async () => {
       </form>
     </template>
 
-    <template #footer="{ close }">
-      <UButton color="neutral" label="Cancel" @click="close" />
+    <template #footer>
       <UButton
         leadingIcon="mdi:arrow-left"
         label="Prev"

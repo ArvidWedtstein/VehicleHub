@@ -4,9 +4,8 @@ import { useVehicleExpenses } from "../expenses/useVehicleExpenses";
 import StatCardSkeletonLoader from "./StatCardSkeletonLoader.vue";
 
 const vehicleId = useRouteParam("id", "number");
-const { data: expenses, pending: loading } = await useVehicleExpenses(
-  vehicleId
-);
+const { data: expenses, pending: loading } =
+  await useVehicleExpenses(vehicleId);
 
 type Option = {
   value: string;
@@ -103,11 +102,11 @@ const expensesData = computed(() => {
 
     const totalCost = items.reduce(
       (costAcc, currentItem) => costAcc + (currentItem.cost || 0),
-      0
+      0,
     );
     const totalAmount = items.reduce(
       (amountAcc, currentItem) => amountAcc + (currentItem.amount || 0),
-      0
+      0,
     );
 
     const numbers = items.map((item) => item.price_per_unit || 0);
@@ -139,83 +138,65 @@ const uniqueUnits = computed(() => {
       <StatCardSkeletonLoader />
     </template>
 
-    <div v-else class="card card-sm bg-base-200 shadow-sm">
-      <div class="card-body">
-        <h2 class="card-title">Expenses</h2>
-        <div class="card-actions">
-          <FormInput
-            type="select"
-            size="sm"
-            label="Period"
-            :validate="false"
-            wrapperClass="w-auto"
-            :options="chartSettings.periodOptions"
-            v-model="chartSettings.selectedPeriod"
-          />
-          <FormInput
-            type="select"
-            size="sm"
-            label="Type"
-            wrapperClass="max-w-36"
-            :validate="false"
+    <UPageCard
+      v-else
+      title="Expenses Overview"
+      icon="mdi:chart-bar"
+      variant="soft"
+    >
+      <template #description>
+        <div class="flex justify-baseline items-center gap-2">
+          <UTabs
             v-model="chartSettings.selectedType"
-            :options="chartSettings.typesOptions"
+            :items="chartSettings.typesOptions"
+            :content="false"
+            :unmountOnHide="false"
+            color="neutral"
+            size="sm"
           />
 
-          <FormInput
-            type="select"
+          <UTabs
+            v-model="chartSettings.selectedPeriod"
+            :items="chartSettings.periodOptions"
+            :content="false"
+            :unmountOnHide="false"
+            color="neutral"
             size="sm"
-            label="Currency"
-            wrapperClass="w-40"
-            :validate="false"
-            v-model="chartSettings.selectedCurrency"
-            :options="
-              uniqueCurrencies.map((currency) => ({ value: currency || 'EUR' }))
-            "
-          />
-          <FormInput
-            type="select"
-            size="sm"
-            label="Unit"
-            :validate="false"
-            wrapperClass="w-40"
-            v-model="chartSettings.selectedUnit"
-            :options="uniqueUnits.map((unit) => ({ value: unit || 'liter' }))"
           />
         </div>
+      </template>
 
-        <BarChart
-          v-if="!loading"
-          class="max-h-64 max-w-fit"
-          :xAxis="[
-            {
-              data: xAxisValues.map((p) => p.label),
-              scaleType: 'band',
+      <BarChart
+        v-if="!loading"
+        class="max-h-64 max-w-fit"
+        :xAxis="[
+          {
+            data: xAxisValues.map((p) => p.label),
+            scaleType: 'band',
+          },
+        ]"
+        :yAxis="[
+          {
+            valueFormatter: (value) => {
+              const formattedNumber = formatNumber(
+                parseInt((value || 0).toString()),
+                chartSettings.selectedType === 'totalAmount'
+                  ? amountFormatOptions
+                  : currencyFormatOptions,
+              );
+              return value === null ? '' : formattedNumber;
             },
-          ]"
-          :yAxis="[
-            {
-              valueFormatter: (value) => {
-                const formattedNumber = formatNumber(
-                  parseInt((value || 0).toString()),
-                  chartSettings.selectedType === 'totalAmount'
-                    ? amountFormatOptions
-                    : currencyFormatOptions
-                );
-                return value === null ? '' : formattedNumber;
-              },
-            },
-          ]"
-          :dataset="expensesData"
-          :series="[
-            {
-              dataKey: chartSettings.selectedType,
-              color: '--color-primary',
-            },
-          ]"
-          :margin="{ top: 10, right: 20, bottom: 20 }"
-        />
-      </div>
-    </div>
+          },
+        ]"
+        :dataset="expensesData"
+        :series="[
+          {
+            dataKey: chartSettings.selectedType,
+            color: '--color-primary',
+          },
+        ]"
+        :margin="{ top: 10, right: 20, bottom: 20 }"
+      />
+    </UPageCard>
   </div>
 </template>

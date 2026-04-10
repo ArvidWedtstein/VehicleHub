@@ -118,14 +118,7 @@ const handleFilterApply = async (
     <ServiceDialog ref="serviceDialogRef" />
 
     <div class="flex justify-between mb-3">
-      <button
-        type="button"
-        class="btn btn-primary w-auto"
-        @click="handleCreateService"
-      >
-        <Icon name="mdi:plus" />
-        Add
-      </button>
+      <UButton icon="mdi:plus" label="Add" @click="handleCreateService" />
 
       <div class="flex items-center gap-2">
         <div class="join">
