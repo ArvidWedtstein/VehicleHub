@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, NavigationMenuItem } from "@nuxt/ui";
-import LoginModal from "./auth/LoginModal.vue";
 
 const user = useSupabaseUser();
 const client = useSupabaseClient();
 const router = useRouter();
-
-const overlay = useOverlay();
-
-const loginModal = overlay.create(LoginModal);
 
 const links = computed<NavigationMenuItem[]>(() => [
   {
@@ -22,10 +17,6 @@ const links = computed<NavigationMenuItem[]>(() => [
     to: "/vehicles",
   },
 ]);
-
-const handleSignIn = () => {
-  loginModal.open();
-};
 
 const toast = useToast();
 
@@ -56,7 +47,7 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
       {
         label: "Profile",
         icon: "mdi:account",
-        // to: `/profile/${user.value.id}`,
+        to: `/profiles/${user.value.id}`,
       },
       {
         label: "Logout",
@@ -68,7 +59,7 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
     return [
       {
         label: "Login",
-        onSelect: handleSignIn,
+        to: "/login",
       },
     ];
   }

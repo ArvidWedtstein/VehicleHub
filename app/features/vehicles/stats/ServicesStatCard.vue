@@ -125,6 +125,11 @@ const serviceData = computed(() => {
             :unmountOnHide="false"
             color="neutral"
             size="sm"
+            :ui="{
+              list: 'ring ring-accented rounded-full',
+              indicator: 'rounded-full',
+              trigger: 'w-1/2',
+            }"
           />
 
           <UTabs
@@ -134,6 +139,11 @@ const serviceData = computed(() => {
             :unmountOnHide="false"
             color="neutral"
             size="sm"
+            :ui="{
+              list: 'ring ring-accented rounded-full',
+              indicator: 'rounded-full',
+              trigger: 'w-1/2',
+            }"
           />
         </div>
       </template>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 definePageMeta({
   layout: "vehicle",
-  redirect: (route) => `/vehicles/${route.params.id}/expenses`,
+  // redirect: (route) => `/vehicles/${route.params.id}/expenses`,
 });
 </script>
 <template>
-  <div></div>
+  <NuxtPage />
 </template>

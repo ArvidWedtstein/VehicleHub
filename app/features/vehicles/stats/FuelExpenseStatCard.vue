@@ -108,6 +108,11 @@ const periodOptions = [
           :unmountOnHide="false"
           size="sm"
           color="neutral"
+          :ui="{
+            list: 'ring ring-accented rounded-full',
+            indicator: 'rounded-full',
+            trigger: 'w-1/2',
+          }"
         />
       </div>
     </template>

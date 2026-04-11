@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useProfile } from "~/features/profiles/useProfiles";
 
-const router = useRouter();
-const profileId = useRouteParam("profileId", "number");
-const { data: profile } = await useProfile(profileId);
+const profileUserId = useRouteParam("profileId", "string");
+const { data: profile } = await useProfile(profileUserId.value);
 
 const sessionUser = useSupabaseUser();
 const client = useSupabaseClient();
 
 const handleUserTermination = async () => {
+  if (sessionUser.value?.id !== profile.value?.user_id) return;
   if (!profile.value) return;
 
   const res = await useConfirm({
@@ -30,32 +30,33 @@ const handleUserTermination = async () => {
 </script>
 
 <template>
-  <div>
-    <NuxtLink @click="router.back()" class="link link-hover">
-      <Icon name="mdi:chevron-left" />
-      Back
-    </NuxtLink>
+  <UContainer>
+    <UPage class="relative">
+      <UButton
+        icon="i-lucide-chevron-left"
+        to="/"
+        size="xl"
+        color="neutral"
+        variant="subtle"
+        class="absolute -left-14 top-4 rounded-full z-10"
+      />
 
-    <div class="hero bg-base-200" :key="profile?.id">
-      <div class="hero-content flex-col lg:flex-row">
-        <img
+      <UPageHeader :title="profile?.name || ''">
+        <UAvatar
           v-if="profile?.profile_image_url"
-          :src="profile?.profile_image_url"
-          class="max-w-sm rounded-lg shadow-2xl"
+          :src="profile.profile_image_url"
+          size="lg"
         />
-        <div>
-          <h1 class="text-5xl font-bold">{{ profile?.name }}</h1>
-          <!-- <p class="py-6">Your role: {{ profile?.role_id }}</p> -->
-        </div>
-        <button
+      </UPageHeader>
+
+      <UPageBody>
+        <UButton
           v-if="sessionUser?.id === profile?.user_id"
-          type="button"
-          class="btn btn-sm ms-auto float-end btn-error"
+          label="Delete all my data"
+          color="error"
           @click="handleUserTermination"
-        >
-          Delete all my data
-        </button>
-      </div>
-    </div>
-  </div>
+        />
+      </UPageBody>
+    </UPage>
+  </UContainer>
 </template>
