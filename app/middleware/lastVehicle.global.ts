@@ -1,7 +1,20 @@
-export default defineNuxtRouteMiddleware((to) => {
+export default defineNuxtRouteMiddleware((to, from) => {
+  const user = useSupabaseUser();
   const { lastVehicleId } = useLastVehicle();
 
-  if (to.path === "/" && lastVehicleId.value) {
-    return navigateTo(`/vehicles/${lastVehicleId.value}/expenses`);
+  const redirectPath = `/vehicles/${lastVehicleId.value}/expenses`;
+
+  if (!user.value) {
+    return;
+  }
+
+  // TODO: find a solution for this. Only do this first time
+  if (to.path === "/" && from.path !== redirectPath && lastVehicleId.value) {
+    console.log(
+      "Redirecting to last vehicle's expenses page:",
+      from.path,
+      lastVehicleId.value,
+    );
+    //return navigateTo(redirectPath);
   }
 });

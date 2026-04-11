@@ -14,7 +14,7 @@ useHead({
   title: "Services",
 });
 definePageMeta({
-  middleware: "auth",
+  auth: true,
   layout: "vehicle",
 });
 

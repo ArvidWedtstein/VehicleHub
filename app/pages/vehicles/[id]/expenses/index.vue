@@ -18,7 +18,6 @@ useHead({
   title: "Expenses",
 });
 definePageMeta({
-  middleware: "auth",
   layout: "vehicle",
 });
 

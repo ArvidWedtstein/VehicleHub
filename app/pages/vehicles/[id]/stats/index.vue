@@ -7,7 +7,7 @@ useHead({
   title: "Stats",
 });
 definePageMeta({
-  middleware: "auth",
+  auth: true,
   layout: "vehicle",
 });
 </script>

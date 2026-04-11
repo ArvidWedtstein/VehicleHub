@@ -13,7 +13,7 @@ useHead({
 });
 
 definePageMeta({
-  middleware: "auth",
+  auth: true,
   layout: "vehicle",
 });
 

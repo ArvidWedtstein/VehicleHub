@@ -54,6 +54,7 @@ const activeTab = computed({
   },
   set(tab) {
     if (!tab) return;
+    console.log("NAVIDATE", tab);
     navigateTo({
       name: tab.toString(),
     });
