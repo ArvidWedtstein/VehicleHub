@@ -9,6 +9,7 @@
 // import { formatDate, toLocalPeriod } from '@/utils/date';
 // import { type FilterOption } from '@/components/general/filter/FilterMenu.vue';
 
+import ExpenseDialog from "~/components/expense/dialog/ExpenseDialog.vue";
 import ExpensesFilterDrawer from "~/features/vehicles/expenses/ExpensesFilterDrawer.vue";
 import ExpensesListItem from "~/features/vehicles/expenses/ExpensesListItem.vue";
 import { useVehicleExpenses } from "~/features/vehicles/expenses/useVehicleExpenses";
@@ -21,11 +22,8 @@ definePageMeta({
   layout: "vehicle",
 });
 
-const ExpenseDialog = defineAsyncComponent(
-  async () =>
-    await import("~/features/vehicles/expenses/expenseDialog/ExpenseDialog.vue"),
-);
-
+const overlay = useOverlay();
+const vehicleExpenseDialog = overlay.create(ExpenseDialog);
 const vehicleId = useRouteParam("id", "number");
 
 const filters = ref<Array<FilterOption<Tables<"VehicleExpenses">>>>([]);
@@ -34,8 +32,7 @@ const {
   data: expenses,
   pending: loading,
   execute,
-} = await useVehicleExpenses(vehicleId, filters);
-const expenseDialog = ref<InstanceType<typeof ExpenseDialog>>();
+} = useVehicleExpenses(vehicleId, filters);
 
 const exportOptions = [
   {
@@ -98,7 +95,7 @@ const setSortKey = (key: keyof Tables<"VehicleExpenses">) => {
 const handleCreateExpense = () => {
   if (!vehicleId.value) return;
 
-  expenseDialog.value?.open(vehicleId.value);
+  vehicleExpenseDialog.open({ vehicleId: vehicleId.value });
 };
 
 const handleFilterApply = async (
@@ -111,8 +108,6 @@ const handleFilterApply = async (
 
 <template>
   <div>
-    <ExpenseDialog ref="expenseDialog" />
-
     <div class="flex items-center justify-between gap-2 mb-3">
       <UButton label="Add" icon="mdi:plus" @click="handleCreateExpense" />
 

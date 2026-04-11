@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import ExportButton from "~/features/vehicles/ExportButton.vue";
+import ServiceDialog from "~/features/vehicles/services/serviceDialog/ServiceDialog.vue";
 import ServicesFilterDrawer from "~/features/vehicles/services/ServicesFilterDrawer.vue";
 import ServicesListItem from "~/features/vehicles/services/ServicesListItem.vue";
 import { useVehicleServices } from "~/features/vehicles/services/useVehicleServices";
 import type { Tables } from "~/types/supabase";
-
-const ServiceDialog = defineAsyncComponent(
-  async () =>
-    await import("~/features/vehicles/services/serviceDialog/ServiceDialog.vue"),
-);
 
 useHead({
   title: "Services",
@@ -28,7 +24,8 @@ const {
   pending: loading,
 } = useVehicleServices(vehicleId, filters);
 
-const serviceDialogRef = ref<InstanceType<typeof ServiceDialog>>();
+const overlay = useOverlay();
+const vehicleServiceDialog = overlay.create(ServiceDialog);
 
 const handleServicesExport = (type: string) => {
   const columnsToExport: Array<keyof Tables<"VehicleServiceLogs">> = [
@@ -102,7 +99,7 @@ const setSortKey = (key: keyof Tables<"VehicleServiceLogs">) => {
 const handleCreateService = async () => {
   if (!vehicleId.value) return;
 
-  serviceDialogRef.value?.open(vehicleId.value);
+  vehicleServiceDialog.open({ vehicleId: vehicleId.value });
 };
 
 const handleFilterApply = async (
@@ -115,8 +112,6 @@ const handleFilterApply = async (
 
 <template>
   <div>
-    <ServiceDialog ref="serviceDialogRef" />
-
     <div class="flex justify-between mb-3">
       <UButton icon="mdi:plus" label="Add" @click="handleCreateService" />
 

@@ -8,10 +8,14 @@ import type { StepperItem } from "@nuxt/ui";
 
 const modalRef = ref<InstanceType<typeof Modal>>();
 
-const stepControl = reactive({
-  step: 0,
-  steps: ["Service", "Files"],
-});
+const { vehicleId, serviceId } = defineProps<{
+  vehicleId: Tables<"VehicleServiceLogs">["vehicle_id"];
+  serviceId?: Tables<"VehicleServiceLogs">["id"];
+}>();
+
+const emit = defineEmits<{
+  close: [boolean];
+}>();
 
 const stepper = useTemplateRef("stepper");
 
@@ -24,6 +28,7 @@ const steps = ref<StepperItem[]>([
   },
   {
     title: "Files",
+    icon: "mdi:files",
     slot: "files",
     value: "files",
   },
@@ -43,8 +48,6 @@ const handleOpen = async (
   vehicle_id: Tables<"VehicleServiceLogs">["vehicle_id"],
   service_id?: TablesUpdate<"VehicleServiceLogs">["id"],
 ) => {
-  stepControl.step = 0;
-
   await initialize(vehicle_id, service_id);
 
   if (!modalRef.value) return;
@@ -52,25 +55,25 @@ const handleOpen = async (
   modalRef.value?.open();
 };
 
+const toast = useToast();
+
+const onOpen = () => {
+  initialize(vehicleId, serviceId);
+};
+
 const onFormSubmit = async () => {
   try {
     await save();
 
-    toast.success(
-      `Successfully ${service.value.id ? "updated" : "created"} service`,
-    );
+    toast.add({
+      title: `Successfully ${service.value.id ? "updated" : "created"} service`,
+      color: "success",
+    });
 
     modalRef.value?.close();
   } catch (error) {
-    toast.error(`Something went wrong. ${error}`);
+    toast.add({ title: `Something went wrong. ${error}`, color: "error" });
   }
-};
-
-const changeStep = (stepIndex: number) => {
-  stepControl.step = Math.max(
-    0,
-    Math.min(stepControl.steps.length - 1, stepIndex),
-  );
 };
 
 defineExpose({
@@ -79,33 +82,38 @@ defineExpose({
 </script>
 
 <template>
-  <Modal
+  <UModal
     id="serviceModal"
     ref="modalRef"
     :title="isEdit ? 'Edit Service' : 'Create Service'"
     @submit="onFormSubmit"
+    :close="{ onClick: () => emit('close', false) }"
+    @after:enter="onOpen"
+    :ui="{ footer: 'justify-end' }"
   >
-    <form @submit.prevent="onFormSubmit">
-      <UStepper
-        ref="stepper"
-        class="my-2 w-full"
-        v-model="activeStep"
-        :items="steps"
-      >
-        <template #service>
-          <ServiceForm
-            v-model="service"
-            v-model:serviceItems="serviceItems"
-            :mileage_unit="vehicle?.mileage_unit || 'kilometer'"
-          />
-        </template>
-        <template #files>
-          <FilesForm v-model="service" v-model:files="serviceFiles" />
-        </template>
-      </UStepper>
-    </form>
+    <template #body>
+      <UForm @submit="onFormSubmit">
+        <UStepper
+          ref="stepper"
+          class="my-2 w-full"
+          v-model="activeStep"
+          :items="steps"
+        >
+          <template #service>
+            <ServiceForm
+              v-model="service"
+              v-model:serviceItems="serviceItems"
+              :mileage_unit="vehicle?.mileage_unit || 'kilometer'"
+            />
+          </template>
+          <template #files>
+            <FilesForm v-model="service" v-model:files="serviceFiles" />
+          </template>
+        </UStepper>
+      </UForm>
+    </template>
 
-    <template #actions>
+    <template #footer>
       <UButton
         leadingIcon="mdi:arrow-left"
         label="Prev"
@@ -131,5 +139,5 @@ defineExpose({
         @click="onFormSubmit"
       />
     </template>
-  </Modal>
+  </UModal>
 </template>
