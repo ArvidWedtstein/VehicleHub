@@ -76,7 +76,6 @@ export const useExpenseForm = () => {
 
     expense.value = expenseSchema.parse({
       vehicle_id: vehicleId,
-      date: convertToDatetimeLocal(),
       mileage: lastMileage,
     });
   };

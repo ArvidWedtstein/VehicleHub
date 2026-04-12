@@ -20,6 +20,7 @@ export default defineAuthenticatedEventHandler(async (event) => {
 
   const client = await serverSupabaseClient<Database>(event);
 
+  // TODO: create rpc function for this?
   const { data, error } = await client
     .from("VehicleServiceLogs")
     .insert(body.service)

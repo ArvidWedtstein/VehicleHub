@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ExpenseDialog from "~/components/vehicle/expense/dialog/ExpenseDialog.vue";
 import { useProfiles } from "~/features/profiles/useProfiles";
 import {
   deleteVehicleExpense,
@@ -18,11 +19,6 @@ definePageMeta({
   layout: "vehicle",
 });
 
-const ExpenseDialog = defineAsyncComponent(
-  async () =>
-    await import("~/features/vehicles/expenses/expenseDialog/ExpenseDialog.vue"),
-);
-
 const vehicleId = useRouteParam("id", "number");
 const expenseId = useRouteParam("expenseId", "number");
 
@@ -30,11 +26,14 @@ const {
   data: expense,
   pending: loading,
   error,
-} = await useVehicleExpense(vehicleId, expenseId);
+} = useVehicleExpense(vehicleId, expenseId);
 
-const { data: profiles } = await useProfiles();
+const { data: profiles } = useProfiles();
 
-const expenseDialog = ref<InstanceType<typeof ExpenseDialog>>();
+const overlay = useOverlay();
+const toast = useToast();
+
+const vehicleExpenseDialog = overlay.create(ExpenseDialog);
 
 /** TODO: remove & move to fetching of expense instead */
 const createdBy = computed(() => {
@@ -46,12 +45,12 @@ const createdBy = computed(() => {
 const handleEditExpense = () => {
   if (!vehicleId.value) return;
 
-  console.log(
-    "Opening expense dialog for expense",
-    expense.value,
-    expenseDialog.value,
-  );
-  expenseDialog.value?.open(vehicleId.value, expense.value?.id);
+  console.log("Opening expense dialog for expense", expense.value);
+
+  vehicleExpenseDialog.open({
+    vehicleId: vehicleId.value,
+    expenseId: expenseId.value,
+  });
 };
 
 const handleExpenseDelete = async () => {
@@ -70,7 +69,7 @@ const handleExpenseDelete = async () => {
 
   await deleteVehicleExpense(vehicleId.value, expense.value.id);
 
-  toast.success("Successfully deleted expense");
+  toast.add({ title: "Successfully deleted expense", color: "success" });
 
   navigateTo({
     name: "vehicles-id-expenses",
@@ -81,8 +80,6 @@ const handleExpenseDelete = async () => {
 
 <template>
   <div>
-    <ExpenseDialog ref="expenseDialog" />
-
     <ULink
       :to="{
         name: 'vehicles-id-expenses',

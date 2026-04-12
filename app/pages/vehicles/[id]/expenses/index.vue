@@ -9,7 +9,7 @@
 // import { formatDate, toLocalPeriod } from '@/utils/date';
 // import { type FilterOption } from '@/components/general/filter/FilterMenu.vue';
 
-import ExpenseDialog from "~/components/expense/dialog/ExpenseDialog.vue";
+import ExpenseDialog from "~/components/vehicle/expense/dialog/ExpenseDialog.vue";
 import ExpensesFilterDrawer from "~/features/vehicles/expenses/ExpensesFilterDrawer.vue";
 import ExpensesListItem from "~/features/vehicles/expenses/ExpensesListItem.vue";
 import { useVehicleExpenses } from "~/features/vehicles/expenses/useVehicleExpenses";

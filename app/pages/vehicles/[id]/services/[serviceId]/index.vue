@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MenuItem } from "~/components/menu/Menu.vue";
+import ServiceDialog from "~/components/vehicle/service/dialog/ServiceDialog.vue";
 import { deleteVehicleDocument } from "~/features/vehicles/documents/useVehicleDocuments";
-import ItemsTable from "~/features/vehicles/services/serviceDialog/components/ItemsTable.vue";
 import {
   deleteVehicleService,
   useVehicleService,
@@ -17,10 +17,6 @@ definePageMeta({
   layout: "vehicle",
 });
 
-const ServiceDialog = defineAsyncComponent(
-  async () =>
-    await import("~/features/vehicles/services/serviceDialog/ServiceDialog.vue"),
-);
 const FilePreviewModal = defineAsyncComponent(
   async () => await import("~/components/file/FilePreviewModal.vue"),
 );
@@ -34,6 +30,9 @@ const { data: service, pending: loading } = await useVehicleService(
 );
 
 const { data: vehicle } = useVehicle(vehicleId.value);
+
+const overlay = useOverlay();
+const vehicleServiceDialog = overlay.create(ServiceDialog);
 
 const serviceInsights = ref<
   | {
@@ -67,7 +66,6 @@ const getServiceInsights = async () => {
   serviceInsights.value = data[0];
 };
 
-const serviceDialogRef = ref<InstanceType<typeof ServiceDialog>>();
 const filePreviewRef = ref<InstanceType<typeof FilePreviewModal>>();
 
 const handleServiceDelete = async () => {
@@ -184,7 +182,11 @@ const generateFileGridActions = (file: File) => {
 
 const handleEditService = () => {
   if (!vehicleId.value) return;
-  serviceDialogRef.value?.open(vehicleId.value, serviceId.value);
+
+  vehicleServiceDialog.open({
+    vehicleId: vehicleId.value,
+    serviceId: serviceId.value,
+  });
 };
 
 onMounted(() => {
@@ -194,7 +196,6 @@ onMounted(() => {
 
 <template>
   <div>
-    <ServiceDialog ref="serviceDialogRef" />
     <FilePreviewModal bucket="VehicleDocuments" ref="filePreviewRef" />
 
     <NuxtLink
@@ -345,7 +346,7 @@ onMounted(() => {
         </template>
 
         <Suspense>
-          <ItemsTable
+          <LazyVehicleServiceDialogComponentsItemsTable
             v-if="serviceId != null && vehicleId != null"
             v-model="service"
             v-model:serviceItems="service.items"

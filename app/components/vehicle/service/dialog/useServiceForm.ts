@@ -1,14 +1,16 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
+
+import * as z from "zod";
+import { useVehicle } from "~/features/vehicles/useVehicles";
 import {
   createVehicleService,
   updateVehicleService,
   useVehicleService,
-} from "../useVehicleServices";
+} from "~/features/vehicles/services/useVehicleServices";
 import {
-  uploadVehicleDocument,
   deleteVehicleDocument,
-} from "../../documents/useVehicleDocuments";
-import { useVehicle } from "../../useVehicles";
+  uploadVehicleDocument,
+} from "~/features/vehicles/documents/useVehicleDocuments";
 
 type ServiceInsert = TablesInsert<"VehicleServiceLogs"> & {
   totalCost?: number;
@@ -21,18 +23,36 @@ type ServiceUpdate = TablesUpdate<"VehicleServiceLogs"> & {
   files?: Tables<"VehicleDocuments">[];
 };
 
-const getDefaultServiceValues = (): ServiceUpdate => ({
-  date: new Date().toUTCString().split(".")[0]?.slice(0, -3),
-  provider: "",
-  cost: 0,
-  currency: "NOK",
-  mileage: 0,
-  notes: "",
-  type: "",
+const serviceItemSchema = z.object({
+  id: z.number().optional(),
+  service_log_id: z.number().optional(),
+  description: z.string().optional(),
+  quantity: z
+    .number({ error: "Quantity is required" })
+    .min(0, "Amount cannot be less than 0")
+    .default(1),
+  cost: z.number({ error: "Cost is required" }).default(0),
 });
 
+const serviceSchema = z.object({
+  id: z.number().optional(),
+  vehicle_id: z.number().optional(),
+  date: z.string().default(convertToDatetimeLocal()),
+  type: z.string().min(1).default(""),
+  provider: z.string().optional(),
+  mileage: z.number().optional(),
+  currency: z.string().length(3).toUpperCase().default("NOK"),
+  notes: z.string().optional(),
+});
+
+export type ServiceSchema = z.output<typeof serviceSchema>;
+
+export type ServiceItemSchema = z.output<typeof serviceItemSchema>;
+
 export const useServiceForm = () => {
-  const service = ref<ServiceInsert | ServiceUpdate>(getDefaultServiceValues());
+  const service = ref<Partial<ServiceSchema & ServiceItemSchema>>(
+    serviceSchema.parse({}),
+  );
 
   const originalServiceFiles = shallowRef<Tables<"VehicleDocuments">[]>([]);
   const serviceFiles = ref<File[]>([]);
@@ -51,14 +71,19 @@ export const useServiceForm = () => {
     const { data: vehicleData } = await useVehicle(vehicleId);
     vehicle.value = vehicleData.value;
 
+    // Edit mode
     if (serviceId) {
-      const { data: editService } = useVehicleService(vehicleId, serviceId);
+      const { data: editService } = await useVehicleService(
+        vehicleId,
+        serviceId,
+      );
 
-      service.value = {
+      service.value = serviceSchema.parse({
         ...editService.value,
+        vehicle_id: vehicleId,
         date: convertToDatetimeLocal(editService.value?.date),
-      };
-
+      });
+      // TODO: remove
       const files =
         editService.value?.files.map(
           (document) =>
@@ -76,6 +101,7 @@ export const useServiceForm = () => {
       return;
     }
 
+    // Create mode
     const client = useSupabaseClient();
     const { data, error } = await client.rpc("get_last_mileage", {
       vehicle_id: vehicleId,
@@ -86,12 +112,12 @@ export const useServiceForm = () => {
 
     const lastMileage = data[0]?.mileage;
 
-    service.value = {
+    service.value = serviceSchema.parse({
       vehicle_id: vehicleId,
-      ...getDefaultServiceValues(),
-      date: convertToDatetimeLocal(),
       mileage: lastMileage,
-    };
+    });
+
+    console.log(service.value);
 
     serviceItems.value = [];
     serviceFiles.value = [];
@@ -108,15 +134,11 @@ export const useServiceForm = () => {
     try {
       let serviceId = service.value.id;
 
-      if (isEdit.value && service.value.id) {
-        // TODO: fix this, we should not have to delete these properties to update the service
-        delete service.value.items;
-        delete service.value.files;
-        delete service.value.totalCost;
-
+      // Edit mode
+      if (isEdit.value && serviceId) {
         await updateVehicleService(
           service.value.vehicle_id!,
-          service.value.id,
+          serviceId,
           {
             ...service.value,
             date: convertLocalToUTC(service.value.date),
@@ -182,6 +204,7 @@ export const useServiceForm = () => {
     serviceItems,
     isEdit,
     vehicle,
+    serviceSchema,
     save,
     initialize,
   };

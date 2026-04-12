@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import type { Tables, TablesUpdate } from "~/types/supabase";
-import type Modal from "~/components/Modal.vue";
-import { useServiceForm } from "./useServiceForm";
 import FilesForm from "./components/FilesForm.vue";
 import ServiceForm from "./components/ServiceForm.vue";
 import type { StepperItem } from "@nuxt/ui";
-
-const modalRef = ref<InstanceType<typeof Modal>>();
+import { useServiceForm } from "./useServiceForm";
 
 const { vehicleId, serviceId } = defineProps<{
   vehicleId: Tables<"VehicleServiceLogs">["vehicle_id"];
@@ -35,6 +32,7 @@ const steps = ref<StepperItem[]>([
 ]);
 
 const {
+  serviceSchema,
   service,
   serviceFiles,
   serviceItems,
@@ -43,17 +41,6 @@ const {
   initialize,
   save,
 } = useServiceForm();
-
-const handleOpen = async (
-  vehicle_id: Tables<"VehicleServiceLogs">["vehicle_id"],
-  service_id?: TablesUpdate<"VehicleServiceLogs">["id"],
-) => {
-  await initialize(vehicle_id, service_id);
-
-  if (!modalRef.value) return;
-
-  modalRef.value?.open();
-};
 
 const toast = useToast();
 
@@ -70,21 +57,15 @@ const onFormSubmit = async () => {
       color: "success",
     });
 
-    modalRef.value?.close();
+    emit("close", true);
   } catch (error) {
     toast.add({ title: `Something went wrong. ${error}`, color: "error" });
   }
 };
-
-defineExpose({
-  open: handleOpen,
-});
 </script>
 
 <template>
   <UModal
-    id="serviceModal"
-    ref="modalRef"
     :title="isEdit ? 'Edit Service' : 'Create Service'"
     @submit="onFormSubmit"
     :close="{ onClick: () => emit('close', false) }"
@@ -92,7 +73,13 @@ defineExpose({
     :ui="{ footer: 'justify-end' }"
   >
     <template #body>
-      <UForm @submit="onFormSubmit">
+      <UForm
+        id="serviceForm"
+        :schema="serviceSchema"
+        :state="service"
+        @submit="onFormSubmit"
+        loadingAuto
+      >
         <UStepper
           ref="stepper"
           class="my-2 w-full"
@@ -133,10 +120,11 @@ defineExpose({
       />
 
       <UButton
+        type="submit"
         :label="isEdit ? 'Save' : 'Create'"
         color="primary"
         :icon="isEdit ? 'mdi:content-save' : 'mdi:plus'"
-        @click="onFormSubmit"
+        form="serviceForm"
       />
     </template>
   </UModal>

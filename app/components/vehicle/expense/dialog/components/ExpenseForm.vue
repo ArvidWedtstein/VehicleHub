@@ -14,7 +14,7 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
 </script>
 
 <template>
-  <div class="my-2 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-4 flex-1">
+  <div class="grid grid-cols-1 sm:grid-cols-4 gap-x-6 gap-y-4 flex-1">
     <UFormField class="sm:col-span-4" label="Date" name="date" required>
       <UInput type="datetime-local" v-model="expense.date" class="w-full" />
     </UFormField>
@@ -56,6 +56,7 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
           v-model="expense.currency"
           :disabled="expense.type === 'Electric'"
           :items="['NOK', 'EUR', 'GBP', 'USD', 'SEK', 'DDK']"
+          :tabindex="-1"
         />
       </UFieldGroup>
     </UFormField>

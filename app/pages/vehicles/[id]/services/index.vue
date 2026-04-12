@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import ServiceDialog from "~/components/vehicle/service/dialog/ServiceDialog.vue";
 import ExportButton from "~/features/vehicles/ExportButton.vue";
-import ServiceDialog from "~/features/vehicles/services/serviceDialog/ServiceDialog.vue";
 import ServicesFilterDrawer from "~/features/vehicles/services/ServicesFilterDrawer.vue";
 import ServicesListItem from "~/features/vehicles/services/ServicesListItem.vue";
 import { useVehicleServices } from "~/features/vehicles/services/useVehicleServices";

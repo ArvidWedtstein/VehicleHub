@@ -2,6 +2,8 @@ export default defineNuxtRouteMiddleware((to, from) => {
   const user = useSupabaseUser();
   const { lastVehicleId } = useLastVehicle();
 
+  // TODO: use useSupabaseCookieRedirect instead?
+
   const redirectPath = `/vehicles/${lastVehicleId.value}/expenses`;
 
   if (!user.value) {
