@@ -16,6 +16,7 @@ const uploadedDocumentFiles = ref<File[]>([]);
 
 const { vehicle, isEdit, initialize, save } = useVehicleForm();
 
+const toast = useToast();
 const stepper = useTemplateRef("stepper");
 
 const activeStep = ref("general");
@@ -48,13 +49,18 @@ const onFormSubmit = async () => {
   try {
     await save(uploadedDocumentFiles.value);
 
-    toast.success(
-      `Successfully ${vehicle.value.id ? "updated" : "created"} vehicle`,
-    );
+    toast.add({
+      title: `Successfully ${vehicle.value.id ? "updated" : "created"} vehicle`,
+      color: "success",
+    });
 
     emit("close", true);
   } catch (err) {
-    toast.error(`Something went wrong.${err}`);
+    toast.add({
+      title: `Something went wrong.${err}`,
+      description: `${err}`,
+      color: "error",
+    });
   }
 };
 </script>

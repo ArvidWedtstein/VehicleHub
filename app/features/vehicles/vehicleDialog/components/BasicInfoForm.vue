@@ -42,8 +42,8 @@ const getModels = async () => {
     const res = await fetch(
       `https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${vehicle.value.make.replace(
         "Š",
-        "S"
-      )}?format=json`
+        "S",
+      )}?format=json`,
     );
 
     if (!res.ok || res.status !== 200) return;
@@ -69,6 +69,35 @@ const uploadThumbnail = async (event: Event) => {
 
 <template>
   <div class="my-2 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6 flex-1">
+    <!-- <UFormField
+      label="License Plate Number"
+      name="licenseplate_number"
+      class="sm:col-span-2"
+    >
+      <UInput
+        type="text"
+        v-model="vehicle.licenseplate_number"
+        pattern="^[a-zA-Z0-9]+$"
+        class="w-full"
+        placeholder="AB 123456"
+        autofocus
+      />
+    </UFormField>
+
+    <UFormField
+      label="Vehicle Identification Number"
+      name="vehicle_identification_number"
+      class="sm:col-span-2"
+    >
+      <UInput
+        type="text"
+        v-model="vehicle.vehicle_identification_number"
+        class="w-full"
+        @blur="handleVIN"
+        :maxlength="17"
+      />
+    </UFormField> -->
+
     <FormInput
       wrapperClass="sm:col-span-2"
       label="Liscense Plate Number"
