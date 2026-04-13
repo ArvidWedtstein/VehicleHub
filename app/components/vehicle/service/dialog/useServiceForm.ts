@@ -12,17 +12,6 @@ import {
   uploadVehicleDocument,
 } from "~/features/vehicles/documents/useVehicleDocuments";
 
-type ServiceInsert = TablesInsert<"VehicleServiceLogs"> & {
-  totalCost?: number;
-  items?: TablesInsert<"VehicleServiceLogsItems">[];
-  files?: Tables<"VehicleDocuments">[];
-};
-type ServiceUpdate = TablesUpdate<"VehicleServiceLogs"> & {
-  totalCost?: number;
-  items?: TablesUpdate<"VehicleServiceLogsItems">[];
-  files?: Tables<"VehicleDocuments">[];
-};
-
 const serviceItemSchema = z.object({
   id: z.number().optional(),
   service_log_id: z.number().optional(),

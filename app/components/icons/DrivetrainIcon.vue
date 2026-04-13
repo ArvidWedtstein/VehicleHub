@@ -2,7 +2,7 @@
 import { computed } from "vue";
 
 type Props = {
-  drivetrain?: "AWD" | "FWD" | "RWD";
+  drivetrain?: "AWD" | "FWD" | "RWD" | "4WD";
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -42,7 +42,7 @@ const paths = computed(() => {
         return (path += transformPathCoordinates(
           wheelActivePath,
           index % 2 === 0 ? 0 : 18,
-          index > 1 ? 14 : 0
+          index > 1 ? 14 : 0,
         ));
       });
       break;

@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import type { TablesInsert, TablesUpdate } from "~/types/supabase";
 import { useVehicleManufacturers } from "../../useVehicleManufacturers";
 import InputHelperTip from "~/components/form/InputHelperTip.vue";
+import type { VehicleSchema } from "../useVehicleForm";
 
-const vehicle = defineModel<
-  TablesInsert<"Vehicles"> | TablesUpdate<"Vehicles">
->({ required: true });
+const vehicle = defineModel<Partial<VehicleSchema>>({ required: true });
 
 const files = defineModel<Array<File>>("files", {
   required: false,
@@ -65,11 +63,42 @@ const uploadThumbnail = async (event: Event) => {
 
   files.value = Array.from(target.files || []);
 };
+
+const vehicleTypes = [
+  { value: "Car", icon: "mdi:car" },
+  { value: "Boat", icon: "mdi:boat" },
+  { value: "Tractor", icon: "mdi:tractor" },
+  { value: "Motorcycle", icon: "mdi:motorcycle" },
+  { value: "Truck", icon: "mdi:truck" },
+  { value: "Bus", icon: "mdi:bus" },
+  { value: "Other" },
+];
+
+const vehicleColors = [
+  { value: "Black" },
+  { value: "Silver" },
+  { value: "Grey" },
+  { value: "Brown" },
+  { value: "Red" },
+  { value: "Yellow" },
+  { value: "Orange" },
+  { value: "Purple" },
+  { value: "Pink" },
+  { value: "Blue" },
+  { value: "Turquise" },
+  { value: "Magenta" },
+  { value: "White" },
+  { value: "Beige" },
+  { value: "Green" },
+  { value: "Lime" },
+  { value: "Aqua" },
+  { value: "Olive" },
+];
 </script>
 
 <template>
   <div class="my-2 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6 flex-1">
-    <!-- <UFormField
+    <UFormField
       label="License Plate Number"
       name="licenseplate_number"
       class="sm:col-span-2"
@@ -89,6 +118,15 @@ const uploadThumbnail = async (event: Event) => {
       name="vehicle_identification_number"
       class="sm:col-span-2"
     >
+      <template #hint>
+        <UTooltip
+          text="Can usually be found on dashboard, driver's side door and registration certificate"
+          :delayDuration="50"
+        >
+          <UIcon name="mdi:progress-question" />
+        </UTooltip>
+      </template>
+
       <UInput
         type="text"
         v-model="vehicle.vehicle_identification_number"
@@ -96,137 +134,88 @@ const uploadThumbnail = async (event: Event) => {
         @blur="handleVIN"
         :maxlength="17"
       />
-    </UFormField> -->
+    </UFormField>
 
-    <FormInput
-      wrapperClass="sm:col-span-2"
-      label="Liscense Plate Number"
-      type="text"
-      v-model="vehicle.licenseplate_number"
-      pattern="^[a-zA-Z0-9]+$"
-      validate
-      placeholder="AB 123456"
-      autofocus
-    />
-
-    <FormInput
-      wrapperClass="sm:col-span-2"
-      label="Vehicle Identification Number"
-      type="text"
-      v-model.trim="vehicle.vehicle_identification_number"
-      pattern="^[a-zA-Z0-9]+$"
-      validate
-      :maxlength="17"
-      @blur="handleVIN"
-    >
-      <template #label="{ label }">
-        <div class="fieldset-legend">
-          <abbr :title="label">VIN</abbr>
-          <InputHelperTip
-            position="left"
-            tip="Can usually be found on dashboard, driver's side door and registration certificate"
-          />
-        </div>
-      </template>
-    </FormInput>
-
-    <FormInput
-      wrapperClass="sm:col-span-2"
-      label="Type"
-      type="select"
-      v-model="vehicle.type"
-      :options="[
-        { value: 'Car' },
-        { value: 'Tractor' },
-        { value: 'Motorcycle' },
-        { value: 'Trailer' },
-        { value: 'Truck' },
-        { value: 'Bus' },
-        { value: 'Other' },
-      ]"
-    />
-
-    <FormInput
-      label="Make"
-      type="text"
-      wrapperClass="sm:col-span-2"
-      v-model="vehicle.make"
-      list="vehicle_makes"
-      autocapitalize="words"
-      @blur="getModels"
-    />
-
-    <datalist id="vehicle_makes">
-      <option
-        v-for="(option, optionIndex) in vehicleManufacturers"
-        :key="optionIndex"
-        :value="option.name"
-      ></option>
-    </datalist>
-
-    <FormInput
-      wrapperClass="sm:col-span-2"
-      label="Model"
-      type="text"
-      list="vehicle_models"
-      v-model="vehicle.model"
-    />
-    <datalist id="vehicle_models">
-      <option
-        v-for="(option, optionIndex) in availableModels"
-        :key="optionIndex"
-        :value="option"
-      ></option>
-    </datalist>
-
-    <FormInput
-      wrapperClass="sm:col-span-2"
-      label="Model Year"
-      type="number"
-      inputmode="decimal"
-      step="1"
-      :min="1885"
-      v-model="vehicle.model_year"
-    />
-
-    <FormInput
-      wrapperClass="sm:col-span-2"
-      label="Color"
-      type="select"
-      v-model="vehicle.color"
-      :options="[
-        { value: 'Black' },
-        { value: 'Silver' },
-        { value: 'Grey' },
-        { value: 'Brown' },
-        { value: 'Red' },
-        { value: 'Yellow' },
-        { value: 'Orange' },
-        { value: 'Purple' },
-        { value: 'Pink' },
-        { value: 'Blue' },
-        { value: 'Turquise' },
-        { value: 'Magenta' },
-        { value: 'White' },
-        { value: 'Beige' },
-        { value: 'Green' },
-        { value: 'Lime' },
-        { value: 'Aqua' },
-        { value: 'Olive' },
-      ]"
-    />
-
-    <!-- TODO: fix -->
-    <label class="fieldset w-full sm:col-span-2">
-      <div class="fieldset-legend">Thumbnail</div>
-      <input
-        type="file"
-        class="file-input w-full max-w-xs"
-        accept="image/png, image/jpeg, image/webp"
-        @change="uploadThumbnail"
-        max="5000000"
+    <UFormField label="Type" name="type" class="sm:col-span-2">
+      <USelectMenu
+        v-model="vehicle.type"
+        class="w-full"
+        :items="vehicleTypes"
+        labelKey="value"
+        valueKey="value"
       />
-      <span class="fieldset-label">Vehicle Image</span>
-    </label>
+    </UFormField>
+
+    <UFormField label="Make" name="make" class="sm:col-span-2">
+      <UInputMenu
+        v-model="vehicle.make"
+        class="w-full"
+        autocomplete
+        autocapitalize="words"
+        :items="vehicleManufacturers"
+        labelKey="name"
+        valueKey="name"
+        :trailingIcon="false"
+        :content="{ hideWhenEmpty: true }"
+        @blur="getModels"
+      />
+    </UFormField>
+
+    <UFormField label="Model" name="model" class="sm:col-span-2">
+      <UInputMenu
+        v-model="vehicle.model"
+        class="w-full"
+        autocomplete
+        autocapitalize="words"
+        :items="availableModels"
+        :trailingIcon="false"
+        :content="{ hideWhenEmpty: true }"
+      />
+    </UFormField>
+
+    <UFormField label="Model Year" name="model_year" class="sm:col-span-2">
+      <UInput
+        v-model="vehicle.model_year"
+        type="number"
+        class="w-full"
+        :min="1885"
+        :max="new Date().getFullYear() + 10"
+        :step="1"
+      />
+    </UFormField>
+
+    <UFormField label="Color" name="color" class="sm:col-span-2">
+      <UInputMenu
+        v-model="vehicle.color"
+        type="text"
+        autocomplete
+        :items="vehicleColors"
+        class="w-full"
+        labelKey="value"
+        valueKey="value"
+      >
+        <template #item-leading="{ item }">
+          <span
+            :style="{
+              backgroundColor: item.value.toLowerCase(),
+            }"
+            class="size-3 shrink-0 rounded-full self-center"
+          ></span>
+        </template>
+      </UInputMenu>
+    </UFormField>
+
+    <UFormField
+      label="Thumbnail"
+      name="thumbnail"
+      class="sm:col-span-2"
+      description="JPG, GIF or PNG. 2MB Max."
+    >
+      <UFileUpload
+        v-model="vehicle.thumbnail"
+        accept="image/*"
+        class="min-h-48"
+      />
+    </UFormField>
   </div>
 </template>

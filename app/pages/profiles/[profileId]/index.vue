@@ -33,7 +33,7 @@ const handleUserTermination = async () => {
   <UContainer>
     <UPage class="relative">
       <UButton
-        icon="i-lucide-chevron-left"
+        icon="mdi:chevron-left"
         to="/"
         size="xl"
         color="neutral"
