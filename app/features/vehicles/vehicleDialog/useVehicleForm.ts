@@ -101,7 +101,7 @@ export const useVehicleForm = () => {
 
   const isEdit = computed(() => !!vehicle.value.id);
 
-  const save = async (files: File[] = []) => {
+  const save = async () => {
     try {
       let vehicleId = vehicle.value.id;
 
@@ -117,9 +117,9 @@ export const useVehicleForm = () => {
         vehicleId = createdVehicle.id;
       }
 
-      if ((files.length || vehicle.value.thumbnail) && vehicleId) {
+      if (vehicle.value.thumbnail && vehicleId) {
         const formData = new FormData();
-        files.forEach((file) => formData.append("files", file));
+        formData.append("file", vehicle.value.thumbnail);
 
         const data = await $fetch(`/api/vehicles/${vehicleId}/images/upload`, {
           method: "POST",

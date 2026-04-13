@@ -12,8 +12,6 @@ const { vehicleId } = defineProps<{
 
 const emit = defineEmits<{ close: [boolean] }>();
 
-const uploadedDocumentFiles = ref<File[]>([]);
-
 const { vehicle, isEdit, initialize, save } = useVehicleForm();
 
 const toast = useToast();
@@ -47,7 +45,7 @@ const onOpen = () => {
 
 const onFormSubmit = async () => {
   try {
-    await save(uploadedDocumentFiles.value);
+    await save();
 
     toast.add({
       title: `Successfully ${vehicle.value.id ? "updated" : "created"} vehicle`,
@@ -82,11 +80,7 @@ const onFormSubmit = async () => {
           :items="steps"
         >
           <template #general>
-            <BasicInfoForm
-              :key="vehicle.id"
-              v-model="vehicle"
-              v-model:files="uploadedDocumentFiles"
-            />
+            <BasicInfoForm :key="vehicle.id" v-model="vehicle" />
           </template>
           <template #engine>
             <EngineForm v-model="vehicle" />

@@ -1,14 +1,8 @@
 <script setup lang="ts">
 import { useVehicleManufacturers } from "../../useVehicleManufacturers";
-import InputHelperTip from "~/components/form/InputHelperTip.vue";
 import type { VehicleSchema } from "../useVehicleForm";
 
 const vehicle = defineModel<Partial<VehicleSchema>>({ required: true });
-
-const files = defineModel<Array<File>>("files", {
-  required: false,
-  default: () => [],
-});
 
 const { data: vehicleManufacturers } = await useVehicleManufacturers();
 
@@ -56,12 +50,6 @@ const getModels = async () => {
   } catch (error) {
     console.error(error);
   }
-};
-
-const uploadThumbnail = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-
-  files.value = Array.from(target.files || []);
 };
 
 const vehicleTypes = [
