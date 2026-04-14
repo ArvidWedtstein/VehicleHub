@@ -1,5 +1,9 @@
 import type { TablesUpdate } from "~/types/supabase";
-import { createVehicle, updateVehicle, useVehicle } from "../useVehicles";
+import {
+  createVehicle,
+  updateVehicle,
+  useVehicle,
+} from "~/features/vehicles/useVehicles";
 import * as z from "zod";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB

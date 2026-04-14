@@ -67,7 +67,6 @@ const onFormSubmit = async () => {
 <template>
   <UModal
     :title="isEdit ? 'Edit Service' : 'Create Service'"
-    @submit="onFormSubmit"
     :close="{ onClick: () => emit('close', false) }"
     @after:enter="onOpen"
     :ui="{ footer: 'justify-end' }"

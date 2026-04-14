@@ -4,42 +4,60 @@ import {
   shareVehicle,
   updateVehicleShare,
   useVehicle,
-} from "../useVehicles";
+} from "../../../features/vehicles/useVehicles";
+import * as z from "zod";
 
 type VehicleShareWithProfile = Tables<"VehicleShares"> & {
   profile: Pick<Tables<"Profiles">, "id" | "profile_image_url" | "name">;
 };
 
+const vehicleShareSchema = z.array(
+  z.object({
+    id: z.number().optional(),
+    readonly: z.boolean().optional().default(false),
+    user_id: z.string(),
+    vehicle_id: z.number(),
+    profile: z
+      .object({
+        name: z.string(),
+        profile_image_url: z.string(),
+      })
+      .optional(),
+  }),
+);
+
+export type VehicleSchareSchema = z.output<typeof vehicleShareSchema>;
+
 export const useShareVehicleForm = () => {
   const initialVehicleShares = ref<VehicleShareWithProfile[]>([]);
-  const vehicleShares = ref<VehicleShareWithProfile[]>([]);
+  const vehicleShares = ref<VehicleSchareSchema>([]);
 
   const initialize = async (vehicle_id: Tables<"Vehicles">["id"]) => {
     const { data: vehicle } = await useVehicle(vehicle_id);
 
     initialVehicleShares.value = [...(vehicle.value?.shares || [])];
-    vehicleShares.value = [...(vehicle.value?.shares || [])];
+    vehicleShares.value = vehicleShareSchema.parse(vehicle.value?.shares || []);
   };
 
   const save = async () => {
     try {
-      // TODO: fix
+      // TODO: fix. Implement one api call for syncing shares
       const vehicleId = initialVehicleShares.value[0]?.vehicle_id;
       if (!vehicleId) return;
 
       const deletedShares = initialVehicleShares.value.filter(
-        (share) => !vehicleShares.value.some((s) => s.id === share.id)
+        (share) => !vehicleShares.value.some((s) => s.id === share.id),
       );
       const newShares = vehicleShares.value.filter(
-        (share) => !initialVehicleShares.value.some((s) => s.id === share.id)
+        (share) => !initialVehicleShares.value.some((s) => s.id === share.id),
       );
       const updatedShares = vehicleShares.value
         .filter((share) =>
-          initialVehicleShares.value.some((s) => s.id === share.id)
+          initialVehicleShares.value.some((s) => s.id === share.id),
         )
-        .map(({ profile, ...share }) => ({
+        .map(({ ...share }) => ({
           ...share,
-          user_id: share.user_id ?? profile.id,
+          user_id: share.user_id,
         }));
 
       // Delete shares
@@ -73,8 +91,8 @@ export const useShareVehicleForm = () => {
   };
 
   return {
+    vehicleShareSchema,
     vehicleShares,
-    initialVehicleShares,
     initialize,
     save,
   };

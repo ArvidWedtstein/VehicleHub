@@ -1,21 +1,9 @@
 <script setup lang="ts">
-import type { Tables } from "~/types/supabase";
 import { useProfiles } from "../profiles/useProfiles";
 import ChangelogDrawer from "./vehicleChangelog/ChangelogDrawer.vue";
 import { useVehicle } from "./useVehicles";
-
-const VehicleDialog = defineAsyncComponent(
-  () => import("./vehicleDialog/VehicleDialog.vue"),
-);
-
-const ShareVehicleDialog = defineAsyncComponent(
-  () => import("./shareVehicleDialog/ShareVehicleDialog.vue"),
-);
-
-const vehicleDialogRef = ref<InstanceType<typeof VehicleDialog> | null>(null);
-const shareVehicleDialogRef = ref<InstanceType<
-  typeof ShareVehicleDialog
-> | null>(null);
+import VehicleDialog from "~/components/vehicle/dialog/VehicleDialog.vue";
+import ShareVehicleDialog from "~/components/vehicle/shareVehicleDialog/ShareVehicleDialog.vue";
 
 const changelogDrawerRef = ref<InstanceType<typeof ChangelogDrawer>>();
 
@@ -36,6 +24,7 @@ const currentVehicleOwner = computed(() => {
 const overlay = useOverlay();
 
 const vehicleModal = overlay.create(VehicleDialog);
+const vehicleShareModal = overlay.create(ShareVehicleDialog);
 
 const editVehicle = () => {
   if (!vehicleId.value) return;
@@ -45,7 +34,7 @@ const editVehicle = () => {
 
 const openShareVehicleDialog = async () => {
   if (!vehicleId.value) return;
-  shareVehicleDialogRef.value?.open(vehicleId.value);
+  vehicleShareModal?.open({ vehicleId: vehicleId.value });
 };
 
 const openChangelogDrawer = () => {
@@ -55,14 +44,10 @@ const openChangelogDrawer = () => {
 
 <template>
   <div v-if="vehicle" class="card image-full card-border bg-base-200 shrink">
-    <VehicleDialog ref="vehicleDialogRef" />
-
     <!-- Hydration mismatch-->
     <ClientOnly>
       <ChangelogDrawer ref="changelogDrawerRef" :vehicleId="vehicle.id" />
     </ClientOnly>
-
-    <ShareVehicleDialog ref="shareVehicleDialogRef" />
 
     <figure>
       <img

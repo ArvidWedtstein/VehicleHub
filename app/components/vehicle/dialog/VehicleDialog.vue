@@ -12,7 +12,7 @@ const { vehicleId } = defineProps<{
 
 const emit = defineEmits<{ close: [boolean] }>();
 
-const { vehicle, isEdit, initialize, save } = useVehicleForm();
+const { vehicleSchema, vehicle, isEdit, initialize, save } = useVehicleForm();
 
 const toast = useToast();
 const stepper = useTemplateRef("stepper");
@@ -72,7 +72,12 @@ const onFormSubmit = async () => {
     :ui="{ footer: 'justify-end' }"
   >
     <template #body>
-      <form @submit.prevent="onFormSubmit">
+      <UForm
+        id="vehicleForm"
+        :schema="vehicleSchema"
+        :state="vehicle"
+        @submit="onFormSubmit"
+      >
         <UStepper
           ref="stepper"
           class="my-2 w-full"
@@ -89,7 +94,7 @@ const onFormSubmit = async () => {
             <TransmissionForm v-model="vehicle" />
           </template>
         </UStepper>
-      </form>
+      </UForm>
     </template>
 
     <template #footer>
@@ -112,11 +117,12 @@ const onFormSubmit = async () => {
       />
 
       <UButton
+        type="submit"
         :label="isEdit ? 'Save' : 'Create'"
+        form="vehicleForm"
         color="primary"
         :icon="isEdit ? 'mdi:content-save' : 'mdi:plus'"
         :disabled="!isEdit && !stepper?.hasNext"
-        @click="onFormSubmit"
       />
     </template>
   </UModal>
