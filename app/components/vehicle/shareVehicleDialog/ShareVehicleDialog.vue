@@ -35,10 +35,15 @@ const onOpen = () => {
 };
 
 const handleSubmit = async () => {
-  console.log("suibmiut");
   await save();
 
   emit("close", true);
+};
+
+const removeUser = async (userId: string) => {
+  vehicleShares.value = vehicleShares.value.filter(
+    ({ user_id }) => user_id !== userId,
+  );
 };
 
 const handleInviteUser = async () => {
@@ -58,7 +63,7 @@ const handleInviteUser = async () => {
         :schema="vehicleShareSchema"
         :state="vehicleShares"
         id="shareVehicleForm"
-        @submit="handleSubmit"
+        @submit.prevent="handleSubmit"
       >
         <div class="flex items-end gap-2">
           <UFormField label="Invite others">
@@ -69,27 +74,33 @@ const handleInviteUser = async () => {
             />
           </UFormField>
 
-          <UButton type="submit" label="Invite" @click="handleInviteUser" />
+          <UButton type="button" label="Invite" @click="handleInviteUser" />
         </div>
 
         <div class="my-5">
           <small>Who has access</small>
 
           <div class="flex flex-col items-start gap-3 grow">
+            <UEmpty
+              v-if="!vehicleShares.length"
+              title="Only you have access"
+              variant="soft"
+            />
             <div
               v-for="(share, idx) in vehicleShares"
               :key="idx"
               class="flex items-center flex-nowrap gap-3 w-full"
             >
-              <UAvatar
-                size="sm"
-                :src="share.profile?.profile_image_url"
-                :alt="share.profile?.name"
+              <UUser
+                :avatar="{
+                  src: share.profile?.profile_image_url,
+                  alt: share.profile?.name,
+                  loading: 'lazy',
+                }"
+                :name="share.profile?.name"
               />
 
-              <span class="text-sm font-medium grow">
-                {{ share.profile?.name }}
-              </span>
+              <div class="grow"></div>
 
               <USelect
                 :items="[
@@ -99,20 +110,8 @@ const handleInviteUser = async () => {
                 labelKey="label"
                 v-model="share.readonly"
               />
-            </div>
-            <div class="flex items-center gap-3 w-full">
-              <UAvatar
-                size="sm"
-                :src="sessionUser?.user_metadata?.avatar_url"
-                :alt="sessionUser?.user_metadata?.name"
-              />
 
-              <span class="text-sm font-medium grow">
-                {{ sessionUser?.user_metadata?.name }}
-                (You)
-              </span>
-
-              <span class="text-sm text-primary me-4">Owner</span>
+              <UButton icon="mdi:close" @click="removeUser(share.user_id)" />
             </div>
           </div>
         </div>
@@ -121,6 +120,14 @@ const handleInviteUser = async () => {
 
     <template #footer>
       <UButton label="Cancel" color="neutral" @click="emit('close', false)" />
+
+      <UButton
+        type="submit"
+        label="Save"
+        color="primary"
+        icon="mdi:content-save"
+        form="shareVehicle"
+      />
     </template>
   </UModal>
 </template>

@@ -1,9 +1,8 @@
-import type { Tables, TablesInsert } from "~/types/supabase";
+import type { Tables } from "~/types/supabase";
 import {
-  deleteVehicleShare,
-  shareVehicle,
-  updateVehicleShare,
+  upsertVehicleShares,
   useVehicle,
+  deleteVehicleShares,
 } from "../../../features/vehicles/useVehicles";
 import * as z from "zod";
 
@@ -32,6 +31,8 @@ export const useShareVehicleForm = () => {
   const initialVehicleShares = ref<VehicleShareWithProfile[]>([]);
   const vehicleShares = ref<VehicleSchareSchema>([]);
 
+  const toast = useToast();
+
   const initialize = async (vehicle_id: Tables<"Vehicles">["id"]) => {
     const { data: vehicle } = await useVehicle(vehicle_id);
 
@@ -41,52 +42,33 @@ export const useShareVehicleForm = () => {
 
   const save = async () => {
     try {
-      // TODO: fix. Implement one api call for syncing shares
       const vehicleId = initialVehicleShares.value[0]?.vehicle_id;
       if (!vehicleId) return;
 
       const deletedShares = initialVehicleShares.value.filter(
         (share) => !vehicleShares.value.some((s) => s.id === share.id),
       );
-      const newShares = vehicleShares.value.filter(
-        (share) => !initialVehicleShares.value.some((s) => s.id === share.id),
-      );
-      const updatedShares = vehicleShares.value
-        .filter((share) =>
-          initialVehicleShares.value.some((s) => s.id === share.id),
-        )
-        .map(({ ...share }) => ({
-          ...share,
-          user_id: share.user_id,
-        }));
+
+      // Upsert shares
+      if (vehicleShares.value.length > 0) {
+        await upsertVehicleShares(vehicleId, vehicleShares.value);
+      }
 
       // Delete shares
       if (deletedShares.length > 0) {
-        const deletePromises = deletedShares.map((share) => {
-          return deleteVehicleShare(vehicleId, share.id);
-        });
-
-        await Promise.all(deletePromises);
+        await deleteVehicleShares(
+          vehicleId,
+          deletedShares.map((share) => share.id),
+        );
       }
 
-      // Add shares
-      if (newShares.length > 0) {
-        await shareVehicle(vehicleId, newShares);
-      }
-
-      // Update shares
-      if (updatedShares.length > 0) {
-        const updatePromises = updatedShares.map((share) => {
-          return updateVehicleShare(vehicleId, share.id, share);
-        });
-
-        await Promise.all(updatePromises);
-      }
-
-      toast.success("Vehicle shares saved successfully!");
+      toast.add({
+        title: "Vehicle shares saved successfully!",
+        color: "success",
+      });
     } catch (err) {
       console.error(err);
-      toast.error("Error saving vehicle shares!");
+      toast.add({ title: "Error saving vehicle shares!", color: "error" });
     }
   };
 

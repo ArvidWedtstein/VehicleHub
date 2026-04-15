@@ -30,7 +30,6 @@ export async function createVehicle(patch: Partial<TablesInsert<"Vehicles">>) {
   const vehicle = await $fetch<Tables<"Vehicles">>(`/api/vehicles`, {
     method: "post",
     body: patch,
-    headers: useRequestHeaders(["cookie"]),
   });
   refreshNuxtData("vehicles");
 
@@ -57,7 +56,6 @@ export async function updateVehicle(
 export async function deleteVehicle(id: string | number) {
   const vehicle = await $fetch<Tables<"Vehicles">>(`/api/vehicles/${id}`, {
     method: "delete",
-    headers: useRequestHeaders(["cookie"]),
   });
   refreshNuxtData("vehicles");
   clearNuxtData(`vehicle-${id}`);
@@ -65,52 +63,36 @@ export async function deleteVehicle(id: string | number) {
   return vehicle;
 }
 
-export async function shareVehicle(
-  id: string | number,
-  patch:
+export async function upsertVehicleShares(
+  vehicleId: Tables<"Vehicles">["id"],
+  patch: (
     | Partial<TablesInsert<"VehicleShares">>
-    | Partial<TablesInsert<"VehicleShares">>[],
+    | Partial<TablesInsert<"VehicleShares">>
+  )[],
 ) {
   const vehicleShare = await $fetch<Tables<"Vehicles">>(
-    `/api/vehicles/${id}/shares`,
+    `/api/vehicles/${vehicleId}/shares`,
     {
       method: "post",
       body: patch,
-      headers: useRequestHeaders(["cookie"]),
     },
   );
-  refreshNuxtData(`vehicle-${id}`);
+  refreshNuxtData(`vehicle-${vehicleId}`);
 
   return vehicleShare;
 }
 
-export async function updateVehicleShare(
-  vehicleId: MaybeRef<Tables<"VehicleShares">["vehicle_id"] | undefined>,
-  shareId: MaybeRef<Tables<"VehicleShares">["id"] | undefined>,
-  patch: Partial<TablesUpdate<"VehicleShares">>,
-) {
-  const vehicleShare = await $fetch<Tables<"Vehicles">>(
-    `/api/vehicles/${unref(vehicleId)}/shares/${unref(shareId)}`,
-    {
-      method: "put",
-      body: patch,
-      headers: useRequestHeaders(["cookie"]),
-    },
-  );
-  refreshNuxtData(`vehicle-${unref(vehicleId)}`);
-
-  return vehicleShare;
-}
-
-export async function deleteVehicleShare(
+export async function deleteVehicleShares(
   vehicleId?: MaybeRef<Tables<"VehicleShares">["vehicle_id"] | undefined>,
-  shareId?: MaybeRef<Tables<"VehicleShares">["id"] | undefined>,
+  shareIds: Tables<"VehicleShares">["id"][] = [],
 ) {
   const vehicleShare = await $fetch<Tables<"Vehicles">>(
-    `/api/vehicles/${unref(vehicleId)}/shares/${unref(shareId)}`,
+    `/api/vehicles/${unref(vehicleId)}/shares`,
     {
+      body: {
+        ids: shareIds,
+      },
       method: "delete",
-      headers: useRequestHeaders(["cookie"]),
     },
   );
   refreshNuxtData(`vehicle-${unref(vehicleId)}`);

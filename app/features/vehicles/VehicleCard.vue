@@ -160,11 +160,10 @@ const openChangelogDrawer = () => {
           class="tooltip"
           :data-tip="currentVehicleOwner?.name || 'Unknown'"
         >
-          <AvatarImage
-            size="xxs"
+          <UAvatar
+            size="xs"
             :src="currentVehicleOwner?.profile_image_url"
             :alt="currentVehicleOwner.name"
-            :fallbackSrc="`https://ui-avatars.com/api/?name=${currentVehicleOwner.name || 'Unknown'}`"
           />
         </span>
 
@@ -178,12 +177,10 @@ const openChangelogDrawer = () => {
         <span class="">Shared with:</span>
         <div class="avatar-group -space-x-2 rtl:space-x-reverse">
           <span v-for="share in vehicle.shares" :key="share.id">
-            <AvatarImage
-              size="xxs"
+            <UAvatar
+              size="xs"
               :src="profilesMap.get(share.user_id)?.profile_image_url"
-              :fallbackSrc="`https://ui-avatars.com/api/?name=${
-                profilesMap.get(share.user_id)?.name
-              }`"
+              :alt="profilesMap.get(share.user_id)?.name"
             />
           </span>
         </div>
