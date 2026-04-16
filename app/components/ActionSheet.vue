@@ -36,7 +36,7 @@ withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>();
 
-const drawerRef = ref<InstanceType<typeof Drawer>>();
+const open = ref(false);
 
 const onSelect = (item: ActionSheetItem) => {
   item?.onClick?.();
@@ -46,17 +46,16 @@ const onSelect = (item: ActionSheetItem) => {
 
 defineExpose({
   open: () => {
-    drawerRef.value?.open();
+    open.value = true;
   },
   close: () => {
-    drawerRef.value?.close();
+    open.value = false;
   },
-  drawerRef,
 });
 </script>
 <template>
-  <Drawer ref="drawerRef" direction="bottom" inset>
-    <template #content>
+  <UDrawer v-model:open="open" direction="bottom" inset>
+    <template #body>
       <ListGroup size="md" divider class="my-3">
         <ListGroupItem
           v-for="(item, idx) in items"
@@ -66,13 +65,16 @@ defineExpose({
           @click="onSelect(item)"
         />
       </ListGroup>
-
-      <button
-        class="btn btn-lg btn-soft btn-error w-full"
-        @click="drawerRef?.close()"
-      >
-        Cancel
-      </button>
     </template>
-  </Drawer>
+    <template #footer>
+      <UButton
+        label="Cancel"
+        variant="soft"
+        color="error"
+        block
+        size="lg"
+        @click="open = false"
+      />
+    </template>
+  </UDrawer>
 </template>
