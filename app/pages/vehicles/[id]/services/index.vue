@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import ServiceDialog from "~/components/vehicle/service/dialog/ServiceDialog.vue";
-import ExportButton from "~/features/vehicles/ExportButton.vue";
 import ServicesFilterDrawer from "~/features/vehicles/services/ServicesFilterDrawer.vue";
 import ServicesListItem from "~/features/vehicles/services/ServicesListItem.vue";
 import { useVehicleServices } from "~/features/vehicles/services/useVehicleServices";
@@ -129,22 +128,23 @@ const handleFilterApply = async (
               }))
             "
           >
-            <template #default="{ toggle }">
-              <button
-                type="button"
-                class="btn btn-outline join-item"
-                @click="toggle()"
-              >
-                <Icon name="mdi:sort" />
-                <span class="sm:block hidden">Sorted on:</span>
-                <span class="badge badge-neutral">
-                  {{
+            <UButton
+              label="Sort"
+              icon="mdi:sort"
+              variant="outline"
+              color="secondary"
+            >
+              <template #trailing>
+                <UBadge
+                  :label="
                     sortControl.options.find((o) => o.value === sortControl.key)
                       ?.label
-                  }}
-                </span>
-              </button>
-            </template>
+                  "
+                  color="neutral"
+                  variant="soft"
+                />
+              </template>
+            </UButton>
           </ResponsiveMenu>
         </div>
 

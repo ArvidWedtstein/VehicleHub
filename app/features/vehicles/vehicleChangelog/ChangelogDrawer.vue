@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import Drawer from "~/components/Drawer.vue";
 import type { Database, Tables } from "~/types/supabase";
 import { useVehicleChangelog } from "./useVehicleChangelog";
-import ChangelogListItemPlaceholder from "./components/ChangelogListItemPlaceholder.vue";
-import ChangelogListItem from "./components/ChangelogListItem.vue";
-import ChangelogList from "./components/ChangelogList.vue";
 
 const props = defineProps<{ vehicleId: number }>();
 
@@ -162,34 +158,50 @@ defineExpose({
 </script>
 
 <template>
-  <UDrawer
-    ref="drawerRef"
-    direction="left"
-    title="Changelog"
-    v-model:open="open"
-  >
+  <UDrawer direction="left" title="Changelog" v-model:open="open">
     <template #body>
-      <ChangelogList class="md:max-w-96">
-        <template v-if="loading">
-          <ChangelogListItemPlaceholder v-for="i in 10" :key="i" />
-        </template>
+      <UChangelogVersions
+        :indicator="false"
+        :versions="
+          formattedChangelog.map((change) => ({
+            author: {
+              name: change.createdby_name || 'N/A',
+              avatar: {
+                loading: 'lazy' as const,
+                src: change.createdby_profile_image_url || '',
+                alt: change.createdby_name || 'N/A',
+              },
+            },
 
-        <ChangelogListItem
-          v-for="(change, changelogIndex) in formattedChangelog"
-          :key="changelogIndex"
-          :avatar="change.createdby_profile_image_url"
-          :actionBy="change.createdby_name || undefined"
-          :time="change.created_at"
-          :type="change.operation === 'UPDATE' ? 'comment' : 'default'"
-          :action="change.action"
-        >
-          <div v-if="change.sentence" v-html="change.sentence"></div>
-        </ChangelogListItem>
-      </ChangelogList>
+            title: change.action,
+            description: change.sentence,
+            date: change.created_at || '',
+            ui: {
+              container: 'max-w-lg me-0',
+            },
+          }))
+        "
+      >
+        <template #title="{ version }">
+          <div class="capitalize" v-html="version.title"></div>
+        </template>
+        <template #description="{ version }">
+          <div v-html="version.description"></div>
+        </template>
+        <template #footer="{ version }">
+          <UUser v-bind="version.author" />
+        </template>
+      </UChangelogVersions>
     </template>
 
     <template #footer>
-      <UButton label="Close" variant="outline" size="sm" @click="handleClose" />
+      <UButton
+        label="Close"
+        variant="outline"
+        block
+        size="sm"
+        @click="handleClose"
+      />
     </template>
   </UDrawer>
 </template>
