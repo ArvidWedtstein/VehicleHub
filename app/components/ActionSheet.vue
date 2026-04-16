@@ -3,8 +3,7 @@ import type {
   RouteLocationAsPathGeneric,
   RouteLocationAsRelativeGeneric,
 } from "vue-router";
-import type { AvatarProps } from "./AvatarImage.vue";
-import type Drawer from "./Drawer.vue";
+import type { AvatarProps } from "@nuxt/ui";
 
 type ActionSheetItem = {
   label?: string;
