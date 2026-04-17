@@ -10,21 +10,15 @@ export interface ResponsiveMenuProps extends DropdownMenuProps {
 withDefaults(defineProps<ResponsiveMenuProps>(), {
   items: () => [],
 });
-
-const actionSheetRef = ref<ComponentPublicInstance<{ open: () => void }>>();
-
-const openActionSheet = () => {
-  actionSheetRef.value?.open();
-};
 </script>
 
 <template>
   <template v-if="isMobile">
-    <slot name="default" :toggle="openActionSheet">
-      <UButton icon="mdi:menu" variant="outline" @click="openActionSheet" />
-    </slot>
-
-    <ActionSheet ref="actionSheetRef" :items="items" />
+    <ActionSheet ref="actionSheetRef" :items="items" v-bind="$attrs">
+      <slot name="default">
+        <UButton icon="mdi:menu" variant="outline" />
+      </slot>
+    </ActionSheet>
   </template>
 
   <template v-else>

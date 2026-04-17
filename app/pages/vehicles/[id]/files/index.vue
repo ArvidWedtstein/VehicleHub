@@ -191,7 +191,7 @@ const generateFileGridActions = (file: File) => {
   <div>
     <FilePreviewModal bucket="VehicleDocuments" ref="filePreviewModal" />
 
-    <FileUpload
+    <UFileUpload
       label="Click to upload or drag & drop"
       class="mb-2"
       description="Max 5MB"
@@ -199,12 +199,13 @@ const generateFileGridActions = (file: File) => {
       multiple
       fileIcon="mdi:file"
       v-model="files"
+      layout="list"
     >
-      <template #fileName="{ file }">
+      <template #file-name="{ file }">
         <span class="link-hover truncate" @click="handleFilePreview(file)">
           {{ file.name }}
         </span>
       </template>
-    </FileUpload>
+    </UFileUpload>
   </div>
 </template>

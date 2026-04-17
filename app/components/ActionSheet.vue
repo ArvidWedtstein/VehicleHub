@@ -54,16 +54,20 @@ defineExpose({
 </script>
 <template>
   <UDrawer v-model:open="open" direction="bottom" inset>
+    <slot></slot>
     <template #body>
-      <ListGroup size="md" divider class="my-3">
-        <ListGroupItem
+      <UPageList divide class="gap-1">
+        <UButton
           v-for="(item, idx) in items"
           :key="idx"
-          :title="item.label"
-          size="lg"
+          :label="item.label"
+          variant="soft"
+          color="neutral"
+          block
+          size="xl"
           @click="onSelect(item)"
         />
-      </ListGroup>
+      </UPageList>
     </template>
     <template #footer>
       <UButton

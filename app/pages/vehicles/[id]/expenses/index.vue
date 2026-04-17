@@ -125,22 +125,24 @@ const handleFilterApply = async (
               }))
             "
             alignMenu="end"
-            #default="{ toggle }"
           >
-            <button
-              type="button"
-              class="btn btn-outline join-item"
-              @click="toggle()"
+            <UButton
+              label="Sort"
+              icon="mdi:sort"
+              variant="outline"
+              color="secondary"
             >
-              <Icon name="mdi:sort" class="sm:block hidden" />
-              <span class="sm:block hidden">Sorted on: </span>
-              <span class="badge badge-neutral">
-                {{
-                  sortControl.options.find((o) => o.value === sortControl.key)
-                    ?.label
-                }}
-              </span>
-            </button>
+              <template #trailing>
+                <UBadge
+                  :label="
+                    sortControl.options.find((o) => o.value === sortControl.key)
+                      ?.label
+                  "
+                  color="neutral"
+                  variant="soft"
+                />
+              </template>
+            </UButton>
           </ResponsiveMenu>
         </div>
 
