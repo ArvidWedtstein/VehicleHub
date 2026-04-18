@@ -6,9 +6,11 @@ const props = defineProps<{ vehicleId: number }>();
 
 const open = ref(false);
 
-const { data: changelog, pending: loading } = useVehicleChangelog(
-  props.vehicleId,
-);
+const {
+  data: changelog,
+  pending: loading,
+  refresh,
+} = useVehicleChangelog(props.vehicleId);
 
 type TableNames = keyof Database[Extract<keyof Database, "public">]["Tables"];
 
@@ -158,7 +160,12 @@ defineExpose({
 </script>
 
 <template>
-  <UDrawer direction="left" title="Changelog" v-model:open="open">
+  <UDrawer
+    direction="left"
+    title="Changelog"
+    v-model:open="open"
+    :snapPoints="[0.3, 0.5]"
+  >
     <template #body>
       <UChangelogVersions
         :indicator="false"
@@ -192,6 +199,19 @@ defineExpose({
           <UUser v-bind="version.author" />
         </template>
       </UChangelogVersions>
+
+      <UEmpty
+        v-if="!formattedChangelog.length || loading"
+        :title="loading ? 'Loading' : 'No Changes found'"
+        :actions="[
+          {
+            label: 'Refresh',
+            icon: 'mdi:refresh',
+            loadingAuto: true,
+            onClick: () => refresh(),
+          },
+        ]"
+      />
     </template>
 
     <template #footer>
