@@ -43,11 +43,55 @@ const openChangelogDrawer = () => {
 </script>
 
 <template>
+  <LazyUPageCard v-if="vehicle">
+    <template #header>
+      <div class="text-base text-pretty font-semibold text-highlighted">
+        {{
+          [`${vehicle.make} ${vehicle.model}`, vehicle.model_year]
+            .filter(Boolean)
+            .join(", ")
+        }}
+      </div>
+    </template>
+
+    <template #description>
+      <div class="flex gap-1 items-center">
+        <span v-show="vehicle.engine_displacement">
+          {{
+            formatNumber(vehicle.engine_displacement, {
+              style: "unit",
+              unit: vehicle.engine_displacement_unit || "liter",
+              unitDisplay: "short",
+            })
+          }}
+        </span>
+        <span>{{ vehicle.body_type }}</span>
+        <div
+          class="w-1 h-1 bg-current rounded-full inline-block leading-none mx-1"
+        ></div>
+
+        <span class="flex gap-1">
+          <Icon
+            :name="
+              vehicle.fuel_type === 'Electric' ? 'mdi:car-electric' : 'mdi:car'
+            "
+          />
+
+          {{ vehicle.fuel_type }}
+
+          ({{
+            formatNumber(vehicle.fuel_capacity, {
+              style: "unit",
+              unit: vehicle.fuel_capacity_unit || "liter",
+              unitDisplay: "short",
+            })
+          }})
+        </span>
+      </div>
+    </template>
+  </LazyUPageCard>
   <div v-if="vehicle" class="card image-full card-border bg-base-200 shrink">
-    <!-- Hydration mismatch-->
-    <ClientOnly>
-      <ChangelogDrawer ref="changelogDrawerRef" :vehicleId="vehicle.id" />
-    </ClientOnly>
+    <ChangelogDrawer ref="changelogDrawerRef" :vehicleId="vehicle.id" />
 
     <figure>
       <img

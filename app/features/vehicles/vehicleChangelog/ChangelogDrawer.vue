@@ -184,7 +184,7 @@ defineExpose({
             description: change.sentence,
             date: change.created_at || '',
             ui: {
-              container: 'max-w-lg me-0',
+              container: 'max-w-lg w-auto me-0',
             },
           }))
         "
