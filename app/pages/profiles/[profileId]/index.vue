@@ -4,6 +4,8 @@ import { useProfile } from "~/features/profiles/useProfiles";
 const profileUserId = useRouteParam("profileId", "string");
 const { data: profile } = await useProfile(profileUserId.value);
 
+const confirm = useConfirmDialog();
+
 const sessionUser = useSupabaseUser();
 const client = useSupabaseClient();
 
@@ -11,12 +13,13 @@ const handleUserTermination = async () => {
   if (sessionUser.value?.id !== profile.value?.user_id) return;
   if (!profile.value) return;
 
-  const res = await useConfirm({
+  const res = await confirm({
     title: "Delete Data?",
-    message:
+    description:
       "Are you sure you want to delete all your data? This cannot be undone.",
-    confirmLabel: "Delete",
-    severity: "danger",
+    button: {
+      label: "Delete",
+    },
   });
 
   if (!res) return;

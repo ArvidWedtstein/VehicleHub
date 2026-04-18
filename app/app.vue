@@ -24,6 +24,5 @@ useHead({
     <LazyMobileAppFooter />
 
     <ToastContainer />
-    <LazyConfirmDialog />
   </UApp>
 </template>

@@ -32,6 +32,7 @@ const { data: profiles } = useProfiles();
 
 const overlay = useOverlay();
 const toast = useToast();
+const confirm = useConfirmDialog();
 
 const vehicleExpenseDialog = overlay.create(ExpenseDialog);
 
@@ -57,12 +58,14 @@ const handleDeleteExpense = async () => {
   if (!vehicleId.value) return;
   if (!expense.value) return;
 
-  const res = await useConfirm({
+  const res = await confirm({
     title: "Delete Expense?",
-    message:
+    description:
       "Are you sure you want to delete this expense? This cannot be undone.",
-    confirmLabel: "Delete",
-    severity: "danger",
+    button: {
+      label: "Delete",
+      color: "error",
+    },
   });
 
   if (!res) return;

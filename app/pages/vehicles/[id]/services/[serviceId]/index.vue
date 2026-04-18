@@ -29,6 +29,8 @@ const { data: service, pending: loading } = await useVehicleService(
 const { data: vehicle } = useVehicle(vehicleId.value);
 
 const overlay = useOverlay();
+const confirm = useConfirmDialog();
+
 const vehicleServiceDialog = overlay.create(ServiceDialog);
 const filePreviewDialog = overlay.create(FilePreviewModal);
 
@@ -68,12 +70,14 @@ const handleServiceDelete = async () => {
   if (!vehicleId.value) return;
   if (!service.value) return;
 
-  const result = await useConfirm({
+  const result = await confirm({
     title: "Delete Service?",
-    message:
+    description:
       "Are you sure you want to delete this service? This cannot be undone.",
-    confirmLabel: "Delete",
-    severity: "danger",
+    button: {
+      label: "Delete",
+      color: "error",
+    },
   });
 
   if (!result) return;
