@@ -22,7 +22,5 @@ useHead({
       </NuxtLayout>
     </UMain>
     <LazyMobileAppFooter />
-
-    <ToastContainer />
   </UApp>
 </template>

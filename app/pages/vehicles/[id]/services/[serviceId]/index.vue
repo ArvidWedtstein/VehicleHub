@@ -28,6 +28,7 @@ const { data: service, pending: loading } = await useVehicleService(
 
 const { data: vehicle } = useVehicle(vehicleId.value);
 
+const toast = useToast();
 const overlay = useOverlay();
 const confirm = useConfirmDialog();
 
@@ -54,7 +55,7 @@ const getServiceInsights = async () => {
   });
 
   if (error) {
-    toast.error("Failed to fetch service insights");
+    toast.add({ title: "Failed to fetch service insights", color: "error" });
     return null;
   }
 
@@ -82,12 +83,25 @@ const handleServiceDelete = async () => {
 
   if (!result) return;
 
-  const deletePromise = deleteVehicleService(vehicleId.value, service.value.id);
-  toast.promise(deletePromise, {
-    loading: `Deleting Service...`,
-    success: `Successfully deleted Service!`,
-    error: `Failed to delete Service.`,
+  const deleteToast = toast.add({
+    title: `Deleting Service...`,
+    color: "info",
+    duration: 0,
   });
+  try {
+    await deleteVehicleService(vehicleId.value, service.value.id);
+    toast.update(deleteToast.id, {
+      title: `Successfully deleted Service!`,
+      color: "success",
+      duration: 3000,
+    });
+  } catch (error) {
+    toast.update(deleteToast.id, {
+      title: `Failed to delete service`,
+      color: "error",
+      duration: 5000,
+    });
+  }
 
   navigateTo({
     name: "vehicles-id-services",
@@ -125,7 +139,7 @@ const handleFileDownload = async (file: File) => {
     downloadBlob(data, file?.name || "file");
   } catch (error) {
     console.error(error);
-    toast.error(`Failed to download file`);
+    toast.add({ title: `Failed to download file`, color: "error" });
   }
 };
 
@@ -142,7 +156,10 @@ const handleFileDelete = async (file: File) => {
     fileToDelete.file_path,
   );
 
-  toast.success(`Successfully deleted file '${file.name}'`);
+  toast.add({
+    title: `Successfully deleted file '${file.name}'`,
+    color: "success",
+  });
 };
 
 const addCalendarEvent = () => {
