@@ -112,39 +112,38 @@ const handleFilterApply = async (
       <UButton label="Add" icon="mdi:plus" @click="handleCreateExpense" />
 
       <div class="flex items-center gap-2">
-        <div class="join">
-          <ExpensesFilterDrawer @applyFilters="handleFilterApply" />
+        <ExpensesFilterDrawer @applyFilters="handleFilterApply" />
 
-          <ResponsiveMenu
-            :items="
-              sortControl.options.map((p) => ({
-                label: p.label || p.value,
-                value: p.value,
-                active: sortControl.key === p.value,
-                onClick: () => setSortKey(p.value),
-              }))
-            "
-            alignMenu="end"
+        <ResponsiveMenu
+          :items="
+            sortControl.options.map((p) => ({
+              label: p.label || p.value,
+              value: p.value,
+              active: sortControl.key === p.value,
+              onClick: () => setSortKey(p.value),
+            }))
+          "
+          alignMenu="end"
+        >
+          <UButton
+            label="Sort"
+            icon="mdi:sort"
+            variant="outline"
+            color="secondary"
           >
-            <UButton
-              label="Sort"
-              icon="mdi:sort"
-              variant="outline"
-              color="secondary"
-            >
-              <template #trailing>
-                <UBadge
-                  :label="
-                    sortControl.options.find((o) => o.value === sortControl.key)
-                      ?.label
-                  "
-                  color="neutral"
-                  variant="soft"
-                />
-              </template>
-            </UButton>
-          </ResponsiveMenu>
-        </div>
+            <template #trailing>
+              <UBadge
+                :label="
+                  sortControl.options.find((o) => o.value === sortControl.key)
+                    ?.label
+                "
+                color="neutral"
+                variant="soft"
+                size="sm"
+              />
+            </template>
+          </UButton>
+        </ResponsiveMenu>
 
         <!-- <ExportButton @export="handleExpensesExport" :types="exportOptions" /> -->
       </div>

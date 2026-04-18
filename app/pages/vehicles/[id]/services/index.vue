@@ -115,38 +115,37 @@ const handleFilterApply = async (
       <UButton icon="mdi:plus" label="Add" @click="handleCreateService" />
 
       <div class="flex items-center gap-2">
-        <div class="join">
-          <ServicesFilterDrawer @applyFilters="handleFilterApply" />
+        <ServicesFilterDrawer @applyFilters="handleFilterApply" />
 
-          <ResponsiveMenu
-            :items="
-              sortControl.options.map((p) => ({
-                label: p.label || p.value,
-                value: p.value,
-                active: sortControl.key === p.value,
-                onClick: () => setSortKey(p.value),
-              }))
-            "
+        <ResponsiveMenu
+          :items="
+            sortControl.options.map((p) => ({
+              label: p.label || p.value,
+              value: p.value,
+              active: sortControl.key === p.value,
+              onClick: () => setSortKey(p.value),
+            }))
+          "
+        >
+          <UButton
+            label="Sort"
+            icon="mdi:sort"
+            variant="outline"
+            color="secondary"
           >
-            <UButton
-              label="Sort"
-              icon="mdi:sort"
-              variant="outline"
-              color="secondary"
-            >
-              <template #trailing>
-                <UBadge
-                  :label="
-                    sortControl.options.find((o) => o.value === sortControl.key)
-                      ?.label
-                  "
-                  color="neutral"
-                  variant="soft"
-                />
-              </template>
-            </UButton>
-          </ResponsiveMenu>
-        </div>
+            <template #trailing>
+              <UBadge
+                :label="
+                  sortControl.options.find((o) => o.value === sortControl.key)
+                    ?.label
+                "
+                color="neutral"
+                variant="soft"
+                size="sm"
+              />
+            </template>
+          </UButton>
+        </ResponsiveMenu>
 
         <ExportButton @export="handleServicesExport" />
       </div>

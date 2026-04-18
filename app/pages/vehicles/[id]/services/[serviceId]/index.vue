@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FilePreviewModal from "~/components/file/FilePreviewModal.vue";
 import type { MenuItem } from "~/components/menu/Menu.vue";
 import ServiceDialog from "~/components/vehicle/service/dialog/ServiceDialog.vue";
 import { deleteVehicleDocument } from "~/features/vehicles/documents/useVehicleDocuments";
@@ -17,10 +18,6 @@ definePageMeta({
   layout: "vehicle",
 });
 
-const FilePreviewModal = defineAsyncComponent(
-  async () => await import("~/components/file/FilePreviewModal.vue"),
-);
-
 const vehicleId = useRouteParam("id", "number");
 const serviceId = useRouteParam("serviceId", "number");
 
@@ -33,6 +30,7 @@ const { data: vehicle } = useVehicle(vehicleId.value);
 
 const overlay = useOverlay();
 const vehicleServiceDialog = overlay.create(ServiceDialog);
+const filePreviewDialog = overlay.create(FilePreviewModal);
 
 const serviceInsights = ref<
   | {
@@ -65,8 +63,6 @@ const getServiceInsights = async () => {
 
   serviceInsights.value = data[0];
 };
-
-const filePreviewRef = ref<InstanceType<typeof FilePreviewModal>>();
 
 const handleServiceDelete = async () => {
   if (!vehicleId.value) return;
@@ -101,7 +97,11 @@ const handleFilePreview = async (file: File) => {
   );
   if (!fileToPreview) return;
   if (!fileToPreview.file_path) return;
-  filePreviewRef.value?.open({ path: fileToPreview.file_path });
+
+  filePreviewDialog.open({
+    bucket: "VehicleDocuments",
+    path: fileToPreview.file_path,
+  });
 };
 
 const handleFileDownload = async (file: File) => {
@@ -196,8 +196,6 @@ onMounted(() => {
 
 <template>
   <div>
-    <FilePreviewModal bucket="VehicleDocuments" ref="filePreviewRef" />
-
     <NuxtLink
       :to="{
         name: 'vehicles-id-services',
@@ -249,15 +247,12 @@ onMounted(() => {
                   onClick: handleServiceDelete,
                 },
               ]"
-              #default="{ toggle }"
             >
-              <button
-                type="button"
-                class="btn btn-sm btn-outline btn-secondary"
-                @click="toggle()"
-              >
-                <Icon name="mdi:dots-vertical" />
-              </button>
+              <UButton
+                icon="mdi:dots-vertical"
+                variant="outline"
+                color="secondary"
+              />
             </ResponsiveMenu>
           </div>
         </div>

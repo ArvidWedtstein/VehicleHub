@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Drawer from "~/components/Drawer.vue";
 import type { FilterSchema } from "~/composables/filterBuilder/filterSchema";
 
 const open = ref(false);
@@ -44,32 +43,36 @@ const applyFilters = async () => {
 </script>
 
 <template>
-  <button
-    class="btn btn-outline join-item"
-    @click="
-      () => {
-        open = true;
-      }
-    "
+  <UDrawer
+    v-model:open="open"
+    direction="bottom"
+    title="Filter"
+    inset
+    :handleOnly="true"
   >
-    <Icon name="mdi:filter-variant" />
-    <span class="sm:block hidden">Filter</span>
-  </button>
+    <UButton
+      label="Filter"
+      icon="mdi:filter-variant"
+      variant="outline"
+      color="secondary"
+    />
 
-  <Drawer title="Filter" direction="bottom" v-model:open="open">
     <template #body>
-      <NuxtLoadingIndicator />
-
       <FilterForm :schema="schema" :filterState="filterState" />
     </template>
 
     <template #footer>
-      <button type="button" class="btn btn-primary" @click="applyFilters">
-        Apply
-      </button>
-      <button type="button" class="btn btn-soft" @click="resetFilters">
-        Reset
-      </button>
+      <div class="flex gap-2">
+        <UButton label="Apply" size="lg" @click="applyFilters" />
+
+        <UButton
+          label="Reset"
+          color="neutral"
+          variant="soft"
+          size="lg"
+          @click="resetFilters"
+        />
+      </div>
     </template>
-  </Drawer>
+  </UDrawer>
 </template>

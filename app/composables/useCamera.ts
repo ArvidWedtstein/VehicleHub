@@ -1,7 +1,7 @@
 export const useCamera = (videoRef: Ref<HTMLVideoElement | null>) => {
   const stream = ref<MediaStream | null>(null);
   const devices = ref<MediaDeviceInfo[]>([]);
-  const selectedDeviceId = ref<string | null>(null);
+  const selectedDeviceId = ref<string>();
 
   const isLoading = ref(false);
   const hasTakenPicture = ref(false);

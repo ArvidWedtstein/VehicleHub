@@ -42,7 +42,13 @@ const applyFilters = async () => {
 </script>
 
 <template>
-  <UDrawer v-model:open="open" direction="bottom" title="Filter" inset>
+  <UDrawer
+    v-model:open="open"
+    direction="bottom"
+    title="Filter"
+    inset
+    handleOnly
+  >
     <UButton
       label="Filter"
       icon="mdi:filter-variant"

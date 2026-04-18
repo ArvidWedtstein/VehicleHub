@@ -18,9 +18,10 @@ definePageMeta({
 const vehicleId = useRouteParam("id", "number");
 const { data: documents } = await useVehicleDocuments(vehicleId.value);
 
-const filePreviewModal = ref<InstanceType<typeof FilePreviewModal> | null>(
-  null,
-);
+const toast = useToast();
+const overlay = useOverlay();
+
+const filePreviewModal = overlay.create(FilePreviewModal);
 
 const uploadedFiles = computed(() => {
   return documents.value
@@ -44,11 +45,12 @@ const handleFilePreview = (file: File) => {
   );
 
   if (!fileToPreview || !fileToPreview.file_path) {
-    toast.error(`File ${file.name} not found.`);
+    toast.add({ title: `File ${file.name} not found.`, color: "error" });
     return;
   }
 
-  filePreviewModal.value?.open({
+  filePreviewModal.open({
+    bucket: "VehicleDocuments",
     path: fileToPreview.file_path,
   });
 };
@@ -72,69 +74,88 @@ const handleFileDownload = async (file: File) => {
     downloadBlob(data, file?.name || "file");
   } catch (error) {
     console.error(error);
-    toast.error(`Failed to download file`);
+    toast.add({
+      title: `Failed to download file`,
+      description: JSON.stringify(error),
+      color: "error",
+    });
   }
 };
 
 const handleFileDelete = async (file: File) => {
   if (!vehicleId.value) return;
-  try {
-    const fileToDelete = documents.value?.find(
-      ({ name, file_size }) =>
-        name === file.name && (file_size || 0) === file.size,
-    );
-    if (!fileToDelete) return;
+  const fileToDelete = documents.value?.find(
+    ({ name, file_size }) =>
+      name === file.name && (file_size || 0) === file.size,
+  );
+  if (!fileToDelete) return;
 
-    const deletePromise = deleteVehicleDocument(
+  const deleteToast = toast.add({
+    title: `Deleting ${fileToDelete.name}...`,
+    color: "info",
+    duration: 0,
+  });
+
+  try {
+    await deleteVehicleDocument(
       vehicleId.value,
       fileToDelete.id,
       fileToDelete.file_path,
     );
 
-    toast.promise(
-      deletePromise,
-      {
-        loading: `Deleting ${fileToDelete.name}...`,
-        success: `Successfully deleted ${fileToDelete.name}!`,
-        error: `Failed to delete ${fileToDelete.name}.`,
-      },
-      { timeout: 3000 },
-    );
+    toast.update(deleteToast.id, {
+      title: `Deleted ${fileToDelete.name} successfully!`,
+      color: "success",
+      duration: 3000,
+    });
+
     files.value = files.value.filter(
       (f) => f.name !== file.name && f.size !== file.size,
     );
   } catch (error) {
     console.error(error);
+
+    toast.update(deleteToast.id, {
+      title: `Failed to delete ${fileToDelete.name}.`,
+      color: "error",
+      duration: 5000,
+    });
   }
 };
 
 const uploadFiles = async (files: File[]) => {
+  if (!vehicleId.value) return;
+  if (files.length === 0) return;
+
+  const pluralFile = pluralize(files.length, "file");
+
+  const uploadPromises = files.map(async (file) => {
+    const data = await uploadVehicleDocument(vehicleId.value!, file);
+
+    return data;
+  });
+
+  const uploadToast = toast.add({
+    title: `Uploading ${pluralFile}...`,
+    color: "info",
+    duration: 0,
+  });
+
   try {
-    if (!vehicleId.value) return;
-    if (files.length === 0) return;
+    await Promise.all(uploadPromises);
 
-    const pluralFile = pluralize(files.length, "file");
-
-    const uploadPromises = files.map(async (file) => {
-      const data = await uploadVehicleDocument(vehicleId.value!, file);
-
-      return data;
+    toast.update(uploadToast.id, {
+      title: `Successfully uploaded ${pluralFile}!`,
+      color: "success",
+      duration: 3000,
     });
-
-    toast.promise(
-      () => Promise.all(uploadPromises),
-      {
-        loading: `Uploading ${pluralFile}...`,
-        success: `Successfully uploaded ${pluralFile}!`,
-        error: `Failed to upload ${pluralFile}.`,
-      },
-      { timeout: 3000 },
-    );
   } catch (error: unknown) {
     console.error(error);
-    toast.error(
-      `Failed to upload file.\n${(error as { message: string })?.message}`,
-    );
+    toast.update(uploadToast.id, {
+      title: `Failed to upload file.\n${(error as { message: string })?.message}`,
+      color: "error",
+      duration: 5000,
+    });
   }
 };
 
@@ -187,10 +208,9 @@ const generateFileGridActions = (file: File) => {
   return fileGridActions;
 };
 </script>
+
 <template>
   <div>
-    <FilePreviewModal bucket="VehicleDocuments" ref="filePreviewModal" />
-
     <UFileUpload
       label="Click to upload or drag & drop"
       class="mb-2"

@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import type Modal from "../Modal.vue";
-
-const modalRef = ref<InstanceType<typeof Modal> | null>(null);
 const emit = defineEmits<{
-  pictureTaken: [blob: Blob];
+  close: [blob?: Blob];
 }>();
 
 const videoRef = ref<HTMLVideoElement | null>(null);
+
+const toast = useToast();
 
 const {
   selectedDeviceId,
@@ -26,108 +25,105 @@ const {
 const submitPicture = async () => {
   const blob = getBlob();
   if (!blob) {
-    toast.error("No picture taken yet. Please try again.");
+    toast.add({
+      title: "No picture taken yet. Please try again.",
+      color: "error",
+    });
     return;
   }
 
-  emit("pictureTaken", blob);
-
-  modalRef.value?.modalRef?.close();
+  emit("close", blob);
 };
 
-const open = async () => {
-  modalRef.value?.modalRef?.showModal();
-
-  await nextTick();
-  await startCamera();
+const onOpen = () => {
+  startCamera();
 };
 
-const close = () => {
+const onClose = () => {
   stopCamera();
-  modalRef.value?.modalRef?.close();
 };
 
 onUnmounted(stopCamera);
-
-defineExpose({
-  modalRef,
-  open,
-  close,
-});
 </script>
 
 <template>
-  <Modal id="cameraModal" ref="modalRef" title="Camera" @close="close">
-    <div class="relative flex items-center justify-center aspect-video mb-2">
-      <video
-        ref="videoRef"
-        autoplay
-        playsinline
-        class="w-full h-full rounded-md border border-neutral"
-        v-show="!hasTakenPicture"
-      ></video>
-
-      <img
-        v-if="previewUrl && hasTakenPicture"
-        :src="previewUrl"
-        class="w-full h-full rounded-md border border-neutral object-contain"
-      />
-
+  <UModal
+    title="Camera"
+    @after:enter="onOpen"
+    @after:leave="onClose"
+    :close="{ onClick: () => emit('close') }"
+  >
+    <template #body>
       <div
-        class="absolute inset-0 skeleton w-full h-full rounded-md flex items-center justify-center"
-        v-if="isLoading"
+        class="relative flex items-center justify-center aspect-video mb-2 min-h-20"
       >
-        Starting camera...
+        <video
+          v-if="!error"
+          ref="videoRef"
+          autoplay
+          playsinline
+          class="w-full h-full rounded-md border border-neutral"
+          style="transform: scale(-1, 1)"
+          v-show="!hasTakenPicture"
+        ></video>
+
+        <img
+          v-if="previewUrl && hasTakenPicture"
+          :src="previewUrl"
+          class="w-full h-full rounded-md border border-neutral object-contain"
+        />
+
+        <div
+          class="absolute inset-0 skeleton w-full h-full rounded-md flex items-center justify-center"
+          v-if="isLoading"
+        >
+          Starting camera...
+        </div>
+
+        <UEmpty
+          class="w-full h-full"
+          v-if="error"
+          :title="error"
+          :actions="[
+            {
+              label: 'Refresh',
+              icon: 'mdi:refresh',
+              color: 'neutral',
+              variant: 'subtle',
+              onClick: restartCamera,
+            },
+          ]"
+        />
       </div>
+    </template>
 
-      <div v-if="error" class="text-error flex items-center justify-center">
-        {{ error }}
-      </div>
-    </div>
-
-    <template #actions>
-      <button
-        class="btn btn-outline me-auto"
-        value="cancel"
-        formmethod="dialog"
-        formnovalidate
-      >
-        Cancel
-      </button>
-
-      <FormInput
-        v-if="devices.length > 0"
-        type="select"
-        v-model="selectedDeviceId"
-        wrapperClass="-mt-1"
-        :options="
-          devices.map((d) => ({
-            label: d.label || 'Unknown Camera',
-            value: d.deviceId,
-          }))
-        "
-        @change="restartCamera"
-        size="sm"
+    <template #footer>
+      <UButton
+        label="Cancel"
+        variant="outline"
+        color="neutral"
+        class="me-auto"
+        @click="emit('close')"
       />
 
-      <button
+      <USelect
+        v-if="devices.length > 0"
+        v-model="selectedDeviceId"
+        :items="devices"
+        valueKey="deviceId"
+        @change="restartCamera"
+      />
+
+      <UButton
         v-if="hasTakenPicture"
-        type="button"
-        class="btn btn-outline btn-secondary"
+        label="Try Again"
+        variant="outline"
+        color="neutral"
         @click="reset"
-      >
-        Try Again
-      </button>
-      <button v-else type="button" class="btn btn-primary" @click="capture()">
-        <Icon name="mdi:camera" />
-      </button>
-      <button
-        v-if="hasTakenPicture"
-        class="btn btn-primary"
-        @click="submitPicture"
-      >
-        Save
-      </button>
+      />
+      <UButton v-else icon="mdi:camera" @click="capture()" />
+
+      <UButton v-if="hasTakenPicture" label="Save" @click="submitPicture" />
     </template>
-  </Modal>
+  </UModal>
 </template>

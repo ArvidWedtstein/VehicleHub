@@ -56,6 +56,7 @@ const handleInviteUser = async () => {
   <UModal
     title="Share this Vehicle"
     :ui="{ footer: 'justify-end' }"
+    :close="{ onClick: () => emit('close', false) }"
     @after:enter="onOpen"
   >
     <template #body>
