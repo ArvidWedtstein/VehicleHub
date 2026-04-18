@@ -53,7 +53,7 @@ const handleEditExpense = () => {
   });
 };
 
-const handleExpenseDelete = async () => {
+const handleDeleteExpense = async () => {
   if (!vehicleId.value) return;
   if (!expense.value) return;
 
@@ -95,45 +95,42 @@ const handleExpenseDelete = async () => {
 
     <!-- <SkeletonLoader v-if="loading" /> -->
 
-    <div
+    <UPageCard
       v-else-if="expense"
-      :key="expense?.id"
-      class="card card-sm md:card-normal bg-base-100 md:w-96 shadow-xl"
+      :title="expense.type || ''"
+      variant="soft"
+      :ui="{ footer: 'flex gap-3' }"
     >
-      <div class="card-body">
-        <h2 class="card-title">{{ expense.type }}</h2>
+      <template #description>
+        <UPageList>
+          <UUser
+            v-if="createdBy"
+            :avatar="{
+              src: createdBy.profile_image_url || '',
+              alt: createdBy.name || '',
+              loading: 'lazy',
+            }"
+            :name="createdBy.name || ''"
+            :to="{
+              name: 'profiles-profileId',
+              params: { profileId: createdBy.id },
+            }"
+            size="sm"
+          />
 
-        <ul class="flex flex-col gap-1 text-sm">
-          <li class="inline-flex gap-2 items-center">
-            <AvatarImage
-              :src="createdBy?.profile_image_url"
-              :alt="createdBy?.name"
-              :fallbackSrc="`https://ui-avatars.com/api/?name=${
-                createdBy?.name || 'Unknown User'
-              }`"
-              size="xxs"
-            />
-
-            <NuxtLink
-              v-if="createdBy?.id"
-              :to="{
-                name: 'profiles-profileId',
-                params: { profileId: createdBy?.id },
-              }"
-              class="link link-hover"
-            >
-              {{ createdBy?.name }}
-            </NuxtLink>
-          </li>
-          <li class="inline-flex gap-2 items-center">
+          <div class="inline-flex gap-1 items-center">
             <span class="font-semibold">Date:</span>
-            <NuxtTime
-              :datetime="expense.date"
-              dateStyle="medium"
-              timeStyle="short"
-            />
-          </li>
-          <li class="inline-flex gap-2 items-center">
+            <span>
+              {{
+                formatDate(expense.date, {
+                  dateStyle: "long",
+                  timeStyle: "short",
+                })
+              }}
+            </span>
+          </div>
+
+          <div class="inline-flex gap-1 items-center">
             <span class="font-semibold">Mileage:</span>
             <span>
               {{
@@ -145,8 +142,8 @@ const handleExpenseDelete = async () => {
                 })
               }}
             </span>
-          </li>
-          <li class="inline-flex gap-2 items-center">
+          </div>
+          <div class="inline-flex gap-1 items-center">
             <span class="font-semibold">Amount:</span>
             <span>
               {{
@@ -158,8 +155,8 @@ const handleExpenseDelete = async () => {
                 })
               }}
             </span>
-          </li>
-          <li class="inline-flex gap-2 items-center">
+          </div>
+          <div class="inline-flex gap-1 items-center">
             <span class="font-semibold">Cost:</span>
             <span>
               {{
@@ -172,12 +169,11 @@ const handleExpenseDelete = async () => {
                 })
               }}
             </span>
-          </li>
-          <li class="inline-flex gap-2 items-center">
-            <span class="font-semibold">
-              Price per
-              {{ expense.unit || "liter" }}:
-            </span>
+          </div>
+          <div class="inline-flex gap-1 items-center">
+            <span class="font-semibold"
+              >Price per {{ expense.unit || "litre" }}:</span
+            >
             <span>
               {{
                 formatNumber(expense.price_per_unit || 0, {
@@ -188,29 +184,25 @@ const handleExpenseDelete = async () => {
                 })
               }}
             </span>
-          </li>
-        </ul>
-
-        <div class="divider my-0 font-semibold text-sm">Notes:</div>
-
-        <p class="capitalize text-sm mb-2">{{ expense.notes }}</p>
-
-        <div class="card-actions justify-between">
-          <button type="button" class="btn btn-sm" @click="handleEditExpense">
-            <Icon name="mdi:pencil" />
-            Edit
-          </button>
-
-          <button
-            type="button"
-            class="btn btn-sm btn-outline btn-error"
-            @click="handleExpenseDelete"
-          >
-            <Icon name="mdi:trash" />
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
+          </div>
+        </UPageList>
+      </template>
+      <template #footer>
+        <UButton
+          label="Edit"
+          icon="mdi:pencil"
+          variant="subtle"
+          color="neutral"
+          @click="handleEditExpense"
+        />
+        <UButton
+          label="Delete"
+          icon="mdi:trash"
+          variant="subtle"
+          color="error"
+          @click="handleDeleteExpense"
+        />
+      </template>
+    </UPageCard>
   </div>
 </template>

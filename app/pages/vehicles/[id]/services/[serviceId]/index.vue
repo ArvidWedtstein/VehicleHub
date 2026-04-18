@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import type { DropdownMenuItem } from "@nuxt/ui";
 import FilePreviewModal from "~/components/file/FilePreviewModal.vue";
-import type { MenuItem } from "~/components/menu/Menu.vue";
 import ServiceDialog from "~/components/vehicle/service/dialog/ServiceDialog.vue";
 import { deleteVehicleDocument } from "~/features/vehicles/documents/useVehicleDocuments";
 import {
@@ -156,7 +156,7 @@ const addCalendarEvent = () => {
 };
 
 const generateFileGridActions = (file: File) => {
-  const fileGridActions: MenuItem[] = [
+  const fileGridActions: DropdownMenuItem[] = [
     {
       type: "label",
       label: "Preview",
@@ -173,6 +173,7 @@ const generateFileGridActions = (file: File) => {
       type: "label",
       label: "Delete",
       icon: "mdi:trash",
+      color: "error",
       onClick: () => handleFileDelete(file),
     },
   ];
@@ -188,6 +189,13 @@ const handleEditService = () => {
     serviceId: serviceId.value,
   });
 };
+
+const files = computed(
+  () =>
+    service.value?.files.map(
+      (file) => new File([], file?.name || "", { type: "file" }),
+    ) || [],
+);
 
 onMounted(() => {
   getServiceInsights();
@@ -209,56 +217,101 @@ onMounted(() => {
 
     <!-- <SkeletonLoader v-if="loading" /> -->
 
-    <div
+    <UPageCard
       v-if="service"
-      :key="service.id"
-      class="card card-border card-sm md:card-side bg-base-100 shadow-xl"
+      variant="soft"
+      :ui="{ header: 'w-full flex justify-between gap-3', body: 'w-full' }"
     >
-      <div class="card-body">
-        <div class="flex justify-between w-full">
-          <h2 class="card-title">{{ service.type }}</h2>
-
-          <div class="flex gap-1">
-            <template v-if="new Date(service.date) > new Date()">
-              <button
-                type="button"
-                class="btn btn-sm btn-outline btn-neutral"
-                @click="addCalendarEvent()"
-              >
-                <Icon name="mdi:calendar" />
-                Add Reminder
-              </button>
-
-              <div class="divider divider-horizontal mx-1"></div>
-            </template>
-
-            <ResponsiveMenu
-              alignMenu="end"
-              :items="[
-                {
-                  label: 'Edit',
-                  icon: 'mdi:pencil',
-                  onClick: handleEditService,
-                },
-                {
-                  label: 'Delete',
-                  icon: 'mdi:trash',
-                  class: 'text-error',
-                  onClick: handleServiceDelete,
-                },
-              ]"
-            >
-              <UButton
-                icon="mdi:dots-vertical"
-                variant="outline"
-                color="secondary"
-              />
-            </ResponsiveMenu>
-          </div>
+      <template #header>
+        <div class="text-base text-pretty font-semibold text-highlighted">
+          {{ service.type }}
         </div>
 
-        <ul class="flex flex-col gap-1 text-sm">
-          <li v-if="serviceInsights" class="inline-flex gap-1 items-center">
+        <div class="flex gap-1">
+          <LazyUButton
+            v-if="new Date(service.date) > new Date()"
+            label="Add Reminder"
+            icon="mdi:calendar"
+            variant="outline"
+            color="neutral"
+            @click="addCalendarEvent()"
+          />
+
+          <ResponsiveMenu
+            alignMenu="end"
+            :items="[
+              {
+                label: 'Edit',
+                icon: 'mdi:pencil',
+                onClick: handleEditService,
+              },
+              {
+                label: 'Delete',
+                icon: 'mdi:trash',
+                color: 'error',
+                onClick: handleServiceDelete,
+              },
+            ]"
+          >
+            <UButton
+              icon="mdi:dots-vertical"
+              variant="outline"
+              color="secondary"
+            />
+          </ResponsiveMenu>
+        </div>
+      </template>
+      <template #body>
+        <UPageList>
+          <div class="inline-flex gap-1 items-center">
+            <span class="font-semibold">Date:</span>
+            <span>
+              {{
+                formatDate(service.date, {
+                  dateStyle: "long",
+                  timeStyle: "short",
+                })
+              }}
+            </span>
+          </div>
+
+          <div class="inline-flex gap-1 items-center">
+            <span class="font-semibold">Provider:</span>
+            <span>
+              {{ service.provider }}
+            </span>
+          </div>
+
+          <div class="inline-flex gap-1 items-center">
+            <span class="font-semibold">Mileage:</span>
+            <span>
+              {{
+                formatNumber(service.mileage || 0, {
+                  style: "unit",
+                  unit: vehicle?.mileage_unit || "kilometer",
+                  compactDisplay: "short",
+                })
+              }}
+            </span>
+          </div>
+
+          <div class="inline-flex gap-1 items-center">
+            <span class="font-semibold">Cost:</span>
+            <span>
+              {{
+                formatNumber(service.totalCost || 0, {
+                  style: "currency",
+                  currency: service.currency || "EUR",
+                  currencyDisplay: "narrowSymbol",
+                  compactDisplay: "short",
+                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 0,
+                })
+              }}
+            </span>
+          </div>
+
+          <div v-if="serviceInsights" class="inline-flex gap-1 items-center">
             <span class="font-semibold">Last {{ service.type }}:</span>
             <span>
               {{
@@ -285,104 +338,44 @@ onMounted(() => {
               year="2-digit"
               month="2-digit"
             />
-          </li>
-          <li class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Date:</span>
-            <span>
-              {{
-                formatDate(service.date, {
-                  dateStyle: "long",
-                  timeStyle: "short",
-                })
-              }}
-            </span>
-          </li>
-          <li class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Provider:</span>
-            <span>
-              {{ service.provider }}
-            </span>
-          </li>
-          <li class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Mileage:</span>
-            <span>
-              {{
-                formatNumber(service.mileage || 0, {
-                  style: "unit",
-                  unit: vehicle?.mileage_unit || "kilometer",
-                  compactDisplay: "short",
-                })
-              }}
-            </span>
-          </li>
-          <li class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Cost:</span>
-            <span>
-              {{
-                formatNumber(service.totalCost || 0, {
-                  style: "currency",
-                  currency: service.currency || "EUR",
-                  currencyDisplay: "narrowSymbol",
-                  compactDisplay: "short",
-                  maximumFractionDigits: 2,
-                  minimumFractionDigits: 0,
-                })
-              }}
-            </span>
-          </li>
-        </ul>
+          </div>
+        </UPageList>
 
-        <div class="divider my-0"></div>
-
-        <template v-if="service.notes">
-          <p class="text-sm">{{ service.notes }}</p>
-
-          <div class="divider my-0"></div>
-        </template>
-
-        <Suspense>
+        <UCard class="mt-5">
           <LazyVehicleServiceDialogComponentsItemsTable
             v-if="serviceId != null && vehicleId != null"
             v-model="service"
             v-model:serviceItems="service.items"
             :allowEdit="false"
           />
-          <template #fallback>
-            <div class="flex justify-center">
-              <span class="loading loading-spinner loading-lg"></span>
-            </div>
-          </template>
-        </Suspense>
+        </UCard>
 
-        <div class="divider my-0"></div>
-
-        <span class="font-semibold text-sm">Attachments:</span>
-
-        <FileGrid
-          :files="
-            service.files.map(({ name, file_size }) => ({
-              name: name || '',
-              size: file_size || 0,
-            }))
-          "
-        >
+        <!-- TODO: find solution -->
+        <!-- <UFileUpload
+          class="mt-5"
+          layout="grid"
+          position="inside"
+          multiple
+          :ui="{
+            base: 'min-h-48',
+          }"
+          :modelValue="files"
+        /> -->
+        <FileGrid :files="files" class="mt-5">
           <template #actions="{ file }">
-            <Menu
+            <UDropdownMenu
               alignMenu="end"
               :items="generateFileGridActions(file as File)"
-              #default="{ toggle }"
             >
-              <button
-                type="button"
-                class="btn btn-sm btn-ghost"
-                @click="toggle()"
-              >
-                <Icon name="mdi:dots-vertical" />
-              </button>
-            </Menu>
+              <UButton
+                icon="mdi:dots-vertical"
+                variant="ghost"
+                color="neutral"
+              />
+            </UDropdownMenu>
           </template>
         </FileGrid>
-      </div>
-    </div>
+      </template>
+    </UPageCard>
   </div>
 </template>

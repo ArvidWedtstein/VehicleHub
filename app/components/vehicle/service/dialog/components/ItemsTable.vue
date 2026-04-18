@@ -1,23 +1,24 @@
 <script setup lang="ts">
+import type { TableColumn, TableRow } from "@nuxt/ui";
 import type { TablesInsert, TablesUpdate } from "~/types/supabase";
 
-const props = withDefaults(
-  defineProps<{
-    allowEdit?: boolean;
-  }>(),
-  {
-    allowEdit: true,
-  },
-);
+const UButton = resolveComponent("UButton");
+const UInput = resolveComponent("UInput");
 
+const { allowEdit = true } = defineProps<{
+  allowEdit?: boolean;
+}>();
+
+type ServiceItem =
+  | TablesInsert<"VehicleServiceLogsItems">
+  | TablesUpdate<"VehicleServiceLogsItems">;
 const service = defineModel<
   TablesInsert<"VehicleServiceLogs"> | TablesUpdate<"VehicleServiceLogs">
 >({ required: true });
 
-const serviceItems = defineModel<
-  | TablesInsert<"VehicleServiceLogsItems">[]
-  | TablesUpdate<"VehicleServiceLogsItems">[]
->("serviceItems", { required: true });
+const serviceItems = defineModel<ServiceItem[]>("serviceItems", {
+  required: true,
+});
 
 const handleAddItem = () => {
   serviceItems.value.push({
@@ -27,103 +28,141 @@ const handleAddItem = () => {
   } as TablesInsert<"VehicleServiceLogsItems">);
 };
 
-const handleRemoveItem = (index: number) => {
-  serviceItems.value.splice(index, 1);
+const handleRemoveItem = (id: ServiceItem["id"]) => {
+  if (!id) return;
+
+  serviceItems.value = serviceItems.value.filter((item) => item.id !== id);
 };
+
+const formatCostOptions: Intl.NumberFormatOptions = {
+  style: "currency",
+  currency: service.value?.currency || "EUR",
+  currencyDisplay: "narrowSymbol",
+  compactDisplay: "short",
+  maximumFractionDigits: 2,
+  minimumFractionDigits: 0,
+};
+
+const columns: TableColumn<ServiceItem>[] = [
+  {
+    accessorKey: "description",
+    header: "Description",
+  },
+  {
+    accessorKey: "cost",
+    cell: ({ row }) => {
+      const cost = Number.parseFloat(row.getValue("cost"));
+
+      return formatNumber(cost, formatCostOptions);
+    },
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted();
+
+      return h(UButton, {
+        color: "neutral",
+        variant: "ghost",
+        label: "Cost",
+        icon: isSorted
+          ? isSorted === "asc"
+            ? "mdi:sort-ascending"
+            : "mdi:sort-descending"
+          : "mdi:sort",
+        class: "-mx-2.5",
+        onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+      });
+    },
+    footer: ({ column }) => {
+      const total = column
+        .getFacetedRowModel()
+        .rows.reduce(
+          (acc: number, row: TableRow<ServiceItem>) =>
+            acc + Number.parseFloat(row.getValue("cost")),
+          0,
+        );
+
+      return formatNumber(total, formatCostOptions);
+    },
+  },
+  {
+    accessorKey: "quantity",
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted();
+
+      return h(UButton, {
+        color: "neutral",
+        variant: "ghost",
+        label: "Quantity",
+        icon: isSorted
+          ? isSorted === "asc"
+            ? "mdi:sort-ascending"
+            : "mdi:sort-descending"
+          : "mdi:sort",
+        class: "-mx-2.5",
+        onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+      });
+    },
+    footer: ({ column }) => {
+      const total = column
+        .getFacetedRowModel()
+        .rows.reduce(
+          (acc: number, row: TableRow<ServiceItem>) =>
+            acc + Number.parseFloat(row.getValue("quantity")),
+          0,
+        );
+
+      return total;
+    },
+  },
+  {
+    id: "action",
+  },
+];
 </script>
 
 <template>
-  <div
-    class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100"
-  >
-    <table class="table table-sm table-pin-rows">
-      <thead>
-        <tr>
-          <th v-if="allowEdit" width="30">
-            <button
-              type="button"
-              class="btn btn-secondary btn-soft btn-xs btn-square"
-              @click="handleAddItem"
-            >
-              <Icon name="mdi:plus" />
-            </button>
-          </th>
-          <th>Description</th>
-          <th>Cost</th>
-          <th>Quantity</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody v-if="service">
-        <tr v-for="(item, index) in serviceItems" :key="index">
-          <td :colspan="allowEdit ? 2 : 1">
-            <FormInput
-              type="text"
-              size="sm"
-              v-model="item.description"
-              :class="{ 'input-ghost': !allowEdit }"
-              placeholder="Item Name"
-              :readonly="!allowEdit"
-            />
-          </td>
-          <td>
-            <FormInput
-              type="number"
-              size="xs"
-              v-model="item.cost"
-              :class="{ 'input-ghost': !allowEdit }"
-              :min="0"
-              :readonly="!allowEdit"
-            />
-          </td>
-          <td>
-            <FormInput
-              type="number"
-              size="sm"
-              v-model="item.quantity"
-              :class="{ 'input-ghost': !allowEdit }"
-              :min="0"
-              :readonly="!allowEdit"
-            />
-          </td>
-          <td>
-            <button
-              type="button"
-              class="btn btn-error btn-soft btn-sm btn-square"
-              tabindex="-1"
-              @click="handleRemoveItem(index)"
-            >
-              <Icon name="mdi:trash" />
-              <span class="sr-only">Remove Item</span>
-            </button>
-          </td>
-        </tr>
+  <div class="flex-1 divide-y divide-accented w-full">
+    <div
+      v-if="allowEdit"
+      class="flex items-center gap-2 px-4 py-3.5 overflow-x-auto"
+    >
+      <UButton label="Add Item" icon="mdi:plus" @click="handleAddItem" />
+    </div>
 
-        <tr v-if="serviceItems.length === 0">
-          <td :colspan="allowEdit ? 6 : 5" class="text-center">
-            No items found
-          </td>
-        </tr>
-      </tbody>
-      <tfoot>
-        <tr>
-          <th :colspan="allowEdit ? 2 : 1">Sum:</th>
-          <td>
-            {{
-              formatNumber(sum(serviceItems || [], "cost"), {
-                style: "currency",
-                currency: service?.currency || "EUR",
-                currencyDisplay: "narrowSymbol",
-                compactDisplay: "short",
-                maximumFractionDigits: 2,
-                minimumFractionDigits: 0,
-              })
-            }}
-          </td>
-          <td>{{ sum(serviceItems || [], "quantity") }}</td>
-          <td></td>
-        </tr>
-      </tfoot>
-    </table>
+    <UTable :columns="columns" :data="serviceItems">
+      <template v-if="allowEdit" #description-cell="{ row }">
+        <UInput
+          v-model="row.original.description"
+          type="text"
+          size="sm"
+          variant="none"
+        />
+      </template>
+      <template v-if="allowEdit" #cost-cell="{ row }">
+        <UInputNumber
+          v-model="row.original.cost"
+          size="sm"
+          variant="none"
+          :formatOptions="formatCostOptions"
+        />
+      </template>
+      <template v-if="allowEdit" #quantity-cell="{ row }">
+        <UInput
+          v-model="row.original.quantity"
+          type="number"
+          size="sm"
+          variant="none"
+        />
+      </template>
+
+      <template #action-cell="{ row }">
+        <UButton
+          variant="soft"
+          color="error"
+          icon="mdi:trash"
+          aria-label="Delete row"
+          @click="handleRemoveItem(row.original.id)"
+        />
+      </template>
+    </UTable>
   </div>
 </template>

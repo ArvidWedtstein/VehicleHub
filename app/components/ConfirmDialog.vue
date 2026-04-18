@@ -71,6 +71,8 @@ watch(
     }
 
     modalRef.value.modalRef.showModal();
-  }
+  },
 );
+
+// https://ui.nuxt.com/docs/composables/use-overlay#confirm-dialog
 </script>
