@@ -1,11 +1,6 @@
 <script setup lang="ts">
+import type { DropdownMenuItem } from "@nuxt/ui";
 import FilePreviewModal from "~/components/file/FilePreviewModal.vue";
-import type { MenuItem } from "~/components/menu/Menu.vue";
-import {
-  deleteVehicleDocument,
-  uploadVehicleDocument,
-  useVehicleDocuments,
-} from "~/composables/vehicle/useVehicleDocuments";
 
 useHead({
   title: "Files",
@@ -179,7 +174,7 @@ watch(files, (newFiles, oldFiles) => {
 });
 
 const generateFileGridActions = (file: File) => {
-  const fileGridActions: MenuItem[] | MenuItem[][] = [
+  const fileGridActions: DropdownMenuItem[] | DropdownMenuItem[][] = [
     [
       {
         type: "label",
