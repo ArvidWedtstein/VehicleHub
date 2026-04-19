@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type Modal from "../Modal.vue";
-
 type Props = {
   bucket: string;
   alt?: string;

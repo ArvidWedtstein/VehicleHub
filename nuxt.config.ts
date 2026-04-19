@@ -24,9 +24,9 @@ export default defineNuxtConfig({
     },
     pageTransition: { name: "fade", mode: "out-in" },
   },
-  // imports: {
-  //   dirs: ["composables/vehicle/**"],
-  // },
+  imports: {
+    dirs: ["~/composables", "~/composables/vehicle/**"],
+  },
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
   vite: {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Database, Tables } from "~/types/supabase";
-import { useVehicleChangelog } from "./useVehicleChangelog";
 
 const props = defineProps<{ vehicleId: number }>();
 

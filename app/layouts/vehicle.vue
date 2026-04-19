@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { TabsItem } from "@nuxt/ui";
-import { useVehicle } from "~/features/vehicles/useVehicles";
-import VehicleCard from "~/features/vehicles/VehicleCard.vue";
 
 const router = useRouter();
+const route = useRoute();
 
 const vehicleId = useRouteParam("id", "number");
 
@@ -40,23 +39,12 @@ const tabs: TabsItem[] = [
 
 const activeTab = computed({
   get() {
-    const currentRoute = router.currentRoute.value;
-
-    const currentTab = tabs.find(({ value }) =>
-      currentRoute.matched.some(({ name }) =>
-        name?.toString().startsWith(value?.toString() || ""),
-      ),
-    );
-
-    const tab = currentTab?.value || tabs[0]?.value;
-
-    return tab;
+    return (route.name as string) || "vehicles-id-expenses";
   },
   set(tab) {
-    if (!tab) return;
-    console.log("NAVIDATE", tab);
-    navigateTo({
+    router.push({
       name: tab.toString(),
+      params: { id: vehicleId.value },
     });
   },
 });

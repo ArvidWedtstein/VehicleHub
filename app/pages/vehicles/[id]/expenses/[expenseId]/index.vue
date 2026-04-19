@@ -90,7 +90,6 @@ const handleDeleteExpense = async () => {
       }"
       icon="mdi:chevron-left"
       label="Back to Expenses"
-      prefetch
     />
 
     <span v-if="error">{{ error }}</span>

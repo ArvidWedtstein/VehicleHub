@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { useVehicles } from "~/features/vehicles/useVehicles";
 
-preloadRouteComponents({
-  name: "vehicles-id-expenses",
-  params: { id: "placeholder" },
-});
-
 const { data: vehicles, pending } = useVehicles();
 </script>
 
@@ -25,7 +20,10 @@ const { data: vehicles, pending } = useVehicles();
       variant="soft"
       :title="vehicle.licenseplate_number || vehicle.make || 'Unknown Vehicle'"
       :description="`${vehicle.model_year || ''} ${vehicle.make} ${vehicle.model}`"
-      :to="`/vehicles/${vehicle.id}/expenses`"
+      :to="{
+        name: 'vehicles-id-expenses',
+        params: { id: vehicle.id },
+      }"
     >
       <template #header>
         <UAvatar

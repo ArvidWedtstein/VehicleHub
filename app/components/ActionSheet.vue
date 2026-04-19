@@ -1,47 +1,19 @@
 <script setup lang="ts">
-import type {
-  RouteLocationAsPathGeneric,
-  RouteLocationAsRelativeGeneric,
-} from "vue-router";
-import type { AvatarProps } from "@nuxt/ui";
+import type { DropdownMenuItem, DropdownMenuProps } from "@nuxt/ui";
 
-type ActionSheetItem = {
-  label?: string;
-
-  active?: boolean;
-  disabled?: boolean;
-
-  href?: string;
-  to?: string | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric;
-
-  avatar?: AvatarProps;
-
-  onClick?: () => void;
-
-  [key: string]: any;
-};
-
+type ActionSheetItem = Omit<
+  DropdownMenuItem,
+  "children" | "type" | "color" | "block" | "size" | "variant"
+>;
 type Props = {
-  items?: Array<ActionSheetItem>;
-};
-
-type Emits = {
-  select: [item: ActionSheetItem];
+  items?: ActionSheetItem[] | ActionSheetItem[][];
 };
 
 withDefaults(defineProps<Props>(), {
   items: () => [],
 });
 
-const emit = defineEmits<Emits>();
-
 const open = ref(false);
-
-const onSelect = (item: ActionSheetItem) => {
-  item?.onClick?.();
-
-  emit("select", item);
-};
 
 defineExpose({
   open: () => {
@@ -57,18 +29,33 @@ defineExpose({
     <slot></slot>
     <template #body>
       <UPageList divide class="gap-1">
-        <UButton
-          v-for="(item, idx) in items"
-          :key="idx"
-          :label="item.label"
-          variant="soft"
-          color="neutral"
-          block
-          size="xl"
-          @click="onSelect(item)"
-        />
+        <template v-for="(item, idx) in items" :key="idx">
+          <UFieldGroup v-if="Array.isArray(item)" orientation="vertical">
+            <UButton
+              v-for="(subItem, subIdx) in item"
+              :key="subIdx"
+              v-bind="subItem"
+              variant="soft"
+              color="neutral"
+              block
+              size="xl"
+              :disabled="subItem.disabled"
+            />
+          </UFieldGroup>
+
+          <UButton
+            v-else
+            v-bind="item"
+            variant="soft"
+            color="neutral"
+            block
+            size="xl"
+            :disabled="item.disabled"
+          />
+        </template>
       </UPageList>
     </template>
+
     <template #footer>
       <UButton
         label="Cancel"

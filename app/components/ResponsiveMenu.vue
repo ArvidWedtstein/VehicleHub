@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { DropdownMenuItem, DropdownMenuProps } from "@nuxt/ui";
+import type { DropdownMenuProps } from "@nuxt/ui";
 
 const { isMobile } = useBreakpoints();
 
 export interface ResponsiveMenuProps extends DropdownMenuProps {
-  items?: Omit<DropdownMenuItem, "children" | "type" | "color">[];
+  items?: DropdownMenuProps["items"];
 }
 
 withDefaults(defineProps<ResponsiveMenuProps>(), {

@@ -16,7 +16,7 @@ definePageMeta({
 });
 
 const vehicleId = useRouteParam("id", "number");
-const { data: documents } = await useVehicleDocuments(vehicleId.value);
+const { data: documents } = useVehicleDocuments(vehicleId.value);
 
 const toast = useToast();
 const overlay = useOverlay();

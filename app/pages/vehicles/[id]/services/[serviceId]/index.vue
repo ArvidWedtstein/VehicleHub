@@ -259,7 +259,6 @@ onMounted(() => {
           />
 
           <ResponsiveMenu
-            alignMenu="end"
             :items="[
               {
                 label: 'Edit',
