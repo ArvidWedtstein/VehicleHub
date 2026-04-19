@@ -1,9 +1,9 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
-export function useVehicleExpenses(
+export const useVehicleExpenses = (
   vehicleId: MaybeRef<string | number | undefined>,
   filters: MaybeRef<FilterOption<Tables<"VehicleExpenses">>[]> = [],
-) {
+) => {
   return useFetch<Tables<"VehicleExpenses">[]>(
     `/api/vehicles/${unref(vehicleId)}/expenses/filter`,
     {
@@ -16,7 +16,7 @@ export function useVehicleExpenses(
       default: () => [],
     },
   );
-}
+};
 
 export const useVehicleExpense = (
   vehicleId?: MaybeRef<Tables<"VehicleExpenses">["vehicle_id"] | undefined>,

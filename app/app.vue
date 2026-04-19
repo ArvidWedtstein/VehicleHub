@@ -10,6 +10,7 @@ useHead({
   },
 });
 </script>
+
 <template>
   <UApp>
     <NuxtLoadingIndicator />
@@ -21,6 +22,7 @@ useHead({
         <NuxtPage />
       </NuxtLayout>
     </UMain>
-    <LazyMobileAppFooter />
+
+    <MobileAppFooter />
   </UApp>
 </template>

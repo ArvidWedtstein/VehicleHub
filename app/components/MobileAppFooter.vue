@@ -1,53 +1,65 @@
 <script setup lang="ts">
+import type { NavigationMenuItem } from "@nuxt/ui";
+
 const vehicleId = useRouteParam("id", "number");
+
+const links = computed<NavigationMenuItem[]>(() =>
+  vehicleId.value
+    ? [
+        {
+          label: "Expenses",
+          icon: "mdi:gas-station",
+          to: {
+            name: "vehicles-id-expenses",
+            params: { id: vehicleId.value },
+          },
+        },
+        {
+          label: "Services",
+          icon: "mdi:wrench",
+          to: {
+            name: "vehicles-id-services",
+            params: { id: vehicleId.value },
+          },
+        },
+        {
+          label: "Files",
+          icon: "mdi:folder",
+          to: {
+            name: "vehicles-id-files",
+            params: { id: vehicleId.value },
+          },
+        },
+      ]
+    : [
+        {
+          label: "Vehicles",
+          icon: "mdi:car",
+          to: {
+            name: "vehicles",
+          },
+        },
+      ],
+);
 </script>
 <template>
-  <div class="dock dock-md flex md:hidden bg-base-300 z-10">
-    <template v-if="vehicleId">
-      <NuxtLink
-        :to="{
-          name: 'vehicles-id-expenses',
-          params: { id: vehicleId },
-        }"
-        activeClass="dock-active text-primary"
-      >
-        <UIcon name="mdi:gas-station" />
-        <span class="dock-label">Expenses</span>
-      </NuxtLink>
-
-      <NuxtLink
-        :to="{
-          name: 'vehicles-id-services',
-          params: { id: vehicleId },
-        }"
-        activeClass="dock-active text-primary"
-      >
-        <UIcon name="mdi:wrench" />
-        <span class="dock-label">Services</span>
-      </NuxtLink>
-
-      <NuxtLink
-        :to="{
-          name: 'vehicles-id-files',
-          params: { id: vehicleId },
-        }"
-        activeClass="dock-active text-primary"
-      >
-        <UIcon name="mdi:folder" />
-        <span class="dock-label">Files</span>
-      </NuxtLink>
-    </template>
-
-    <template v-else>
-      <NuxtLink
-        :to="{
-          name: 'vehicles',
-        }"
-        activeClass="dock-active"
-      >
-        <UIcon name="mdi:car" />
-        <span class="dock-label">Vehicles</span>
-      </NuxtLink>
-    </template>
-  </div>
+  <UFooter
+    :ui="{
+      left: 'hidden',
+      center: 'lg:grow',
+      right: 'hidden',
+    }"
+  >
+    <UNavigationMenu
+      class="w-full mb-20"
+      :ui="{
+        root: 'justify-around border-t border-default py-2 w-full',
+        item: 'py-0',
+        link: 'flex-col gap-1 px-3',
+        linkLeadingIcon: 'size-5',
+        linkLabel: 'text-sm font-normal',
+      }"
+      :items="links"
+    />
+  </UFooter>
 </template>

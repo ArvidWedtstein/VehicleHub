@@ -5,7 +5,7 @@ const user = useSupabaseUser();
 const client = useSupabaseClient();
 const router = useRouter();
 
-const links = computed<NavigationMenuItem[]>(() => [
+const links: NavigationMenuItem[] = [
   {
     label: "Home",
     icon: "mdi:home",
@@ -16,7 +16,7 @@ const links = computed<NavigationMenuItem[]>(() => [
     icon: "mdi:car",
     to: "/vehicles",
   },
-]);
+];
 
 const toast = useToast();
 
