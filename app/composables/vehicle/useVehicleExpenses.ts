@@ -3,6 +3,7 @@ import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 export const useVehicleExpenses = (
   vehicleId: MaybeRef<string | number | undefined>,
   filters: MaybeRef<FilterOption<Tables<"VehicleExpenses">>[]> = [],
+  pagination: { limit: number; offset: number } = { limit: 20, offset: 0 },
 ) => {
   return useFetch<Tables<"VehicleExpenses">[]>(
     `/api/vehicles/${unref(vehicleId)}/expenses/filter`,
@@ -11,6 +12,7 @@ export const useVehicleExpenses = (
       method: "post",
       body: {
         filters: unref(filters),
+        pagination,
       },
       lazy: true,
       default: () => [],
