@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useVehicleManufacturers } from "~/features/vehicles/useVehicleManufacturers";
 import type { VehicleSchema } from "../useVehicleForm";
 
 const vehicle = defineModel<Partial<VehicleSchema>>({ required: true });

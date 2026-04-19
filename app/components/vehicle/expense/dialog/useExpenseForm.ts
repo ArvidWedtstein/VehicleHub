@@ -1,12 +1,5 @@
 import type { Tables, TablesUpdate } from "~/types/supabase";
-
 import * as z from "zod";
-import { useVehicle } from "~/features/vehicles/useVehicles";
-import {
-  createVehicleExpense,
-  updateVehicleExpense,
-  useVehicleExpense,
-} from "~/features/vehicles/expenses/useVehicleExpenses";
 
 const expenseSchema = z.object({
   id: z.number().optional(),

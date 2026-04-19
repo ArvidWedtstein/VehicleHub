@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { useVehicle } from "../../features/vehicles/useVehicles";
 import VehicleDialog from "~/components/vehicle/dialog/VehicleDialog.vue";
-import ShareVehicleDialog from "~/components/vehicle/shareVehicleDialog/ShareVehicleDialog.vue";
+import VehicleShareDialog from "./share/VehicleShareDialog.vue";
 import type { DropdownMenuItem } from "@nuxt/ui";
 
 const changelogDrawerRef = useTemplateRef("changelogDrawerRef");
@@ -23,7 +22,7 @@ const currentVehicleOwner = computed(() => {
 const overlay = useOverlay();
 
 const vehicleModal = overlay.create(VehicleDialog);
-const vehicleShareModal = overlay.create(ShareVehicleDialog);
+const vehicleShareModal = overlay.create(VehicleShareDialog);
 
 const editVehicle = () => {
   if (!vehicleId.value) return;

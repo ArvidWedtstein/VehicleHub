@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import VehiclesList from "~/features/vehicles/VehiclesList.vue";
-
 useHead({
   titleTemplate: "%s | Vehicle Hub",
 });
@@ -32,7 +30,7 @@ useSeoMeta({
         </p>
       </div>
 
-      <VehiclesList />
+      <VehicleList />
     </div>
   </div>
 </template>

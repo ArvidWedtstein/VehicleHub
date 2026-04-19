@@ -10,9 +10,7 @@
 // import { type FilterOption } from '@/components/general/filter/FilterMenu.vue';
 
 import ExpenseDialog from "~/components/vehicle/expense/dialog/ExpenseDialog.vue";
-import ExpensesFilterDrawer from "~/features/vehicles/expenses/ExpensesFilterDrawer.vue";
 import ExpensesListItem from "~/features/vehicles/expenses/ExpensesListItem.vue";
-import { useVehicleExpenses } from "~/features/vehicles/expenses/useVehicleExpenses";
 import type { Tables } from "~/types/supabase";
 
 useHead({
@@ -112,7 +110,7 @@ const handleFilterApply = async (
       <UButton label="Add" icon="mdi:plus" @click="handleCreateExpense" />
 
       <div class="flex items-center gap-2">
-        <ExpensesFilterDrawer @applyFilters="handleFilterApply" />
+        <VehicleExpenseFilterDrawer @applyFilters="handleFilterApply" />
 
         <ResponsiveMenu
           :items="

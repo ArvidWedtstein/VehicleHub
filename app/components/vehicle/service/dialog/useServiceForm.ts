@@ -1,16 +1,10 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
 import * as z from "zod";
-import { useVehicle } from "~/features/vehicles/useVehicles";
-import {
-  createVehicleService,
-  updateVehicleService,
-  useVehicleService,
-} from "~/features/vehicles/services/useVehicleServices";
 import {
   deleteVehicleDocument,
   uploadVehicleDocument,
-} from "~/features/vehicles/documents/useVehicleDocuments";
+} from "~/composables/vehicle/useVehicleDocuments";
 
 const serviceItemSchema = z.object({
   id: z.number().optional(),

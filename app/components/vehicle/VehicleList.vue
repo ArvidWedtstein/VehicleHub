@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useVehicles } from "~/features/vehicles/useVehicles";
-
 const { data: vehicles, pending } = useVehicles();
 </script>
 

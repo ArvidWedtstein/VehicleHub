@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import BarChart from "~/components/charts/BarChart.vue";
-import { useVehicleExpenses } from "../expenses/useVehicleExpenses";
 import StatCardSkeletonLoader from "./StatCardSkeletonLoader.vue";
 
 const vehicleId = useRouteParam("id", "number");

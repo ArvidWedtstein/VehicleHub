@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import { useVehicleExpenses } from "../expenses/useVehicleExpenses";
-
 const vehicleId = useRouteParam("id", "number");
-const { data: expenses, pending: loading } =
-  await useVehicleExpenses(vehicleId);
+const { data: expenses, pending: loading } = useVehicleExpenses(vehicleId);
 
 const selectedPeriod = ref("month");
 

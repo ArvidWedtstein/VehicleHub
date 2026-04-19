@@ -2,12 +2,7 @@
 import type { DropdownMenuItem } from "@nuxt/ui";
 import FilePreviewModal from "~/components/file/FilePreviewModal.vue";
 import ServiceDialog from "~/components/vehicle/service/dialog/ServiceDialog.vue";
-import { deleteVehicleDocument } from "~/features/vehicles/documents/useVehicleDocuments";
-import {
-  deleteVehicleService,
-  useVehicleService,
-} from "~/features/vehicles/services/useVehicleServices";
-import { useVehicle } from "~/features/vehicles/useVehicles";
+import { deleteVehicleDocument } from "~/composables/vehicle/useVehicleDocuments";
 
 useHead({
   title: "Service",

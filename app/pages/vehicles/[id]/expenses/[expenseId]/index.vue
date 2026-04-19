@@ -1,9 +1,5 @@
 <script setup lang="ts">
 import ExpenseDialog from "~/components/vehicle/expense/dialog/ExpenseDialog.vue";
-import {
-  deleteVehicleExpense,
-  useVehicleExpense,
-} from "~/features/vehicles/expenses/useVehicleExpenses";
 
 useHead({
   title: "Expense",

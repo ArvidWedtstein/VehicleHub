@@ -1,9 +1,4 @@
 import type { Tables } from "~/types/supabase";
-import {
-  upsertVehicleShares,
-  useVehicle,
-  deleteVehicleShares,
-} from "../../../features/vehicles/useVehicles";
 import * as z from "zod";
 
 type VehicleShareWithProfile = Tables<"VehicleShares"> & {

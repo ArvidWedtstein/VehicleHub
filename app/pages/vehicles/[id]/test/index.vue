@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { FilterSchema } from "~/composables/filterBuilder/filterSchema";
-import { useVehicleExpenses } from "~/features/vehicles/expenses/useVehicleExpenses";
 import type { Tables } from "~/types/supabase";
 
 const vehicleId = useRouteParam("id", "number");

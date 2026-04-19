@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import ServiceDialog from "~/components/vehicle/service/dialog/ServiceDialog.vue";
-import ServicesFilterDrawer from "~/features/vehicles/services/ServicesFilterDrawer.vue";
 import ServicesListItem from "~/features/vehicles/services/ServicesListItem.vue";
-import { useVehicleServices } from "~/features/vehicles/services/useVehicleServices";
 import type { Tables } from "~/types/supabase";
 
 useHead({
@@ -115,7 +113,7 @@ const handleFilterApply = async (
       <UButton icon="mdi:plus" label="Add" @click="handleCreateService" />
 
       <div class="flex items-center gap-2">
-        <ServicesFilterDrawer @applyFilters="handleFilterApply" />
+        <VehicleServiceFilterDrawer @applyFilters="handleFilterApply" />
 
         <ResponsiveMenu
           :items="

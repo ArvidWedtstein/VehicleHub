@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import type { Tables } from "~/types/supabase";
 import { useVehicleForm } from "./useVehicleForm";
-import BasicInfoForm from "./components/BasicInfoForm.vue";
-import EngineForm from "./components/EngineForm.vue";
-import TransmissionForm from "./components/TransmissionForm.vue";
 import type { StepperItem } from "@nuxt/ui";
 
 const { vehicleId } = defineProps<{
@@ -85,13 +82,16 @@ const onFormSubmit = async () => {
           :items="steps"
         >
           <template #general>
-            <BasicInfoForm :key="vehicle.id" v-model="vehicle" />
+            <VehicleDialogComponentsBasicInfoForm
+              :key="vehicle.id"
+              v-model="vehicle"
+            />
           </template>
           <template #engine>
-            <EngineForm v-model="vehicle" />
+            <VehicleDialogComponentsEngineForm v-model="vehicle" />
           </template>
           <template #transmission>
-            <TransmissionForm v-model="vehicle" />
+            <VehicleDialogComponentsTransmissionForm v-model="vehicle" />
           </template>
         </UStepper>
       </UForm>

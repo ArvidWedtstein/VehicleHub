@@ -5,7 +5,7 @@ import {
   deleteVehicleDocument,
   uploadVehicleDocument,
   useVehicleDocuments,
-} from "~/features/vehicles/documents/useVehicleDocuments";
+} from "~/composables/vehicle/useVehicleDocuments";
 
 useHead({
   title: "Files",
