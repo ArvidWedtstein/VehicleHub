@@ -1,4 +1,3 @@
-import { useProfile } from "~/features/profiles/useProfiles";
 import type { Tables } from "~/types/supabase";
 
 export function useVehicleChangelog(

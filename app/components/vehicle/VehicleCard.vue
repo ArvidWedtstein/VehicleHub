@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useProfiles } from "../../features/profiles/useProfiles";
 import { useVehicle } from "../../features/vehicles/useVehicles";
 import VehicleDialog from "~/components/vehicle/dialog/VehicleDialog.vue";
 import ShareVehicleDialog from "~/components/vehicle/shareVehicleDialog/ShareVehicleDialog.vue";

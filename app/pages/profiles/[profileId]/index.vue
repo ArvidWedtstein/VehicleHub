@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { useProfile } from "~/features/profiles/useProfiles";
-
 const profileUserId = useRouteParam("profileId", "string");
-const { data: profile } = await useProfile(profileUserId.value);
+const { data: profile } = useProfile(profileUserId.value);
 
 const confirm = useConfirmDialog();
 

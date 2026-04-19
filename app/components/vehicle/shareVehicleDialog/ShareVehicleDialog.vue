@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useShareVehicleForm } from "./useShareVehicleForm";
-import { useProfiles } from "~/features/profiles/useProfiles";
 import type { Tables } from "~/types/supabase";
 
 const { vehicleId } = defineProps<{
