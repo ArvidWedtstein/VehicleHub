@@ -3,6 +3,8 @@ import type { NavigationMenuItem } from "@nuxt/ui";
 
 const vehicleId = useRouteParam("id", "number");
 
+const { isMobile } = useBreakpoints();
+
 const links = computed<NavigationMenuItem[]>(() =>
   vehicleId.value
     ? [
@@ -43,15 +45,16 @@ const links = computed<NavigationMenuItem[]>(() =>
 );
 </script>
 <template>
-  <UFooter
+  <LazyUFooter
+    v-if="isMobile"
     :ui="{
       left: 'hidden',
       center: 'lg:grow',
       right: 'hidden',
     }"
   >
-    <UNavigationMenu
-      class="w-full mb-20"
+    <LazyUNavigationMenu
+      class="w-full"
       :ui="{
         root: 'justify-around border-t border-default py-2 w-full',
         item: 'py-0',
@@ -61,5 +64,5 @@ const links = computed<NavigationMenuItem[]>(() =>
       }"
       :items="links"
     />
-  </UFooter>
+  </LazyUFooter>
 </template>

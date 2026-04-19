@@ -82,7 +82,28 @@ const groupedExpenses = computed(() => {
   }));
 
   const grouped = groupBy(enriched, "monthYear");
+  return grouped;
+});
+const groupedExpenses2 = computed(() => {
+  const sorted = dynamicSort(
+    expenses.value,
+    sortControl.key,
+    sortControl.direction,
+  );
 
+  if (!sorted || !Array.isArray(sorted)) return [];
+
+  const enriched = sorted.map((expense) => ({
+    ...expense,
+    monthYear: formatDate(
+      expense.date,
+      sortControl.key === "date"
+        ? { year: "numeric", month: "long" }
+        : { year: "numeric" },
+    ),
+  }));
+
+  const grouped = Object.values(groupBy(enriched, "monthYear"));
   return grouped;
 });
 
@@ -102,6 +123,25 @@ const handleFilterApply = async (
   filters.value = buildFilters.value;
   execute();
 };
+
+const scrollArea = useTemplateRef("scrollArea");
+const skip = ref(0);
+
+onMounted(() => {
+  useInfiniteScroll(
+    scrollArea.value?.$el,
+    () => {
+      skip.value += 10;
+      console.log("Load more", skip.value);
+    },
+    {
+      distance: 200,
+      canLoadMore: () => {
+        return !loading.value;
+      },
+    },
+  );
+});
 </script>
 
 <template>
@@ -147,29 +187,43 @@ const handleFilterApply = async (
       </div>
     </div>
 
-    <!-- <UPageList divide>
-      <UPageCard
-        v-for="(expense, index) in expenses"
+    <UScrollArea
+      ref="scrollArea"
+      class="w-full h-100"
+      :items="groupedExpenses2"
+      v-slot="{ item: expenses, index }"
+    >
+      <USeparator
+        :label="expenses[0]?.monthYear || ''"
+        orientation="horizontal"
         :key="index"
-        variant="ghost"
-        :title="expense.type || ''"
-      >
-        <template #body>
-          <UUser
-            :avatar="{
-              icon: expense.type === 'Fuel' ? 'mdi:gas-station' : 'mdi:cash',
-            }"
-            :name="expense.type || 'Unknown Expense'"
-            :description="
-              formatDate(expense.date, {
-                dateStyle: 'medium',
-              })
-            "
-            size="xl"
-          />
-        </template>
-      </UPageCard>
-    </UPageList> -->
+        size="lg"
+      />
+      <UPageList>
+        <UPageCard
+          v-for="(item, idx) in expenses"
+          :key="idx"
+          variant="ghost"
+          :title="item.type || ''"
+          href="/"
+        >
+          <template #body>
+            <UUser
+              :avatar="{
+                icon: item.type === 'Fuel' ? 'mdi:gas-station' : 'mdi:cash',
+              }"
+              :name="item.type || 'Unknown Expense'"
+              :description="
+                formatDate(item.date, {
+                  dateStyle: 'medium',
+                })
+              "
+              size="xl"
+            />
+          </template>
+        </UPageCard>
+      </UPageList>
+    </UScrollArea>
 
     <ListGroup class="flex-1 overflow-hidden mb-16" ignoreListClass>
       <template v-if="loading">
