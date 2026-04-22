@@ -103,6 +103,13 @@ export function useInfiniteScroll<T extends InfiniteScrollElement>(
   function checkAndLoad() {
     state.measure();
 
+    console.log(
+      "checkAndLoad",
+      observedElement.value,
+      isElementVisible.isVisible.value,
+      canLoad.value,
+    );
+
     if (
       !observedElement.value ||
       !isElementVisible.isVisible.value ||
@@ -110,6 +117,8 @@ export function useInfiniteScroll<T extends InfiniteScrollElement>(
       promise.value
     )
       return;
+
+    console.log("ænd checkAndLoad", direction, observedElement.value);
 
     const { scrollHeight, clientHeight, scrollWidth, clientWidth } =
       observedElement.value as HTMLElement;

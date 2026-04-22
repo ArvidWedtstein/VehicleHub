@@ -5,6 +5,7 @@ export function useVehicleServices(
   filters: MaybeRef<
     FilterOption<Tables<"vehicleservicelogs_with_items">>[]
   > = [],
+  pagination: { limit: number; offset: number } = { limit: 20, offset: 0 },
 ) {
   const vehicleServiceId = computed(() => unref(vehicleId));
 
@@ -15,9 +16,10 @@ export function useVehicleServices(
       key: `vehicle-${vehicleServiceId.value}_services`,
       body: {
         filters: unref(filters),
+        pagination,
       },
       immediate: !!unref(vehicleId),
-      watch: [vehicleServiceId, () => filters],
+      watch: [vehicleServiceId, () => filters, () => pagination],
       default: () => [],
     },
   );

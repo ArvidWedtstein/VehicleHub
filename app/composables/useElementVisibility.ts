@@ -31,6 +31,7 @@ export function useElementVisibility(
 
   const start = () => {
     const el = getTarget();
+    console.log("Starting useElementVisibility", el);
     if (!el || typeof window === "undefined") return;
 
     cleanup();
@@ -50,6 +51,7 @@ export function useElementVisibility(
   watch(
     () => getTarget(),
     () => {
+      console.log("Target changed for useElementVisibility", getTarget());
       if (immediate) start();
     },
   );

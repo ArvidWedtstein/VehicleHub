@@ -14,12 +14,13 @@ definePageMeta({
 const vehicleId = useRouteParam("id", "number");
 
 const filters = ref<FilterOption<Tables<"VehicleServiceLogs">>[]>([]);
+const skip = ref(0);
 
 const {
   data: services,
   refresh,
   pending: loading,
-} = useVehicleServices(vehicleId, filters);
+} = useVehicleServices(vehicleId, filters, { limit: 10, offset: skip.value });
 
 const overlay = useOverlay();
 const vehicleServiceDialog = overlay.create(ServiceDialog);
@@ -88,6 +89,25 @@ const groupedServices = computed(() => {
 
   return grouped;
 });
+const groupedServices2 = computed(() => {
+  const filtered = services.value || [];
+
+  const sorted = dynamicSort(filtered, sortControl.key, sortControl.direction);
+
+  const enriched = sorted.map((service) => ({
+    ...service,
+    monthYear: formatDate(
+      service.date || "",
+      sortControl.key === "date"
+        ? { year: "numeric", month: "long" }
+        : { year: "numeric" },
+    ),
+  }));
+
+  const grouped = Object.values(groupBy(enriched, "monthYear"));
+
+  return grouped;
+});
 
 const setSortKey = (key: keyof Tables<"VehicleServiceLogs">) => {
   sortControl.key = key;
@@ -105,6 +125,25 @@ const handleFilterApply = async (
   filters.value = buildFilters.value;
   refresh();
 };
+
+const scrollArea = useTemplateRef("scrollArea");
+
+onMounted(() => {
+  useInfiniteScroll(
+    scrollArea.value?.$el,
+    () => {
+      skip.value += 10;
+      console.log("Load more", skip.value);
+    },
+    {
+      direction: "bottom",
+      distance: 0,
+      canLoadMore: () => {
+        return !loading.value;
+      },
+    },
+  );
+});
 </script>
 
 <template>
@@ -148,6 +187,44 @@ const handleFilterApply = async (
         <ExportButton @export="handleServicesExport" />
       </div>
     </div>
+
+    <UScrollArea
+      ref="scrollArea"
+      class="w-full h-100"
+      :items="groupedServices2"
+      v-slot="{ item: services, index }"
+    >
+      <USeparator
+        :label="services[0]?.monthYear || ''"
+        orientation="horizontal"
+        :key="index"
+        size="lg"
+      />
+      <UPageList>
+        <UPageCard
+          v-for="(item, idx) in services"
+          :key="idx"
+          variant="ghost"
+          :title="item.type || ''"
+          href="/"
+        >
+          <template #body>
+            <UUser
+              :avatar="{
+                icon: item.type === 'Fuel' ? 'mdi:gas-station' : 'mdi:cash',
+              }"
+              :name="item.type || 'Unknown Expense'"
+              :description="
+                formatDate(item.date || '', {
+                  dateStyle: 'medium',
+                })
+              "
+              size="xl"
+            />
+          </template>
+        </UPageCard>
+      </UPageList>
+    </UScrollArea>
 
     <ListGroup class="flex-1 overflow-hidden mb-16" ignoreListClass>
       <template v-if="loading">

@@ -195,6 +195,7 @@ export function useScroll(
     directions.right = false;
     directions.top = false;
     directions.bottom = false;
+
     onStop(e);
   };
   const onScrollEndDebounced = debounce(onScrollEnd, idle);
@@ -277,7 +278,8 @@ export function useScroll(
   onMounted(() => {
     try {
       const _element = toValue(element);
-      if (!_element) return;
+      if (!_element)
+        return console.warn("useScroll: element is null on mounted");
       setArrivedState(_element);
     } catch (e) {
       onError(e);
@@ -294,7 +296,10 @@ export function useScroll(
       element as MaybeRef<HTMLElement | SVGElement>,
       () => {
         const _element = toValue(element);
-        if (!_element) return;
+        if (!_element)
+          return console.warn(
+            "useScroll: element is null on mutation observer callback",
+          );
         setArrivedState(_element);
       },
       {
