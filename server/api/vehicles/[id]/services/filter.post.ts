@@ -1,4 +1,4 @@
-import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server";
+import { serverSupabaseClient } from "#supabase/server";
 import { Database, Tables } from "~/types/supabase";
 
 type FilterBody = {
@@ -38,7 +38,7 @@ export default defineAuthenticatedEventHandler(async (event) => {
     return data;
   });
 
-  const filters = result.filters || [];
+  const { filters = [], pagination } = result;
 
   const client = await serverSupabaseClient<Database>(event);
 
@@ -55,9 +55,11 @@ export default defineAuthenticatedEventHandler(async (event) => {
     );
   }
 
-  if (result.pagination) {
-    const { limit, offset } = result.pagination;
+  if (pagination) {
+    const { limit, offset } = pagination;
     query = query.range(offset, offset + limit - 1);
+
+    console.log("Applying pagination", offset, offset + limit - 1);
   }
 
   const { data, error } = await query;

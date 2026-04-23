@@ -20,7 +20,8 @@ const {
   data: services,
   refresh,
   pending: loading,
-} = useVehicleServices(vehicleId, filters, { limit: 10, offset: skip.value });
+  status,
+} = useVehicleServices(vehicleId, filters, { limit: 10, offset: skip });
 
 const overlay = useOverlay();
 const vehicleServiceDialog = overlay.create(ServiceDialog);
@@ -137,9 +138,9 @@ onMounted(() => {
     },
     {
       direction: "bottom",
-      distance: 0,
+      distance: 200,
       canLoadMore: () => {
-        return !loading.value;
+        return status.value !== "pending" && !loading.value;
       },
     },
   );
@@ -188,6 +189,8 @@ onMounted(() => {
       </div>
     </div>
 
+    {{ services.length }}
+
     <UScrollArea
       ref="scrollArea"
       class="w-full h-100"
@@ -226,10 +229,9 @@ onMounted(() => {
       </UPageList>
     </UScrollArea>
 
-    <ListGroup class="flex-1 overflow-hidden mb-16" ignoreListClass>
+    <!-- <ListGroup class="flex-1 overflow-hidden mb-16" ignoreListClass>
       <template v-if="loading">
         loading
-        <!-- <ServiceListItemSkeleton v-for="idx in 10" :key="`skeleton-${idx}`" /> -->
       </template>
 
       <ListSubGroup
@@ -243,6 +245,6 @@ onMounted(() => {
           :service="service"
         />
       </ListSubGroup>
-    </ListGroup>
+    </ListGroup> -->
   </div>
 </template>

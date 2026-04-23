@@ -86,7 +86,6 @@ export function useInfiniteScroll<T extends InfiniteScrollElement>(
   const promise = shallowRef<Promise<unknown> | null>();
   const isLoading = computed(() => !!promise.value);
 
-  // Document and Window cannot be observed by IntersectionObserver
   const observedElement = computed<HTMLElement | SVGElement | null | undefined>(
     () => {
       return resolveElement(toValue(element));
@@ -103,16 +102,9 @@ export function useInfiniteScroll<T extends InfiniteScrollElement>(
   function checkAndLoad() {
     state.measure();
 
-    console.log(
-      "checkAndLoad",
-      observedElement.value,
-      isElementVisible.isVisible.value,
-      canLoad.value,
-    );
-
     if (
       !observedElement.value ||
-      !isElementVisible.isVisible.value ||
+      !isElementVisible.value ||
       !canLoad.value ||
       promise.value
     )
@@ -141,14 +133,14 @@ export function useInfiniteScroll<T extends InfiniteScrollElement>(
   const stop = watch(
     () => [
       state.arrivedState[direction],
-      isElementVisible.isVisible.value,
+      isElementVisible.value,
       canLoad.value,
     ],
     checkAndLoad,
     { immediate: true, flush: "post" },
   );
 
-  onMounted(stop);
+  onUnmounted(stop);
 
   return {
     isLoading,

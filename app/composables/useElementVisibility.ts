@@ -1,71 +1,39 @@
-import { ref, watch, onMounted, onBeforeUnmount, type Ref } from "vue";
-
-type MaybeRef<T> = T | Ref<T | null | undefined>;
-
 export interface UseElementVisibilityOptions extends IntersectionObserverInit {
-  immediate?: boolean; // start on mount (default: true)
+  immediate?: boolean;
+  /**
+   * The element that is used as the viewport for checking visibility of the target.
+   */
+  scrollTarget?: UseIntersectionObserverOptions["root"];
 }
 
 export function useElementVisibility(
-  target: MaybeRef<Element | null | undefined>,
+  element: MaybeRef<HTMLElement | Element | null | undefined>,
   options: UseElementVisibilityOptions = {},
 ) {
-  const { immediate = true, ...observerOptions } = options;
+  const { immediate = true, scrollTarget, ...observerOptions } = options;
 
-  const isVisible = ref(false);
-  const entry = ref<IntersectionObserverEntry | null>(null);
+  const isVisible = shallowRef(false);
 
-  let observer: IntersectionObserver | null = null;
+  useIntersectionObserver(
+    element,
+    (intersectionObserverEntries) => {
+      let isIntersecting = isVisible.value;
 
-  const getTarget = (): Element | null => {
-    return (
-      (target as Ref<Element | null | undefined>)?.value ??
-      (target as Element | null)
-    );
-  };
-
-  const cleanup = () => {
-    observer?.disconnect();
-    observer = null;
-  };
-
-  const start = () => {
-    const el = getTarget();
-    console.log("Starting useElementVisibility", el);
-    if (!el || typeof window === "undefined") return;
-
-    cleanup();
-
-    observer = new IntersectionObserver(([e]) => {
-      entry.value = e || null;
-      isVisible.value = e?.isIntersecting || false;
-    }, observerOptions);
-
-    observer.observe(el);
-  };
-
-  const stop = () => {
-    cleanup();
-  };
-
-  watch(
-    () => getTarget(),
-    () => {
-      console.log("Target changed for useElementVisibility", getTarget());
-      if (immediate) start();
+      // Get the latest value of isIntersecting based on the entry time
+      let latestTime = 0;
+      for (const entry of intersectionObserverEntries) {
+        if (entry.time >= latestTime) {
+          latestTime = entry.time;
+          isIntersecting = entry.isIntersecting;
+        }
+      }
+      isVisible.value = isIntersecting;
+    },
+    {
+      root: scrollTarget,
+      ...observerOptions,
     },
   );
 
-  onMounted(() => {
-    if (immediate) start();
-  });
-
-  onBeforeUnmount(stop);
-
-  return {
-    isVisible,
-    entry,
-    start,
-    stop,
-  };
+  return isVisible;
 }
