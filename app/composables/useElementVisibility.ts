@@ -19,7 +19,6 @@ export function useElementVisibility(
     (intersectionObserverEntries) => {
       let isIntersecting = isVisible.value;
 
-      // Get the latest value of isIntersecting based on the entry time
       let latestTime = 0;
       for (const entry of intersectionObserverEntries) {
         if (entry.time >= latestTime) {
@@ -30,8 +29,8 @@ export function useElementVisibility(
       isVisible.value = isIntersecting;
     },
     {
-      root: scrollTarget,
       ...observerOptions,
+      root: scrollTarget,
     },
   );
 
