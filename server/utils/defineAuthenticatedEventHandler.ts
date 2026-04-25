@@ -11,7 +11,7 @@ export const defineAuthenticatedEventHandler = <T>(
   handler: (event: AuthenticatedEvent) => T,
 ) => {
   return defineEventHandler(async (event) => {
-    if (!event.context.user) {
+    if (!event.context?.user) {
       throw createError({
         statusCode: 401,
         statusMessage: "Unauthorized",

@@ -35,6 +35,9 @@ export default defineNuxtConfig({
       include: ["@vue/devtools-core", "@vue/devtools-kit", "zod"],
     },
   },
+  nitro: {
+    preset: "netlify",
+  },
   css: ["~/assets/app.css"],
   modules: ["@nuxt/ui", "@nuxtjs/supabase", "@nuxt/icon"],
   supabase: {

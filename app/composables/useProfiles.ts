@@ -26,7 +26,6 @@ export async function updateProfile(
   await $fetch(`/api/profiles/${id}`, {
     method: "put",
     body: patch,
-    headers: useRequestHeaders(["cookie"]),
   });
   refreshNuxtData("profiles");
 }

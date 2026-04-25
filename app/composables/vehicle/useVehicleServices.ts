@@ -152,8 +152,6 @@ export async function deleteVehicleService(
     `/api/vehicles/${unref(vehicleId)}/services/${unref(id)}`,
     {
       method: "delete",
-      credentials: "include",
-      headers: useRequestHeaders(["cookie"]),
     },
   );
 
