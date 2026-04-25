@@ -1,49 +1,31 @@
 <script setup lang="ts">
-import type { MenuItem, MenuProps } from "./menu/Menu.vue";
+import type { DropdownMenuProps } from "@nuxt/ui";
 
 const { isMobile } = useBreakpoints();
 
-export interface ResponsiveMenuProps extends Pick<MenuProps, "alignMenu"> {
-  items?: Omit<MenuItem, "children" | "type" | "color">[];
+export interface ResponsiveMenuProps extends DropdownMenuProps {
+  items?: DropdownMenuProps["items"];
 }
 
 withDefaults(defineProps<ResponsiveMenuProps>(), {
   items: () => [],
 });
-
-const actionSheetRef = ref<ComponentPublicInstance<{ open: () => void }>>();
-
-const openActionSheet = () => {
-  actionSheetRef.value?.open();
-};
 </script>
 
 <template>
-  <ClientOnly>
-    <template v-if="isMobile">
-      <slot name="default" :toggle="openActionSheet">
-        <button
-          type="button"
-          class="btn btn-outline"
-          @click.stop="openActionSheet()"
-        >
-          <Icon name="mdi:menu" />
-        </button>
+  <template v-if="isMobile">
+    <ActionSheet ref="actionSheetRef" :items="items" v-bind="$attrs">
+      <slot name="default">
+        <UButton icon="mdi:menu" variant="outline" />
       </slot>
+    </ActionSheet>
+  </template>
 
-      <ActionSheet ref="actionSheetRef" :items="items" />
-    </template>
-
-    <template v-else>
-      <Menu :items="items" :alignMenu="alignMenu" v-bind="$attrs">
-        <template #default="{ toggle }">
-          <slot name="default" :toggle="toggle">
-            <button type="button" class="btn btn-outline" @click.stop="toggle">
-              <Icon name="mdi:menu" />
-            </button>
-          </slot>
-        </template>
-      </Menu>
-    </template>
-  </ClientOnly>
+  <template v-else>
+    <UDropdownMenu :items="items" v-bind="$attrs">
+      <slot name="default">
+        <UButton icon="mdi:menu" variant="outline" />
+      </slot>
+    </UDropdownMenu>
+  </template>
 </template>

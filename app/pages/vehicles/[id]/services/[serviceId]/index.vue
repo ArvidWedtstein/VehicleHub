@@ -1,29 +1,17 @@
 <script setup lang="ts">
-import type { MenuItem } from "~/components/menu/Menu.vue";
-import { deleteVehicleDocument } from "~/features/vehicles/documents/useVehicleDocuments";
-import ItemsTable from "~/features/vehicles/services/serviceDialog/components/ItemsTable.vue";
-import {
-  deleteVehicleService,
-  useVehicleService,
-} from "~/features/vehicles/services/useVehicleServices";
-import { useVehicle } from "~/features/vehicles/useVehicles";
+import type { DropdownMenuItem } from "@nuxt/ui";
+import FilePreviewModal from "~/components/file/FilePreviewModal.vue";
+import ServiceDialog from "~/components/vehicle/service/dialog/ServiceDialog.vue";
+import { deleteVehicleDocument } from "~/composables/vehicle/useVehicleDocuments";
 
 useHead({
   title: "Service",
 });
 
 definePageMeta({
-  middleware: "auth",
+  auth: true,
   layout: "vehicle",
 });
-
-const ServiceDialog = defineAsyncComponent(
-  async () =>
-    await import("~/features/vehicles/services/serviceDialog/ServiceDialog.vue"),
-);
-const FilePreviewModal = defineAsyncComponent(
-  async () => await import("~/components/file/FilePreviewModal.vue"),
-);
 
 const vehicleId = useRouteParam("id", "number");
 const serviceId = useRouteParam("serviceId", "number");
@@ -35,10 +23,22 @@ const { data: service, pending: loading } = await useVehicleService(
 
 const { data: vehicle } = useVehicle(vehicleId.value);
 
-const serviceInsights = ref<{
-  previous_date: string | null;
-  previous_mileage: number;
-} | null>(null);
+const toast = useToast();
+const overlay = useOverlay();
+const confirm = useConfirmDialog();
+
+const vehicleServiceDialog = overlay.create(ServiceDialog);
+const filePreviewDialog = overlay.create(FilePreviewModal);
+
+const serviceInsights = ref<
+  | {
+      previous_date: string;
+      previous_mileage: number;
+      avg_interval: number;
+      type: string;
+    }
+  | undefined
+>(undefined);
 
 const getServiceInsights = async () => {
   if (!serviceId.value) return;
@@ -50,39 +50,53 @@ const getServiceInsights = async () => {
   });
 
   if (error) {
-    toast.error("Failed to fetch service insights");
+    toast.add({ title: "Failed to fetch service insights", color: "error" });
     return null;
   }
 
   console.log("Service insights:", data);
+  if (!data || (Array.isArray(data) && data.length === 0)) {
+    return;
+  }
 
-  serviceInsights.value =
-    Array.isArray(data) && data.length > 0 ? data[0] : null;
+  serviceInsights.value = data[0];
 };
-
-const serviceDialogRef = ref<InstanceType<typeof ServiceDialog>>();
-const filePreviewRef = ref<InstanceType<typeof FilePreviewModal>>();
 
 const handleServiceDelete = async () => {
   if (!vehicleId.value) return;
   if (!service.value) return;
 
-  const result = await useConfirm({
+  const result = await confirm({
     title: "Delete Service?",
-    message:
+    description:
       "Are you sure you want to delete this service? This cannot be undone.",
-    confirmLabel: "Delete",
-    severity: "danger",
+    button: {
+      label: "Delete",
+      color: "error",
+    },
   });
 
   if (!result) return;
 
-  const deletePromise = deleteVehicleService(vehicleId.value, service.value.id);
-  toast.promise(deletePromise, {
-    loading: `Deleting Service...`,
-    success: `Successfully deleted Service!`,
-    error: `Failed to delete Service.`,
+  const deleteToast = toast.add({
+    title: `Deleting Service...`,
+    color: "info",
+    duration: 0,
   });
+  try {
+    await deleteVehicleService(vehicleId.value, service.value.id);
+    toast.update(deleteToast.id, {
+      title: `Successfully deleted Service!`,
+      color: "success",
+      duration: 3000,
+    });
+  } catch (error) {
+    toast.update(deleteToast.id, {
+      title: `Failed to delete service`,
+      color: "error",
+      duration: 5000,
+    });
+  }
 
   navigateTo({
     name: "vehicles-id-services",
@@ -96,7 +110,11 @@ const handleFilePreview = async (file: File) => {
   );
   if (!fileToPreview) return;
   if (!fileToPreview.file_path) return;
-  filePreviewRef.value?.open({ path: fileToPreview.file_path });
+
+  filePreviewDialog.open({
+    bucket: "VehicleDocuments",
+    path: fileToPreview.file_path,
+  });
 };
 
 const handleFileDownload = async (file: File) => {
@@ -116,7 +134,7 @@ const handleFileDownload = async (file: File) => {
     downloadBlob(data, file?.name || "file");
   } catch (error) {
     console.error(error);
-    toast.error(`Failed to download file`);
+    toast.add({ title: `Failed to download file`, color: "error" });
   }
 };
 
@@ -133,7 +151,10 @@ const handleFileDelete = async (file: File) => {
     fileToDelete.file_path,
   );
 
-  toast.success(`Successfully deleted file '${file.name}'`);
+  toast.add({
+    title: `Successfully deleted file '${file.name}'`,
+    color: "success",
+  });
 };
 
 const addCalendarEvent = () => {
@@ -151,7 +172,7 @@ const addCalendarEvent = () => {
 };
 
 const generateFileGridActions = (file: File) => {
-  const fileGridActions: MenuItem[] = [
+  const fileGridActions: DropdownMenuItem[] = [
     {
       type: "label",
       label: "Preview",
@@ -168,6 +189,7 @@ const generateFileGridActions = (file: File) => {
       type: "label",
       label: "Delete",
       icon: "mdi:trash",
+      color: "error",
       onClick: () => handleFileDelete(file),
     },
   ];
@@ -177,8 +199,19 @@ const generateFileGridActions = (file: File) => {
 
 const handleEditService = () => {
   if (!vehicleId.value) return;
-  serviceDialogRef.value?.open(vehicleId.value, serviceId.value);
+
+  vehicleServiceDialog.open({
+    vehicleId: vehicleId.value,
+    serviceId: serviceId.value,
+  });
 };
+
+const files = computed(
+  () =>
+    service.value?.files.map(
+      (file) => new File([], file?.name || "", { type: "file" }),
+    ) || [],
+);
 
 onMounted(() => {
   getServiceInsights();
@@ -187,9 +220,6 @@ onMounted(() => {
 
 <template>
   <div>
-    <ServiceDialog ref="serviceDialogRef" />
-    <FilePreviewModal bucket="VehicleDocuments" ref="filePreviewRef" />
-
     <NuxtLink
       :to="{
         name: 'vehicles-id-services',
@@ -203,59 +233,100 @@ onMounted(() => {
 
     <!-- <SkeletonLoader v-if="loading" /> -->
 
-    <div
+    <UPageCard
       v-if="service"
-      :key="service.id"
-      class="card card-border card-sm md:card-side bg-base-100 shadow-xl"
+      variant="soft"
+      :ui="{ header: 'w-full flex justify-between gap-3', body: 'w-full' }"
     >
-      <div class="card-body">
-        <div class="flex justify-between w-full">
-          <h2 class="card-title">{{ service.type }}</h2>
-
-          <div class="flex gap-1">
-            <template v-if="new Date(service.date) > new Date()">
-              <button
-                type="button"
-                class="btn btn-sm btn-outline btn-neutral"
-                @click="addCalendarEvent()"
-              >
-                <Icon name="mdi:calendar" />
-                Add Reminder
-              </button>
-
-              <div class="divider divider-horizontal mx-1"></div>
-            </template>
-
-            <ResponsiveMenu
-              alignMenu="end"
-              :items="[
-                {
-                  label: 'Edit',
-                  icon: 'mdi:pencil',
-                  onClick: handleEditService,
-                },
-                {
-                  label: 'Delete',
-                  icon: 'mdi:trash',
-                  class: 'text-error',
-                  onClick: handleServiceDelete,
-                },
-              ]"
-              #default="{ toggle }"
-            >
-              <button
-                type="button"
-                class="btn btn-sm btn-outline btn-secondary"
-                @click="toggle()"
-              >
-                <Icon name="mdi:dots-vertical" />
-              </button>
-            </ResponsiveMenu>
-          </div>
+      <template #header>
+        <div class="text-base text-pretty font-semibold text-highlighted">
+          {{ service.type }}
         </div>
 
-        <ul class="flex flex-col gap-1 text-sm">
-          <li v-if="serviceInsights" class="inline-flex gap-1 items-center">
+        <div class="flex gap-1">
+          <LazyUButton
+            v-if="new Date(service.date) > new Date()"
+            label="Add Reminder"
+            icon="mdi:calendar"
+            variant="outline"
+            color="neutral"
+            @click="addCalendarEvent()"
+          />
+
+          <ResponsiveMenu
+            :items="[
+              {
+                label: 'Edit',
+                icon: 'mdi:pencil',
+                onClick: handleEditService,
+              },
+              {
+                label: 'Delete',
+                icon: 'mdi:trash',
+                color: 'error',
+                onClick: handleServiceDelete,
+              },
+            ]"
+          >
+            <UButton
+              icon="mdi:dots-vertical"
+              variant="outline"
+              color="secondary"
+            />
+          </ResponsiveMenu>
+        </div>
+      </template>
+      <template #body>
+        <UPageList>
+          <div class="inline-flex gap-1 items-center">
+            <span class="font-semibold">Date:</span>
+            <span>
+              {{
+                formatDate(service.date, {
+                  dateStyle: "long",
+                  timeStyle: "short",
+                })
+              }}
+            </span>
+          </div>
+
+          <div class="inline-flex gap-1 items-center">
+            <span class="font-semibold">Provider:</span>
+            <span>
+              {{ service.provider }}
+            </span>
+          </div>
+
+          <div class="inline-flex gap-1 items-center">
+            <span class="font-semibold">Mileage:</span>
+            <span>
+              {{
+                formatNumber(service.mileage || 0, {
+                  style: "unit",
+                  unit: vehicle?.mileage_unit || "kilometer",
+                  compactDisplay: "short",
+                })
+              }}
+            </span>
+          </div>
+
+          <div class="inline-flex gap-1 items-center">
+            <span class="font-semibold">Cost:</span>
+            <span>
+              {{
+                formatNumber(service.totalCost || 0, {
+                  style: "currency",
+                  currency: service.currency || "EUR",
+                  currencyDisplay: "narrowSymbol",
+                  compactDisplay: "short",
+                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 0,
+                })
+              }}
+            </span>
+          </div>
+
+          <div v-if="serviceInsights" class="inline-flex gap-1 items-center">
             <span class="font-semibold">Last {{ service.type }}:</span>
             <span>
               {{
@@ -282,104 +353,44 @@ onMounted(() => {
               year="2-digit"
               month="2-digit"
             />
-          </li>
-          <li class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Date:</span>
-            <span>
-              {{
-                formatDate(service.date, {
-                  dateStyle: "long",
-                  timeStyle: "short",
-                })
-              }}
-            </span>
-          </li>
-          <li class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Provider:</span>
-            <span>
-              {{ service.provider }}
-            </span>
-          </li>
-          <li class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Mileage:</span>
-            <span>
-              {{
-                formatNumber(service.mileage || 0, {
-                  style: "unit",
-                  unit: vehicle?.mileage_unit || "kilometer",
-                  compactDisplay: "short",
-                })
-              }}
-            </span>
-          </li>
-          <li class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Cost:</span>
-            <span>
-              {{
-                formatNumber(service.totalCost || 0, {
-                  style: "currency",
-                  currency: service.currency || "EUR",
-                  currencyDisplay: "narrowSymbol",
-                  compactDisplay: "short",
-                  maximumFractionDigits: 2,
-                  minimumFractionDigits: 0,
-                })
-              }}
-            </span>
-          </li>
-        </ul>
+          </div>
+        </UPageList>
 
-        <div class="divider my-0"></div>
-
-        <template v-if="service.notes">
-          <p class="text-sm">{{ service.notes }}</p>
-
-          <div class="divider my-0"></div>
-        </template>
-
-        <Suspense>
-          <ItemsTable
+        <UCard class="mt-5">
+          <LazyVehicleServiceDialogComponentsItemsTable
             v-if="serviceId != null && vehicleId != null"
             v-model="service"
             v-model:serviceItems="service.items"
             :allowEdit="false"
           />
-          <template #fallback>
-            <div class="flex justify-center">
-              <span class="loading loading-spinner loading-lg"></span>
-            </div>
-          </template>
-        </Suspense>
+        </UCard>
 
-        <div class="divider my-0"></div>
-
-        <span class="font-semibold text-sm">Attachments:</span>
-
-        <FileGrid
-          :files="
-            service.files.map(({ name, file_size }) => ({
-              name: name || '',
-              size: file_size || 0,
-            }))
-          "
-        >
+        <!-- TODO: find solution -->
+        <!-- <UFileUpload
+          class="mt-5"
+          layout="grid"
+          position="inside"
+          multiple
+          :ui="{
+            base: 'min-h-48',
+          }"
+          :modelValue="files"
+        /> -->
+        <FileGrid :files="files" class="mt-5">
           <template #actions="{ file }">
-            <Menu
+            <UDropdownMenu
               alignMenu="end"
               :items="generateFileGridActions(file as File)"
-              #default="{ toggle }"
             >
-              <button
-                type="button"
-                class="btn btn-sm btn-ghost"
-                @click="toggle()"
-              >
-                <Icon name="mdi:dots-vertical" />
-              </button>
-            </Menu>
+              <UButton
+                icon="mdi:dots-vertical"
+                variant="ghost"
+                color="neutral"
+              />
+            </UDropdownMenu>
           </template>
         </FileGrid>
-      </div>
-    </div>
+      </template>
+    </UPageCard>
   </div>
 </template>

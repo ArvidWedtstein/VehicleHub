@@ -1,23 +1,24 @@
 <script setup lang="ts">
-import type Modal from "../Modal.vue";
-
 type Props = {
   bucket: string;
   alt?: string;
+
+  src?: string;
+  path?: string;
 };
 
-const props = withDefaults(defineProps<Props>(), {
-  alt: "Image preview",
-});
+const { bucket, src, path, alt = "Image Preview" } = defineProps<Props>();
 
-const modalRef = ref<InstanceType<typeof Modal> | null>(null);
+const emit = defineEmits<{
+  close: [boolean];
+}>();
 
 const source = ref("");
 
 const fetchUrl = async (path: string) => {
   const client = useSupabaseClient();
   const { data, error } = await client.storage
-    .from(props.bucket)
+    .from(bucket)
     .createSignedUrl(path, 7200);
 
   if (error) {
@@ -28,17 +29,14 @@ const fetchUrl = async (path: string) => {
   source.value = data.signedUrl || "";
 };
 
-const handleOpen = async ({ src, path }: { src?: string; path?: string }) => {
+const onOpen = async () => {
   if (!path) {
     source.value = src || "";
-    modalRef.value?.modalRef?.showModal();
 
     return;
   }
 
   await fetchUrl(path);
-
-  modalRef.value?.modalRef?.showModal();
 };
 
 const onClose = () => {
@@ -77,93 +75,93 @@ const resetTransformations = () => {
 const imageStyles = computed(() => ({
   transform: `rotate(${rotation.value}deg) scale(${zoom.value})`,
 }));
-
-defineExpose({
-  modalRef,
-  open: handleOpen,
-  close: () => {
-    modalRef.value?.modalRef?.close();
-  },
-});
 </script>
 
 <template>
-  <Modal id="filePreviewModal" ref="modalRef" title="Preview" @close="onClose">
-    <ul class="menu menu-horizontal bg-base-200 rounded-box mb-2">
-      <li>
-        <button
-          type="button"
-          class="btn btn-sm btn-square"
-          @click="rotate('left')"
-        >
-          <Icon name="mdi:rotate-left" />
-        </button>
-      </li>
-      <li>
-        <button
-          type="button"
-          class="btn btn-sm btn-square"
-          @click="rotate('right')"
-        >
-          <Icon name="mdi:rotate-right" />
-        </button>
-      </li>
-      <li>
-        <button type="button" class="btn btn-sm btn-square" @click="zoomIn">
-          <Icon name="mdi:magnify-plus-outline" />
-        </button>
-      </li>
-      <li>
-        <button type="button" class="btn btn-sm btn-square" @click="zoomOut">
-          <Icon name="mdi:magnify-minus-outline" />
-        </button>
-      </li>
-      <li>
-        <button
-          type="button"
-          class="btn btn-sm btn-soft btn-error ms-2"
-          @click="resetTransformations"
-        >
-          Reset
-        </button>
-      </li>
-    </ul>
-
-    <div
-      class="flex justify-center items-center overflow-auto"
-      style="height: 80vh"
-    >
-      <img
-        v-if="source && source.length && !source.includes('pdf')"
-        :src="source"
-        :alt="alt"
-        :key="source"
-        :style="imageStyles"
-        class="object-cover rounded-sm image-full transition-transform duration-300"
-        @error="handleError"
-      />
-
-      <iframe
-        v-else-if="source && source.length && source.includes('pdf')"
-        :src="source"
-        type="application/pdf"
-        class="w-full h-full min-h-96 max-w-full image-full"
-        :frameborder="0"
-        @error="handleError"
-      ></iframe>
-
-      <p v-else>No image to preview</p>
-    </div>
-
+  <UModal
+    title="Preview"
+    :ui="{ footer: 'justify-end' }"
+    fullscreen
+    :close="{ onClick: () => emit('close', false) }"
+    @after:enter="onOpen"
+  >
     <template #actions>
-      <button
-        class="btn btn-outline mt-2"
-        value="cancel"
-        formmethod="dialog"
-        formnovalidate
-      >
-        Close
-      </button>
+      <div class="flex flex-row items-center gap-2">
+        <UFieldGroup>
+          <UTooltip text="Rotate Counter-clockwise">
+            <UButton
+              icon="mdi:rotate-left"
+              variant="subtle"
+              color="neutral"
+              @click="rotate('left')"
+            />
+          </UTooltip>
+
+          <UTooltip text="Rotate Clockwise">
+            <UButton
+              icon="mdi:rotate-right"
+              variant="subtle"
+              color="neutral"
+              @click="rotate('right')"
+            />
+          </UTooltip>
+        </UFieldGroup>
+
+        <UFieldGroup>
+          <UTooltip text="Zoom In">
+            <UButton
+              icon="mdi:magnify-plus-outline"
+              variant="subtle"
+              color="neutral"
+              @click="zoomIn"
+            />
+          </UTooltip>
+
+          <UTooltip text="Zoom Out">
+            <UButton
+              icon="mdi:magnify-minus-outline"
+              variant="subtle"
+              color="neutral"
+              @click="zoomOut"
+            />
+          </UTooltip>
+        </UFieldGroup>
+
+        <UButton
+          label="Reset"
+          variant="subtle"
+          color="error"
+          @click="resetTransformations"
+        />
+      </div>
     </template>
-  </Modal>
+    <template #body>
+      <div class="flex justify-center items-center overflow-auto h-auto">
+        <img
+          v-if="source && source.length && !source.includes('pdf')"
+          :src="source"
+          :alt="alt"
+          :key="source"
+          :style="imageStyles"
+          class="object-cover rounded w-full h-full transition-transform duration-300"
+          @error="handleError"
+        />
+
+        <iframe
+          v-else-if="source && source.length && source.includes('pdf')"
+          :src="source"
+          type="application/pdf"
+          class="w-full h-full min-h-96 max-w-full"
+          :frameborder="0"
+          @error="handleError"
+        ></iframe>
+
+        <UEmpty
+          v-else
+          title="No Image to preview"
+          icon="mdi:file-image-remove-outline"
+        />
+      </div>
+    </template>
+  </UModal>
 </template>

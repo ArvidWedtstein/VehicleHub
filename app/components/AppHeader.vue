@@ -1,117 +1,96 @@
 <script setup lang="ts">
-const LoginModal = defineAsyncComponent(
-  async () => await import("~/features/auth/LoginModal.vue"),
-);
+import type { DropdownMenuItem, NavigationMenuItem } from "@nuxt/ui";
 
 const user = useSupabaseUser();
 const client = useSupabaseClient();
 const router = useRouter();
 
-const loginModalRef = ref<InstanceType<typeof LoginModal>>();
+const links: NavigationMenuItem[] = [
+  {
+    label: "Home",
+    icon: "mdi:home",
+    to: "/",
+  },
+  {
+    label: "Vehicles",
+    icon: "mdi:car",
+    to: "/vehicles",
+  },
+];
 
-const handleSignIn = () => {
-  loginModalRef.value?.open();
-};
+const toast = useToast();
+
 const handleSignOut = async () => {
   const { error } = await client.auth.signOut({
     scope: "global",
   });
   if (error) {
     console.error("Error signing out:", error);
-    toast.error(`Error signing out: ${error}`);
-
+    toast.add({
+      title: "Error",
+      description: `Error signing out: ${error.message}`,
+      color: "error",
+    });
     return;
   }
 
-  toast.success("Signed out successfully");
+  toast.add({
+    title: "Signed out successfully",
+    color: "success",
+  });
   router.push("/");
 };
+
+const menuItems = computed<DropdownMenuItem[]>(() => {
+  if (user.value) {
+    return [
+      {
+        label: "Profile",
+        icon: "mdi:account",
+        to: `/profiles/${user.value.id}`,
+      },
+      {
+        label: "Logout",
+        icon: "mdi:logout",
+        onSelect: handleSignOut,
+      },
+    ];
+  } else {
+    return [
+      {
+        label: "Login",
+        to: "/login",
+      },
+    ];
+  }
+});
 </script>
 
 <template>
-  <LoginModal ref="loginModalRef" />
-
-  <header class="navbar sticky top-0 bg-base-300 z-40 h-(--header-height)">
-    <div class="navbar-start">
+  <UHeader>
+    <template #title>
       <div class="inline-flex items-center text-xl space-x-0 gap-1">
         Vehicle
-        <div class="badge badge-outline badge-warning">Hub</div>
+        <UBadge color="warning" label="Hub" variant="outline" />
       </div>
-    </div>
+    </template>
 
-    <div class="navbar-center hidden md:flex">
-      <ul class="menu menu-horizontal px-1 gap-2">
-        <li>
-          <NuxtLink
-            :to="{ name: 'index' }"
-            class="btn btn-sm capitalize"
-            activeClass="btn-primary"
-          >
-            <Icon name="mdi:home" class="sm:block hidden" />
-            Home
-          </NuxtLink>
-        </li>
-        <li>
-          <NuxtLink
-            :to="{ name: 'vehicles' }"
-            class="btn btn-sm capitalize"
-            activeClass="btn-primary"
-          >
-            Vehicles
-          </NuxtLink>
-        </li>
-      </ul>
-    </div>
-    <div class="navbar-end">
-      <label class="swap swap-rotate mr-2">
-        <input type="checkbox" class="theme-controller" value="light" />
+    <UNavigationMenu :items="links" />
 
-        <Icon
-          name="mdi:weather-sunny"
-          class="swap-off fill-current"
-          size="1.2em"
+    <template #right>
+      <UColorModeButton />
+
+      <UDropdownMenu :items="menuItems">
+        <UButton
+          color="neutral"
+          variant="ghost"
+          :avatar="{
+            src: user?.user_metadata.avatar_url,
+            alt: user?.user_metadata.name || 'User Avatar',
+            size: 'lg',
+          }"
         />
-        <Icon
-          name="mdi:weather-night"
-          class="swap-on fill-current"
-          size="1.2em"
-        />
-      </label>
-
-      <Menu alignMenu="end" menuSize="sm">
-        <template #default="{ toggle }">
-          <button
-            type="button"
-            class="btn btn-ghost btn-circle"
-            @click.stop="toggle()"
-          >
-            <AvatarImage
-              :src="user?.user_metadata.avatar_url"
-              alt="My Profile Image"
-              :fallbackSrc="`https://ui-avatars.com/api/?name=${
-                user?.user_metadata?.name || 'Unknown User'
-              }`"
-              size="sm"
-            />
-          </button>
-        </template>
-
-        <template #items>
-          <template v-if="user?.id">
-            <MenuItem v-if="user?.id">
-              <!-- :to="{ name: 'profile', params: { id: user.id } }" -->
-              <Icon name="mdi:account" size="1.2em" />
-              Profile
-            </MenuItem>
-            <MenuItem @click="handleSignOut">
-              <Icon name="mdi:logout" size="1.2em" />
-              Logout
-            </MenuItem>
-          </template>
-
-          <MenuItem v-else @click="handleSignIn">Login</MenuItem>
-        </template>
-      </Menu>
-    </div>
-  </header>
+      </UDropdownMenu>
+    </template>
+  </UHeader>
 </template>

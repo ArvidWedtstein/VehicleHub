@@ -1,10 +1,9 @@
 <script setup lang="ts">
 definePageMeta({
-  middleware: "auth",
   layout: "vehicle",
-  redirect: "/vehicles/:id/expenses",
+  redirect: (route) => `/vehicles/${route.params.id}/expenses`,
 });
 </script>
 <template>
-  <div></div>
+  <NuxtPage />
 </template>

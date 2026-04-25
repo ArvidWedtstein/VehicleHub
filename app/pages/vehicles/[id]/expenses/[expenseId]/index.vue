@@ -1,27 +1,18 @@
 <script setup lang="ts">
-import { useProfiles } from "~/features/profiles/useProfiles";
-import {
-  deleteVehicleExpense,
-  useVehicleExpense,
-} from "~/features/vehicles/expenses/useVehicleExpenses";
+import ExpenseDialog from "~/components/vehicle/expense/dialog/ExpenseDialog.vue";
 
 useHead({
   title: "Expense",
 });
 
 definePageMeta({
-  middleware: "auth",
+  auth: true,
 
   validate: async (route) => {
     return typeof route.params.id === "string" && /^\d+$/.test(route.params.id);
   },
   layout: "vehicle",
 });
-
-const ExpenseDialog = defineAsyncComponent(
-  async () =>
-    await import("~/features/vehicles/expenses/expenseDialog/ExpenseDialog.vue"),
-);
 
 const vehicleId = useRouteParam("id", "number");
 const expenseId = useRouteParam("expenseId", "number");
@@ -30,11 +21,15 @@ const {
   data: expense,
   pending: loading,
   error,
-} = await useVehicleExpense(vehicleId, expenseId);
+} = useVehicleExpense(vehicleId, expenseId);
 
-const { data: profiles } = await useProfiles();
+const { data: profiles } = useProfiles();
 
-const expenseDialog = ref<InstanceType<typeof ExpenseDialog>>();
+const overlay = useOverlay();
+const toast = useToast();
+const confirm = useConfirmDialog();
+
+const vehicleExpenseDialog = overlay.create(ExpenseDialog);
 
 /** TODO: remove & move to fetching of expense instead */
 const createdBy = computed(() => {
@@ -46,31 +41,33 @@ const createdBy = computed(() => {
 const handleEditExpense = () => {
   if (!vehicleId.value) return;
 
-  console.log(
-    "Opening expense dialog for expense",
-    expense.value,
-    expenseDialog.value,
-  );
-  expenseDialog.value?.open(vehicleId.value, expense.value?.id);
+  console.log("Opening expense dialog for expense", expense.value);
+
+  vehicleExpenseDialog.open({
+    vehicleId: vehicleId.value,
+    expenseId: expenseId.value,
+  });
 };
 
-const handleExpenseDelete = async () => {
+const handleDeleteExpense = async () => {
   if (!vehicleId.value) return;
   if (!expense.value) return;
 
-  const res = await useConfirm({
+  const res = await confirm({
     title: "Delete Expense?",
-    message:
+    description:
       "Are you sure you want to delete this expense? This cannot be undone.",
-    confirmLabel: "Delete",
-    severity: "danger",
+    button: {
+      label: "Delete",
+      color: "error",
+    },
   });
 
   if (!res) return;
 
   await deleteVehicleExpense(vehicleId.value, expense.value.id);
 
-  toast.success("Successfully deleted expense");
+  toast.add({ title: "Successfully deleted expense", color: "success" });
 
   navigateTo({
     name: "vehicles-id-expenses",
@@ -81,63 +78,56 @@ const handleExpenseDelete = async () => {
 
 <template>
   <div>
-    <ExpenseDialog ref="expenseDialog" />
-
-    <NuxtLink
+    <ULink
       :to="{
         name: 'vehicles-id-expenses',
         params: { id: vehicleId },
       }"
-      class="link link-hover flex items-center gap-2 mb-2"
-    >
-      <Icon name="mdi:chevron-left" />
-      Back to Expenses
-    </NuxtLink>
+      icon="mdi:chevron-left"
+      label="Back to Expenses"
+    />
 
     <span v-if="error">{{ error }}</span>
     <span v-else-if="loading">loading</span>
 
     <!-- <SkeletonLoader v-if="loading" /> -->
 
-    <div
+    <UPageCard
       v-else-if="expense"
-      :key="expense?.id"
-      class="card card-sm md:card-normal bg-base-100 md:w-96 shadow-xl"
+      :title="expense.type || ''"
+      variant="soft"
+      :ui="{ footer: 'flex gap-3' }"
     >
-      <div class="card-body">
-        <h2 class="card-title">{{ expense.type }}</h2>
+      <template #description>
+        <UPageList>
+          <UUser
+            v-if="createdBy"
+            :avatar="{
+              src: createdBy.profile_image_url || '',
+              alt: createdBy.name || '',
+              loading: 'lazy',
+            }"
+            :name="createdBy.name || ''"
+            :to="{
+              name: 'profiles-profileId',
+              params: { profileId: createdBy.id },
+            }"
+            size="sm"
+          />
 
-        <ul class="flex flex-col gap-1 text-sm">
-          <li class="inline-flex gap-2 items-center">
-            <AvatarImage
-              :src="createdBy?.profile_image_url"
-              :alt="createdBy?.name"
-              :fallbackSrc="`https://ui-avatars.com/api/?name=${
-                createdBy?.name || 'Unknown User'
-              }`"
-              size="xxs"
-            />
-
-            <NuxtLink
-              v-if="createdBy?.id"
-              :to="{
-                name: 'profiles-profileId',
-                params: { profileId: createdBy?.id },
-              }"
-              class="link link-hover"
-            >
-              {{ createdBy?.name }}
-            </NuxtLink>
-          </li>
-          <li class="inline-flex gap-2 items-center">
+          <div class="inline-flex gap-1 items-center">
             <span class="font-semibold">Date:</span>
-            <NuxtTime
-              :datetime="expense.date"
-              dateStyle="medium"
-              timeStyle="short"
-            />
-          </li>
-          <li class="inline-flex gap-2 items-center">
+            <span>
+              {{
+                formatDate(expense.date, {
+                  dateStyle: "long",
+                  timeStyle: "short",
+                })
+              }}
+            </span>
+          </div>
+
+          <div class="inline-flex gap-1 items-center">
             <span class="font-semibold">Mileage:</span>
             <span>
               {{
@@ -149,8 +139,8 @@ const handleExpenseDelete = async () => {
                 })
               }}
             </span>
-          </li>
-          <li class="inline-flex gap-2 items-center">
+          </div>
+          <div class="inline-flex gap-1 items-center">
             <span class="font-semibold">Amount:</span>
             <span>
               {{
@@ -162,8 +152,8 @@ const handleExpenseDelete = async () => {
                 })
               }}
             </span>
-          </li>
-          <li class="inline-flex gap-2 items-center">
+          </div>
+          <div class="inline-flex gap-1 items-center">
             <span class="font-semibold">Cost:</span>
             <span>
               {{
@@ -176,12 +166,11 @@ const handleExpenseDelete = async () => {
                 })
               }}
             </span>
-          </li>
-          <li class="inline-flex gap-2 items-center">
-            <span class="font-semibold">
-              Price per
-              {{ expense.unit || "liter" }}:
-            </span>
+          </div>
+          <div class="inline-flex gap-1 items-center">
+            <span class="font-semibold"
+              >Price per {{ expense.unit || "litre" }}:</span
+            >
             <span>
               {{
                 formatNumber(expense.price_per_unit || 0, {
@@ -192,29 +181,25 @@ const handleExpenseDelete = async () => {
                 })
               }}
             </span>
-          </li>
-        </ul>
-
-        <div class="divider my-0 font-semibold text-sm">Notes:</div>
-
-        <p class="capitalize text-sm mb-2">{{ expense.notes }}</p>
-
-        <div class="card-actions justify-between">
-          <button type="button" class="btn btn-sm" @click="handleEditExpense">
-            <Icon name="mdi:pencil" />
-            Edit
-          </button>
-
-          <button
-            type="button"
-            class="btn btn-sm btn-outline btn-error"
-            @click="handleExpenseDelete"
-          >
-            <Icon name="mdi:trash" />
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
+          </div>
+        </UPageList>
+      </template>
+      <template #footer>
+        <UButton
+          label="Edit"
+          icon="mdi:pencil"
+          variant="subtle"
+          color="neutral"
+          @click="handleEditExpense"
+        />
+        <UButton
+          label="Delete"
+          icon="mdi:trash"
+          variant="subtle"
+          color="error"
+          @click="handleDeleteExpense"
+        />
+      </template>
+    </UPageCard>
   </div>
 </template>

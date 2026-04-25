@@ -11,7 +11,13 @@ export default defineAuthenticatedEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "Body required" });
   }
 
-  type Table = keyof Database["public"]["Tables"];
+  type Table = keyof Pick<
+    Database["public"]["Tables"],
+    | "VehicleDocuments"
+    | "VehicleExpenses"
+    | "VehicleServiceLogs"
+    | "VehicleShares"
+  >;
 
   const table = body.table as Table | undefined;
   const columns = body.columns as keyof Tables<Table>;
@@ -42,7 +48,7 @@ export default defineAuthenticatedEventHandler(async (event) => {
   const { data, error } = await client
     .from(table)
     .select(columns)
-    .eq("vehicleId", vehicleId);
+    .eq("vehicle_id", parseInt(vehicleId));
 
   if (error)
     throw createError({ statusCode: 500, statusMessage: error.message });

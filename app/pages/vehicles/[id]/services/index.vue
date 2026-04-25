@@ -1,20 +1,12 @@
 <script setup lang="ts">
-import ExportButton from "~/features/vehicles/ExportButton.vue";
-import ServicesFilterDrawer from "~/features/vehicles/services/ServicesFilterDrawer.vue";
-import ServicesListItem from "~/features/vehicles/services/ServicesListItem.vue";
-import { useVehicleServices } from "~/features/vehicles/services/useVehicleServices";
+import ServiceDialog from "~/components/vehicle/service/dialog/ServiceDialog.vue";
 import type { Tables } from "~/types/supabase";
-
-const ServiceDialog = defineAsyncComponent(
-  async () =>
-    await import("~/features/vehicles/services/serviceDialog/ServiceDialog.vue"),
-);
 
 useHead({
   title: "Services",
 });
 definePageMeta({
-  middleware: "auth",
+  auth: true,
   layout: "vehicle",
 });
 
@@ -25,10 +17,15 @@ const filters = ref<FilterOption<Tables<"VehicleServiceLogs">>[]>([]);
 const {
   data: services,
   refresh,
+  loadMore,
   pending: loading,
-} = useVehicleServices(vehicleId, filters);
+  status,
+  offset,
+  hasMore,
+} = useVehicleServices(vehicleId, filters, 10);
 
-const serviceDialogRef = ref<InstanceType<typeof ServiceDialog>>();
+const overlay = useOverlay();
+const vehicleServiceDialog = overlay.create(ServiceDialog);
 
 const handleServicesExport = (type: string) => {
   const columnsToExport: Array<keyof Tables<"VehicleServiceLogs">> = [
@@ -94,6 +91,25 @@ const groupedServices = computed(() => {
 
   return grouped;
 });
+const groupedServices2 = computed(() => {
+  const filtered = services.value || [];
+
+  const sorted = dynamicSort(filtered, sortControl.key, sortControl.direction);
+
+  const enriched = sorted.map((service) => ({
+    ...service,
+    monthYear: formatDate(
+      service.date || "",
+      sortControl.key === "date"
+        ? { year: "numeric", month: "long" }
+        : { year: "numeric" },
+    ),
+  }));
+
+  const grouped = Object.values(groupBy(enriched, "monthYear"));
+
+  return grouped;
+});
 
 const setSortKey = (key: keyof Tables<"VehicleServiceLogs">) => {
   sortControl.key = key;
@@ -102,7 +118,7 @@ const setSortKey = (key: keyof Tables<"VehicleServiceLogs">) => {
 const handleCreateService = async () => {
   if (!vehicleId.value) return;
 
-  serviceDialogRef.value?.open(vehicleId.value);
+  vehicleServiceDialog.open({ vehicleId: vehicleId.value });
 };
 
 const handleFilterApply = async (
@@ -111,76 +127,108 @@ const handleFilterApply = async (
   filters.value = buildFilters.value;
   refresh();
 };
+
+const scrollArea = useTemplateRef("scrollArea");
+
+onMounted(() => {
+  useInfiniteScroll(
+    scrollArea.value?.$el,
+    () => {
+      if (!hasMore.value) return;
+      loadMore();
+      console.log("Load more", offset.value);
+    },
+    {
+      direction: "bottom",
+      distance: 200,
+      canLoadMore: () => {
+        return status.value !== "pending" && !loading.value && hasMore.value;
+      },
+    },
+  );
+});
 </script>
 
 <template>
   <div>
-    <ServiceDialog ref="serviceDialogRef" />
-
     <div class="flex justify-between mb-3">
-      <button
-        type="button"
-        class="btn btn-primary w-auto"
-        @click="handleCreateService"
-      >
-        <Icon name="mdi:plus" />
-        Add
-      </button>
+      <UButton icon="mdi:plus" label="Add" @click="handleCreateService" />
 
       <div class="flex items-center gap-2">
-        <div class="join">
-          <ServicesFilterDrawer @applyFilters="handleFilterApply" />
+        <VehicleServiceFilterDrawer @applyFilters="handleFilterApply" />
 
-          <ResponsiveMenu
-            :items="
-              sortControl.options.map((p) => ({
-                label: p.label || p.value,
-                value: p.value,
-                active: sortControl.key === p.value,
-                onClick: () => setSortKey(p.value),
-              }))
-            "
+        <ResponsiveMenu
+          :items="
+            sortControl.options.map((p) => ({
+              label: p.label || p.value,
+              value: p.value,
+              active: sortControl.key === p.value,
+              onClick: () => setSortKey(p.value),
+            }))
+          "
+        >
+          <UButton
+            label="Sort"
+            icon="mdi:sort"
+            variant="outline"
+            color="secondary"
           >
-            <template #default="{ toggle }">
-              <button
-                type="button"
-                class="btn btn-outline join-item"
-                @click="toggle()"
-              >
-                <Icon name="mdi:sort" />
-                <span class="sm:block hidden">Sorted on:</span>
-                <span class="badge badge-neutral">
-                  {{
-                    sortControl.options.find((o) => o.value === sortControl.key)
-                      ?.label
-                  }}
-                </span>
-              </button>
+            <template #trailing>
+              <UBadge
+                :label="
+                  sortControl.options.find((o) => o.value === sortControl.key)
+                    ?.label
+                "
+                color="neutral"
+                variant="soft"
+                size="sm"
+              />
             </template>
-          </ResponsiveMenu>
-        </div>
+          </UButton>
+        </ResponsiveMenu>
 
         <ExportButton @export="handleServicesExport" />
       </div>
     </div>
 
-    <ListGroup class="flex-1 overflow-hidden mb-16" ignoreListClass>
-      <template v-if="loading">
-        loading
-        <!-- <ServiceListItemSkeleton v-for="idx in 10" :key="`skeleton-${idx}`" /> -->
-      </template>
+    {{ services.length }}
 
-      <ListSubGroup
-        v-for="(services, month) in groupedServices"
-        :key="month"
-        :title="month.toString()"
-      >
-        <ServicesListItem
-          v-for="(service, index) in services"
-          :key="index"
-          :service="service"
-        />
-      </ListSubGroup>
-    </ListGroup>
+    <UScrollArea
+      ref="scrollArea"
+      class="w-full h-100"
+      :items="groupedServices2"
+      v-slot="{ item: services, index }"
+    >
+      <USeparator
+        :label="services[0]?.monthYear || ''"
+        orientation="horizontal"
+        :key="index"
+        size="lg"
+      />
+      <UPageList>
+        <UPageCard
+          v-for="(item, idx) in services"
+          :key="idx"
+          variant="ghost"
+          :title="item.type || ''"
+          href="/"
+        >
+          <template #body>
+            <UUser
+              :avatar="{
+                icon: item.type === 'Fuel' ? 'mdi:gas-station' : 'mdi:cash',
+              }"
+              :name="item.type || 'Unknown Expense'"
+              :description="
+                formatDate(item.date || '', {
+                  dateStyle: 'medium',
+                })
+              "
+              size="xl"
+            />
+          </template>
+        </UPageCard>
+      </UPageList>
+    </UScrollArea>
   </div>
 </template>

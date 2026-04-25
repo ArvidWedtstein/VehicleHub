@@ -1,75 +1,68 @@
 <script setup lang="ts">
+import type { NavigationMenuItem } from "@nuxt/ui";
+
 const vehicleId = useRouteParam("id", "number");
+
+const { isMobile } = useBreakpoints();
+
+const links = computed<NavigationMenuItem[]>(() =>
+  vehicleId.value
+    ? [
+        {
+          label: "Expenses",
+          icon: "mdi:gas-station",
+          to: {
+            name: "vehicles-id-expenses",
+            params: { id: vehicleId.value },
+          },
+        },
+        {
+          label: "Services",
+          icon: "mdi:wrench",
+          to: {
+            name: "vehicles-id-services",
+            params: { id: vehicleId.value },
+          },
+        },
+        {
+          label: "Files",
+          icon: "mdi:folder",
+          to: {
+            name: "vehicles-id-files",
+            params: { id: vehicleId.value },
+          },
+        },
+      ]
+    : [
+        {
+          label: "Vehicles",
+          icon: "mdi:car",
+          to: {
+            name: "vehicles",
+          },
+        },
+      ],
+);
 </script>
 <template>
-  <div class="dock dock-md flex md:hidden bg-base-300 z-10">
-    <template v-if="vehicleId">
-      <NuxtLink
-        :to="{
-          name: 'vehicles-id-expenses',
-        }"
-        activeClass="dock-active text-primary"
-      >
-        <Icon name="mdi:gas-station" size="1.2em" />
-        <span class="dock-label">Expenses</span>
-      </NuxtLink>
-
-      <NuxtLink
-        :to="{
-          name: 'vehicles-id-services',
-        }"
-        activeClass="dock-active text-primary"
-      >
-        <Icon name="mdi:wrench" size="1.2em" />
-        <span class="dock-label">Services</span>
-      </NuxtLink>
-
-      <NuxtLink
-        :to="{
-          name: 'vehicles-id-files',
-        }"
-        activeClass="dock-active text-primary"
-      >
-        <Icon name="mdi:folder" size="1.2em" />
-        <span class="dock-label">Files</span>
-      </NuxtLink>
-    </template>
-
-    <template v-else>
-      <NuxtLink
-        :to="{
-          name: 'vehicles',
-        }"
-        activeClass="dock-active"
-      >
-        <Icon name="mdi:car" size="1.2em" />
-        <span class="dock-label">Vehicles</span>
-      </NuxtLink>
-    </template>
-    <!-- <RouterLink
-      v-for="route in navbarRoutes"
-      :key="route.name"
-      :to="route.path"
-      class="capitalize"
-      :class="{
-        'text-base-content': router.currentRoute.value.name !== route.name,
+  <LazyUFooter
+    v-if="isMobile"
+    :ui="{
+      left: 'hidden',
+      center: 'lg:grow',
+      right: 'hidden',
+    }"
+  >
+    <LazyUNavigationMenu
+      class="w-full"
+      :ui="{
+        root: 'justify-around border-t border-default py-2 w-full',
+        item: 'py-0',
+        link: 'flex-col gap-1 px-3',
+        linkLeadingIcon: 'size-5',
+        linkLabel: 'text-sm font-normal',
       }"
-      activeClass="text-primary dock-active"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 512 512"
-        v-if="route.meta.iconPath"
-        class="size-[1.2em] fill-current"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          :d="route.meta.iconPath.toString() || ''"
-        />
-      </svg>
-      <span class="btm-nav-label">{{ route.name }}</span>
-    </RouterLink> -->
-  </div>
+      :items="links"
+    />
+  </LazyUFooter>
 </template>

@@ -384,7 +384,7 @@ export type Database = {
           mileage: number | null
           notes: string | null
           provider: string | null
-          type: string | null
+          type: string
           vehicle_id: number
         }
         Insert: {
@@ -397,7 +397,7 @@ export type Database = {
           mileage?: number | null
           notes?: string | null
           provider?: string | null
-          type?: string | null
+          type: string
           vehicle_id: number
         }
         Update: {
@@ -410,7 +410,7 @@ export type Database = {
           mileage?: number | null
           notes?: string | null
           provider?: string | null
-          type?: string | null
+          type?: string
           vehicle_id?: number
         }
         Relationships: [
@@ -574,6 +574,23 @@ export type Database = {
           unit: string
         }[]
       }
+      get_service_insights:
+        | {
+            Args: { service_log_id: number }
+            Returns: {
+              previous_date: string
+              previous_mileage: number
+            }[]
+          }
+        | {
+            Args: { service_log_id: number; vehicle_id: number }
+            Returns: {
+              avg_interval: number
+              previous_date: string
+              previous_mileage: number
+              type: string
+            }[]
+          }
       jwt_custom_claims:
         | { Args: never; Returns: Json }
         | { Args: { event: Json }; Returns: Json }

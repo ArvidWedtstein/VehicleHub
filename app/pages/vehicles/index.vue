@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import VehiclesList from "~/features/vehicles/VehiclesList.vue";
-
 useHead({
   titleTemplate: "%s | Vehicle Hub",
+});
+
+definePageMeta({
+  auth: false,
 });
 
 useSeoMeta({
@@ -11,11 +13,6 @@ useSeoMeta({
   description: "List of vehicles owned or shared with you.",
   ogDescription: "List of vehicles owned or shared with you.",
   ogImage: "/img/StartImg.jpg",
-});
-
-definePageMeta({
-  middleware: "auth",
-  layout: "default",
 });
 </script>
 
@@ -33,7 +30,7 @@ definePageMeta({
         </p>
       </div>
 
-      <VehiclesList />
+      <VehicleList />
     </div>
   </div>
 </template>

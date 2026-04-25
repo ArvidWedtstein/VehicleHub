@@ -1,12 +1,20 @@
 <script setup lang="ts">
-import { useVehicle } from "~/features/vehicles/useVehicles";
-import VehicleCard from "~/features/vehicles/VehicleCard.vue";
+import type { TabsItem } from "@nuxt/ui";
 
 const router = useRouter();
+const route = useRoute();
 
-const { data: vehicle } = await useVehicle(useRouteParam("id", "number").value);
+const vehicleId = useRouteParam("id", "number");
 
-const tabs = [
+const { setLastVehicle } = useLastVehicle();
+
+watchEffect(() => {
+  if (vehicleId.value) {
+    setLastVehicle(vehicleId.value);
+  }
+});
+
+const tabs: TabsItem[] = [
   {
     label: "Expenses",
     value: "vehicles-id-expenses",
@@ -31,21 +39,12 @@ const tabs = [
 
 const activeTab = computed({
   get() {
-    const currentRoute = router.currentRoute.value;
-
-    const currentTab = tabs.find(({ value }) =>
-      currentRoute.matched.some(({ name }) =>
-        name?.toString().startsWith(value),
-      ),
-    );
-
-    const tab = currentTab?.value || tabs[0]?.value;
-
-    return tab;
+    return (route.name as string) || "vehicles-id-expenses";
   },
   set(tab) {
-    navigateTo({
-      name: tab,
+    router.push({
+      name: tab.toString(),
+      params: { id: vehicleId.value },
     });
   },
 });
@@ -55,34 +54,32 @@ onMounted(() => {
 
   const matchedTab = currentRoute.name
     ?.toString()
-    .startsWith(activeTab.value || "");
+    .startsWith(activeTab.value?.toString() || "");
 
   if (!matchedTab) {
     navigateTo({
-      name: activeTab.value,
+      name: activeTab.value?.toString() || "",
     });
   }
 });
 </script>
 
 <template>
-  <NuxtLoadingIndicator />
   <NuxtRouteAnnouncer />
   <NuxtAnnouncer />
-  <NuxtLayout name="default">
-    <div>
-      <div class="relative flex flex-col gap-3 flex-1 w-full p-4">
-        <VehicleCard v-if="vehicle" :vehicle="vehicle" />
 
-        <Tabs
-          class="hidden md:flex"
-          v-model="activeTab"
-          variant="boxed"
-          :items="tabs"
-          :content="false"
-        ></Tabs>
-        <slot />
-      </div>
+  <div>
+    <div class="relative flex flex-col gap-3 flex-1 w-full p-4">
+      <VehicleCard />
+
+      <UTabs
+        v-model="activeTab"
+        :items="tabs"
+        :content="false"
+        :unmountOnHide="false"
+      />
+
+      <slot />
     </div>
-  </NuxtLayout>
+  </div>
 </template>

@@ -1,78 +1,70 @@
 <script setup lang="ts">
-import type {
-  RouteLocationAsPathGeneric,
-  RouteLocationAsRelativeGeneric,
-} from "vue-router";
-import type { AvatarProps } from "./AvatarImage.vue";
-import type Drawer from "./Drawer.vue";
+import type { DropdownMenuItem, DropdownMenuProps } from "@nuxt/ui";
 
-type ActionSheetItem = {
-  label?: string;
-
-  active?: boolean;
-  disabled?: boolean;
-
-  href?: string;
-  to?: string | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric;
-
-  avatar?: AvatarProps;
-
-  onClick?: () => void;
-
-  [key: string]: any;
-};
-
+type ActionSheetItem = Omit<
+  DropdownMenuItem,
+  "children" | "type" | "color" | "block" | "size" | "variant"
+>;
 type Props = {
-  items?: Array<ActionSheetItem>;
-};
-
-type Emits = {
-  select: [item: ActionSheetItem];
+  items?: ActionSheetItem[] | ActionSheetItem[][];
 };
 
 withDefaults(defineProps<Props>(), {
   items: () => [],
 });
 
-const emit = defineEmits<Emits>();
-
-const drawerRef = ref<InstanceType<typeof Drawer>>();
-
-const onSelect = (item: ActionSheetItem) => {
-  item?.onClick?.();
-
-  emit("select", item);
-};
+const open = ref(false);
 
 defineExpose({
   open: () => {
-    drawerRef.value?.open();
+    open.value = true;
   },
   close: () => {
-    drawerRef.value?.close();
+    open.value = false;
   },
-  drawerRef,
 });
 </script>
 <template>
-  <Drawer ref="drawerRef" direction="bottom" inset>
-    <template #content>
-      <ListGroup size="md" divider class="my-3">
-        <ListGroupItem
-          v-for="(item, idx) in items"
-          :key="idx"
-          :title="item.label"
-          size="lg"
-          @click="onSelect(item)"
-        />
-      </ListGroup>
+  <UDrawer v-model:open="open" direction="bottom" inset>
+    <slot></slot>
+    <template #body>
+      <UPageList divide class="gap-1">
+        <template v-for="(item, idx) in items" :key="idx">
+          <UFieldGroup v-if="Array.isArray(item)" orientation="vertical">
+            <UButton
+              v-for="(subItem, subIdx) in item"
+              :key="subIdx"
+              v-bind="subItem"
+              variant="soft"
+              color="neutral"
+              block
+              size="xl"
+              :disabled="subItem.disabled"
+            />
+          </UFieldGroup>
 
-      <button
-        class="btn btn-lg btn-soft btn-error w-full"
-        @click="drawerRef?.close()"
-      >
-        Cancel
-      </button>
+          <UButton
+            v-else
+            v-bind="item"
+            variant="soft"
+            color="neutral"
+            block
+            size="xl"
+            :disabled="item.disabled"
+          />
+        </template>
+      </UPageList>
     </template>
-  </Drawer>
+
+    <template #footer>
+      <UButton
+        label="Cancel"
+        variant="soft"
+        color="error"
+        block
+        size="lg"
+        @click="open = false"
+      />
+    </template>
+  </UDrawer>
 </template>

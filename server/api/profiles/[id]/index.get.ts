@@ -11,18 +11,15 @@ export default defineEventHandler(async (event) => {
       statusMessage: "No profile id provided",
     });
 
-  if (!Number.isInteger(parseInt(id))) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Profile ID should be an integer",
-    });
+  const query = client.from("Profiles").select("*");
+
+  if (Number.isInteger(parseInt(id))) {
+    query.eq("id", parseInt(id));
+  } else {
+    query.eq("user_id", id);
   }
 
-  const { data, error } = await client
-    .from("Profiles")
-    .select("*")
-    .eq("id", parseInt(id))
-    .single();
+  const { data, error } = await query.single();
 
   if (error)
     throw createError({ statusCode: 500, statusMessage: error.message });

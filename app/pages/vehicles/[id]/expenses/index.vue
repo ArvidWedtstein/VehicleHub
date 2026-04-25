@@ -9,24 +9,18 @@
 // import { formatDate, toLocalPeriod } from '@/utils/date';
 // import { type FilterOption } from '@/components/general/filter/FilterMenu.vue';
 
-import ExpensesFilterDrawer from "~/features/vehicles/expenses/ExpensesFilterDrawer.vue";
-import ExpensesListItem from "~/features/vehicles/expenses/ExpensesListItem.vue";
-import { useVehicleExpenses } from "~/features/vehicles/expenses/useVehicleExpenses";
+import ExpenseDialog from "~/components/vehicle/expense/dialog/ExpenseDialog.vue";
 import type { Tables } from "~/types/supabase";
 
 useHead({
   title: "Expenses",
 });
 definePageMeta({
-  middleware: "auth",
   layout: "vehicle",
 });
 
-const ExpenseDialog = defineAsyncComponent(
-  async () =>
-    await import("~/features/vehicles/expenses/expenseDialog/ExpenseDialog.vue"),
-);
-
+const overlay = useOverlay();
+const vehicleExpenseDialog = overlay.create(ExpenseDialog);
 const vehicleId = useRouteParam("id", "number");
 
 const filters = ref<Array<FilterOption<Tables<"VehicleExpenses">>>>([]);
@@ -34,9 +28,12 @@ const filters = ref<Array<FilterOption<Tables<"VehicleExpenses">>>>([]);
 const {
   data: expenses,
   pending: loading,
-  execute,
-} = await useVehicleExpenses(vehicleId, filters);
-const expenseDialog = ref<InstanceType<typeof ExpenseDialog>>();
+  status,
+  offset,
+  hasMore,
+  loadMore,
+  refresh,
+} = useVehicleExpenses(vehicleId, filters);
 
 const exportOptions = [
   {
@@ -88,7 +85,28 @@ const groupedExpenses = computed(() => {
   }));
 
   const grouped = groupBy(enriched, "monthYear");
+  return grouped;
+});
+const groupedExpenses2 = computed(() => {
+  const sorted = dynamicSort(
+    expenses.value,
+    sortControl.key,
+    sortControl.direction,
+  );
 
+  if (!sorted || !Array.isArray(sorted)) return [];
+
+  const enriched = sorted.map((expense) => ({
+    ...expense,
+    monthYear: formatDate(
+      expense.date,
+      sortControl.key === "date"
+        ? { year: "numeric", month: "long" }
+        : { year: "numeric" },
+    ),
+  }));
+
+  const grouped = Object.values(groupBy(enriched, "monthYear"));
   return grouped;
 });
 
@@ -99,90 +117,119 @@ const setSortKey = (key: keyof Tables<"VehicleExpenses">) => {
 const handleCreateExpense = () => {
   if (!vehicleId.value) return;
 
-  expenseDialog.value?.open(vehicleId.value);
+  vehicleExpenseDialog.open({ vehicleId: vehicleId.value });
 };
 
 const handleFilterApply = async (
   buildFilters: Ref<Array<FilterOption<Tables<"VehicleExpenses">>>>,
 ) => {
   filters.value = buildFilters.value;
-  execute();
+  refresh();
 };
+
+const scrollArea = useTemplateRef("scrollArea");
+
+onMounted(() => {
+  useInfiniteScroll(
+    scrollArea.value?.$el,
+    () => {
+      if (!hasMore.value) return;
+      loadMore();
+      console.log("Load more", offset.value);
+    },
+    {
+      direction: "bottom",
+      distance: 200,
+      canLoadMore: () => {
+        return status.value !== "pending" && !loading.value && hasMore.value;
+      },
+    },
+  );
+});
 </script>
 
 <template>
   <div>
-    <ExpenseDialog ref="expenseDialog" />
-
     <div class="flex items-center justify-between gap-2 mb-3">
-      <button
-        type="button"
-        class="btn btn-primary w-auto"
-        @click="handleCreateExpense"
-      >
-        <Icon name="mdi:plus" />
-        Add
-      </button>
+      <UButton label="Add" icon="mdi:plus" @click="handleCreateExpense" />
 
       <div class="flex items-center gap-2">
-        <div class="join">
-          <ExpensesFilterDrawer @applyFilters="handleFilterApply" />
+        <VehicleExpenseFilterDrawer @applyFilters="handleFilterApply" />
 
-          <ResponsiveMenu
-            :items="
-              sortControl.options.map((p) => ({
-                label: p.label || p.value,
-                value: p.value,
-                active: sortControl.key === p.value,
-                onClick: () => setSortKey(p.value),
-              }))
-            "
-            alignMenu="end"
-            #default="{ toggle }"
+        <ResponsiveMenu
+          :items="
+            sortControl.options.map((p) => ({
+              label: p.label || p.value,
+              value: p.value,
+              active: sortControl.key === p.value,
+              onClick: () => setSortKey(p.value),
+            }))
+          "
+          alignMenu="end"
+        >
+          <UButton
+            label="Sort"
+            icon="mdi:sort"
+            variant="outline"
+            color="secondary"
           >
-            <button
-              type="button"
-              class="btn btn-outline join-item"
-              @click="toggle()"
-            >
-              <Icon name="mdi:sort" class="sm:block hidden" />
-              <span class="sm:block hidden">Sorted on: </span>
-              <span class="badge badge-neutral">
-                {{
+            <template #trailing>
+              <UBadge
+                :label="
                   sortControl.options.find((o) => o.value === sortControl.key)
                     ?.label
-                }}
-              </span>
-            </button>
-          </ResponsiveMenu>
-        </div>
+                "
+                color="neutral"
+                variant="soft"
+                size="sm"
+              />
+            </template>
+          </UButton>
+        </ResponsiveMenu>
 
         <!-- <ExportButton @export="handleExpensesExport" :types="exportOptions" /> -->
       </div>
     </div>
 
-    <ListGroup class="flex-1 overflow-hidden mb-16" ignoreListClass>
-      <template v-if="loading">
-        LOADING
-        <!-- <ExpenseListItemSkeleton v-for="i in 10" :key="i" /> -->
-      </template>
-
-      <ListSubGroup
-        v-for="(expenses, month) in groupedExpenses"
-        :key="month"
-        :title="month.toString()"
-      >
-        <ExpensesListItem
-          v-for="(expense, index) in expenses"
-          :key="index"
-          :expense="expense"
-        />
-      </ListSubGroup>
-
-      <ListGroupItem
-        v-if="!expenses?.length || !Object.keys(groupedExpenses).length"
-        title="No expenses found"
+    <UScrollArea
+      ref="scrollArea"
+      class="w-full h-100"
+      :items="groupedExpenses2"
+      v-slot="{ item: expenses, index }"
+    >
+      <USeparator
+        :label="expenses[0]?.monthYear || ''"
+        orientation="horizontal"
+        :key="index"
+        size="lg"
       />
-    </ListGroup>
+      <UPageList>
+        <UPageCard
+          v-for="(item, idx) in expenses"
+          :key="idx"
+          variant="ghost"
+          :title="item.type || ''"
+          :to="{
+            name: 'vehicle-expense-id',
+            params: { id: item.id },
+          }"
+        >
+          <template #body>
+            <UUser
+              :avatar="{
+                icon: item.type === 'Fuel' ? 'mdi:gas-station' : 'mdi:cash',
+              }"
+              :name="item.type || 'Unknown Expense'"
+              :description="
+                formatDate(item.date, {
+                  dateStyle: 'medium',
+                })
+              "
+              size="xl"
+            />
+          </template>
+        </UPageCard>
+      </UPageList>
+    </UScrollArea>
   </div>
 </template>

@@ -24,16 +24,19 @@ export default defineNuxtConfig({
     },
     pageTransition: { name: "fade", mode: "out-in" },
   },
+  imports: {
+    dirs: ["~/composables", "~/composables/vehicle/**"],
+  },
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
-      include: ["@vue/devtools-core", "@vue/devtools-kit"],
+      include: ["@vue/devtools-core", "@vue/devtools-kit", "zod"],
     },
   },
   css: ["~/assets/app.css"],
-  modules: ["@nuxtjs/supabase", "@nuxt/icon"],
+  modules: ["@nuxt/ui", "@nuxtjs/supabase", "@nuxt/icon"],
   supabase: {
     redirect: false,
     redirectOptions: {

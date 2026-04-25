@@ -1,76 +1,40 @@
-<template>
-  <ClientOnly>
-    <Modal
-      ref="modalRef"
-      size="sm"
-      :title="confirmState.title"
-      @close="
-        () => {
-          if (modalRef.modalRef.returnValue === 'cancel') {
-            cancel();
-            return;
-          }
-
-          confirm();
-        }
-      "
-    >
-      <p class="mb-2">{{ confirmState.message }}</p>
-
-      <template #actions>
-        <button
-          class="btn btn-sm btn-outline"
-          value="cancel"
-          formmethod="dialog"
-          @click="
-            () => {
-              modalRef.modalRef.close('cancel');
-            }
-          "
-        >
-          {{ confirmState.cancelLabel }}
-        </button>
-
-        <button
-          type="button"
-          class="btn btn-sm"
-          :class="{
-            'btn-primary': confirmState.severity === 'default',
-            'btn-success': confirmState.severity === 'success',
-            'btn-warning': confirmState.severity === 'warning',
-            'btn-error': confirmState.severity === 'danger',
-            'btn-info': confirmState.severity === 'info',
-          }"
-          value="submit"
-          autofocus
-          @click="
-            () => {
-              modalRef.modalRef.close('submit');
-            }
-          "
-        >
-          {{ confirmState.confirmLabel }}
-        </button>
-      </template>
-    </Modal>
-  </ClientOnly>
-</template>
-
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import type { ButtonProps } from "@nuxt/ui";
 
-const modalRef = ref();
+interface ConfirmDialogProps {
+  title?: string;
+  description?: string;
 
-const { confirmState, confirm, cancel } = setupConfirm();
+  button?: Omit<ButtonProps, "size" | "onClick">;
+}
 
-watch(
-  () => confirmState.visible,
-  async (isOpen) => {
-    if (!isOpen) {
-      return;
-    }
+const {
+  button = {
+    label: "Confirm",
+    color: "neutral",
+  },
+} = defineProps<ConfirmDialogProps>();
 
-    modalRef.value.modalRef.showModal();
-  }
-);
+const emits = defineEmits<{
+  close: [value: boolean];
+}>();
 </script>
+
+<template>
+  <UModal
+    :title="title"
+    :description="description"
+    :dismissible="false"
+    :ui="{ footer: 'justify-end' }"
+  >
+    <template #footer>
+      <UButton
+        label="Cancel"
+        color="neutral"
+        variant="outline"
+        @click="emits('close', false)"
+      />
+      <UButton v-bind="button" @click="emits('close', true)" />
+    </template>
+  </UModal>
+</template>

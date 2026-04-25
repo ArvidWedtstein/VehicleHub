@@ -56,21 +56,149 @@ export const groupBy = <T extends Record<string, unknown>>(
   }, {});
 };
 
+type Debounced<T extends (...args: any[]) => any> = {
+  (...args: Parameters<T>): void;
+  cancel: () => void;
+  flush: () => void;
+};
+
 /**
  * @description Dabounce
  * @param func
  * @param delay
  * @returns
  */
-export const debounce = <T extends (...args: unknown[]) => void>(
+export const debounce = <T extends (...args: any[]) => any>(
   func: T,
   delay: number,
-): ((...args: Parameters<T>) => void) => {
-  let timeoutId: ReturnType<typeof setTimeout>;
-  return (...args: Parameters<T>): void => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func(...args), delay);
+  options: { leading?: boolean; trailing?: boolean } = {},
+): Debounced<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  let lastArgs: Parameters<T> | null = null;
+  let lastThis: ThisParameterType<T> | null = null;
+
+  const { leading = false, trailing = true } = options;
+
+  const invoke = () => {
+    if (lastArgs && lastThis) {
+      func.apply(lastThis, lastArgs);
+      lastArgs = lastThis = null;
+    }
   };
+
+  const debounced = function (
+    this: ThisParameterType<T>,
+    ...args: Parameters<T>
+  ) {
+    lastArgs = args;
+    lastThis = this;
+
+    const shouldCallNow = leading && timeoutId === null;
+
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+
+    timeoutId = setTimeout(() => {
+      timeoutId = null;
+      if (trailing) invoke();
+    }, delay);
+
+    if (shouldCallNow) {
+      invoke();
+    }
+  } as Debounced<T>;
+
+  debounced.cancel = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+    lastArgs = lastThis = null;
+  };
+
+  debounced.flush = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+      invoke();
+    }
+  };
+
+  return debounced;
+};
+
+type Throttled<T extends (...args: any[]) => any> = {
+  (...args: Parameters<T>): void;
+  cancel: () => void;
+  flush: () => void;
+};
+
+export const throttle = <T extends (...args: any[]) => any>(
+  func: T,
+  delay: number,
+  options: { leading?: boolean; trailing?: boolean } = {},
+): Throttled<T> => {
+  let lastCallTime = 0;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  let lastArgs: Parameters<T> | null = null;
+  let lastThis: ThisParameterType<T> | null = null;
+
+  const { leading = true, trailing = true } = options;
+
+  const invoke = (time: number) => {
+    lastCallTime = time;
+    if (lastArgs) {
+      func.apply(lastThis as ThisParameterType<T>, lastArgs);
+      lastArgs = lastThis = null;
+    }
+  };
+
+  const throttled = function (
+    this: ThisParameterType<T>,
+    ...args: Parameters<T>
+  ) {
+    const now = Date.now();
+
+    if (!lastCallTime && !leading) {
+      lastCallTime = now;
+    }
+
+    const remaining = delay - (now - lastCallTime);
+
+    lastArgs = args;
+    lastThis = this;
+
+    if (remaining <= 0 || remaining > delay) {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      invoke(now);
+    } else if (!timeoutId && trailing) {
+      timeoutId = setTimeout(() => {
+        timeoutId = null;
+        invoke(leading ? Date.now() : 0);
+      }, remaining);
+    }
+  } as Throttled<T>;
+
+  throttled.cancel = () => {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = null;
+    lastCallTime = 0;
+    lastArgs = lastThis = null;
+  };
+
+  throttled.flush = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+      invoke(Date.now());
+    }
+  };
+
+  return throttled;
 };
 
 /**
