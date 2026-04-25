@@ -1,7 +1,6 @@
 UPageCard
 <script setup lang="ts">
 import BarChart from "~/components/charts/BarChart.vue";
-import StatCardSkeletonLoader from "./StatCardSkeletonLoader.vue";
 
 const vehicleId = useRouteParam("id", "number");
 const { data: services, pending: loading } =

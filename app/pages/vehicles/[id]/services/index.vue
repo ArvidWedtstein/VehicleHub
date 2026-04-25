@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import ServiceDialog from "~/components/vehicle/service/dialog/ServiceDialog.vue";
-import ServicesListItem from "~/features/vehicles/services/ServicesListItem.vue";
 import type { Tables } from "~/types/supabase";
 
 useHead({
@@ -231,23 +230,5 @@ onMounted(() => {
         </UPageCard>
       </UPageList>
     </UScrollArea>
-
-    <!-- <ListGroup class="flex-1 overflow-hidden mb-16" ignoreListClass>
-      <template v-if="loading">
-        loading
-      </template>
-
-      <ListSubGroup
-        v-for="(services, month) in groupedServices"
-        :key="month"
-        :title="month.toString()"
-      >
-        <ServicesListItem
-          v-for="(service, index) in services"
-          :key="index"
-          :service="service"
-        />
-      </ListSubGroup>
-    </ListGroup> -->
   </div>
 </template>

@@ -10,7 +10,6 @@
 // import { type FilterOption } from '@/components/general/filter/FilterMenu.vue';
 
 import ExpenseDialog from "~/components/vehicle/expense/dialog/ExpenseDialog.vue";
-import ExpensesListItem from "~/features/vehicles/expenses/ExpensesListItem.vue";
 import type { Tables } from "~/types/supabase";
 
 useHead({
@@ -232,29 +231,5 @@ onMounted(() => {
         </UPageCard>
       </UPageList>
     </UScrollArea>
-
-    <ListGroup class="flex-1 overflow-hidden mb-16" ignoreListClass>
-      <template v-if="loading">
-        LOADING
-        <!-- <ExpenseListItemSkeleton v-for="i in 10" :key="i" /> -->
-      </template>
-
-      <ListSubGroup
-        v-for="(expenses, month) in groupedExpenses"
-        :key="month"
-        :title="month.toString()"
-      >
-        <ExpensesListItem
-          v-for="(expense, index) in expenses"
-          :key="index"
-          :expense="expense"
-        />
-      </ListSubGroup>
-
-      <ListGroupItem
-        v-if="!expenses?.length || !Object.keys(groupedExpenses).length"
-        title="No expenses found"
-      />
-    </ListGroup>
   </div>
 </template>
