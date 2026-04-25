@@ -7,5 +7,4 @@ export default {
     "./app.vue",
   ],
   theme: { extend: {} },
-  plugins: [require("daisyui")],
 };
