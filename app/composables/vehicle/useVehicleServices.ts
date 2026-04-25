@@ -5,27 +5,85 @@ export function useVehicleServices(
   filters: MaybeRef<
     FilterOption<Tables<"vehicleservicelogs_with_items">>[]
   > = [],
-  pagination: { limit: number; offset: MaybeRef<number> } = {
-    limit: 20,
-    offset: 0,
-  },
+  pageSize = 10,
 ) {
-  const vehicleServiceId = computed(() => unref(vehicleId));
+  const resolvedVehicleId = computed(() => unref(vehicleId));
+  const resolvedFilters = computed(() => unref(filters));
 
-  return useFetch<Tables<"vehicleservicelogs_with_items">[]>(
-    `/api/vehicles/${vehicleServiceId.value}/services/filter`,
+  const limit = computed(() => unref(pageSize));
+
+  const key = computed(() =>
+    [
+      "vehicle-services",
+      resolvedVehicleId.value,
+      limit.value,
+      offset.value,
+      JSON.stringify(resolvedFilters.value),
+    ].join(":"),
+  );
+  const offset = ref(0);
+  const hasMore = ref(true);
+
+  const data = ref<Tables<"vehicleservicelogs_with_items">[]>([]);
+
+  const {
+    data: items,
+    pending,
+    status,
+    refresh,
+  } = useFetch<Tables<"vehicleservicelogs_with_items">[]>(
+    `/api/vehicles/${resolvedVehicleId.value}/services/filter`,
     {
       method: "post",
-      key: `vehicle-${vehicleServiceId.value}_services`,
-      body: {
-        filters: unref(filters),
-        pagination,
-      },
-      immediate: !!unref(vehicleId),
-      watch: [vehicleServiceId, () => filters, () => unref(pagination.offset)],
+      key,
+      body: computed(() => ({
+        filters: resolvedFilters.value,
+        pagination: {
+          limit: limit.value,
+          offset: offset.value,
+        },
+      })),
+      immediate: !!resolvedVehicleId.value,
       default: () => [],
     },
   );
+
+  watch(items, (newPage) => {
+    if (!newPage) return;
+
+    // First page = replace
+    if (offset.value === 0) {
+      data.value = newPage;
+    } else {
+      data.value = [...data.value, ...newPage];
+    }
+
+    if (newPage.length < limit.value) {
+      hasMore.value = false;
+    }
+  });
+
+  watch([resolvedVehicleId, resolvedFilters], () => {
+    offset.value = 0;
+    data.value = [];
+    hasMore.value = true;
+    refresh();
+  });
+
+  const loadMore = () => {
+    if (pending.value) return;
+    offset.value += limit.value;
+  };
+
+  return {
+    data,
+    pending,
+    status,
+    loadMore,
+    refresh,
+    offset,
+    hasMore,
+  };
 }
 
 export const useVehicleService = (

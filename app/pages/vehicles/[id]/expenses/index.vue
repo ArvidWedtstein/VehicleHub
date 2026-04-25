@@ -29,7 +29,11 @@ const filters = ref<Array<FilterOption<Tables<"VehicleExpenses">>>>([]);
 const {
   data: expenses,
   pending: loading,
-  execute,
+  status,
+  offset,
+  hasMore,
+  loadMore,
+  refresh,
 } = useVehicleExpenses(vehicleId, filters);
 
 const exportOptions = [
@@ -121,23 +125,24 @@ const handleFilterApply = async (
   buildFilters: Ref<Array<FilterOption<Tables<"VehicleExpenses">>>>,
 ) => {
   filters.value = buildFilters.value;
-  execute();
+  refresh();
 };
 
 const scrollArea = useTemplateRef("scrollArea");
-const skip = ref(0);
 
 onMounted(() => {
   useInfiniteScroll(
     scrollArea.value?.$el,
     () => {
-      skip.value += 10;
-      console.log("Load more", skip.value);
+      if (!hasMore.value) return;
+      loadMore();
+      console.log("Load more", offset.value);
     },
     {
+      direction: "bottom",
       distance: 200,
       canLoadMore: () => {
-        return !loading.value;
+        return status.value !== "pending" && !loading.value && hasMore.value;
       },
     },
   );
@@ -205,7 +210,10 @@ onMounted(() => {
           :key="idx"
           variant="ghost"
           :title="item.type || ''"
-          href="/"
+          :to="{
+            name: 'vehicle-expense-id',
+            params: { id: item.id },
+          }"
         >
           <template #body>
             <UUser

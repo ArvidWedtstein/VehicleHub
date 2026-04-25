@@ -3,21 +3,84 @@ import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 export const useVehicleExpenses = (
   vehicleId: MaybeRef<string | number | undefined>,
   filters: MaybeRef<FilterOption<Tables<"VehicleExpenses">>[]> = [],
-  pagination: { limit: number; offset: number } = { limit: 20, offset: 0 },
+  pageSize = 10,
 ) => {
-  return useFetch<Tables<"VehicleExpenses">[]>(
-    `/api/vehicles/${unref(vehicleId)}/expenses/filter`,
+  const resolvedVehicleId = computed(() => unref(vehicleId));
+  const resolvedFilters = computed(() => unref(filters));
+  const limit = computed(() => unref(pageSize));
+
+  const key = computed(() =>
+    [
+      "vehicle-expenses",
+      resolvedVehicleId.value,
+      limit.value,
+      offset.value,
+      JSON.stringify(resolvedFilters.value),
+    ].join(":"),
+  );
+  const offset = ref(0);
+  const hasMore = ref(true);
+
+  const data = ref<Tables<"VehicleExpenses">[]>([]);
+
+  const {
+    data: items,
+    pending,
+    status,
+    refresh,
+  } = useFetch<Tables<"VehicleExpenses">[]>(
+    `/api/vehicles/${resolvedVehicleId.value}/expenses/filter`,
     {
-      key: () => `vehicle-${unref(vehicleId)}_expenses`,
+      key,
       method: "post",
-      body: {
-        filters: unref(filters),
-        pagination,
-      },
+      body: computed(() => ({
+        filters: resolvedFilters.value,
+        pagination: {
+          limit: limit.value,
+          offset: offset.value,
+        },
+      })),
       lazy: true,
       default: () => [],
     },
   );
+
+  watch(items, (newPage) => {
+    if (!newPage) return;
+
+    // First page = replace
+    if (offset.value === 0) {
+      data.value = newPage;
+    } else {
+      data.value = [...data.value, ...newPage];
+    }
+
+    if (newPage.length < limit.value) {
+      hasMore.value = false;
+    }
+  });
+
+  watch([resolvedVehicleId, resolvedFilters], () => {
+    offset.value = 0;
+    data.value = [];
+    hasMore.value = true;
+    refresh();
+  });
+
+  const loadMore = () => {
+    if (pending.value) return;
+    offset.value += limit.value;
+  };
+
+  return {
+    data,
+    pending,
+    status,
+    loadMore,
+    refresh,
+    offset,
+    hasMore,
+  };
 };
 
 export const useVehicleExpense = (

@@ -3,6 +3,8 @@ export default defineAppConfig({
     icons: {
       light: "mdi:white-balance-sunny",
       dark: "mdi:weather-night",
+      menu: "mdi:menu",
+      search: "mdi:magnify",
     },
   },
 });

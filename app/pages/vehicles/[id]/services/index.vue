@@ -14,14 +14,16 @@ definePageMeta({
 const vehicleId = useRouteParam("id", "number");
 
 const filters = ref<FilterOption<Tables<"VehicleServiceLogs">>[]>([]);
-const skip = ref(0);
 
 const {
   data: services,
   refresh,
+  loadMore,
   pending: loading,
   status,
-} = useVehicleServices(vehicleId, filters, { limit: 10, offset: skip });
+  offset,
+  hasMore,
+} = useVehicleServices(vehicleId, filters, 10);
 
 const overlay = useOverlay();
 const vehicleServiceDialog = overlay.create(ServiceDialog);
@@ -133,14 +135,15 @@ onMounted(() => {
   useInfiniteScroll(
     scrollArea.value?.$el,
     () => {
-      skip.value += 10;
-      console.log("Load more", skip.value);
+      if (!hasMore.value) return;
+      loadMore();
+      console.log("Load more", offset.value);
     },
     {
       direction: "bottom",
       distance: 200,
       canLoadMore: () => {
-        return status.value !== "pending" && !loading.value;
+        return status.value !== "pending" && !loading.value && hasMore.value;
       },
     },
   );
