@@ -87,25 +87,6 @@ const groupedServices = computed(() => {
     ),
   }));
 
-  const grouped = groupBy(enriched, "monthYear");
-
-  return grouped;
-});
-const groupedServices2 = computed(() => {
-  const filtered = services.value || [];
-
-  const sorted = dynamicSort(filtered, sortControl.key, sortControl.direction);
-
-  const enriched = sorted.map((service) => ({
-    ...service,
-    monthYear: formatDate(
-      service.date || "",
-      sortControl.key === "date"
-        ? { year: "numeric", month: "long" }
-        : { year: "numeric" },
-    ),
-  }));
-
   const grouped = Object.values(groupBy(enriched, "monthYear"));
 
   return grouped;
@@ -191,12 +172,10 @@ onMounted(() => {
       </div>
     </div>
 
-    {{ services.length }}
-
     <UScrollArea
       ref="scrollArea"
       class="w-full h-100"
-      :items="groupedServices2"
+      :items="groupedServices"
       v-slot="{ item: services, index }"
     >
       <USeparator

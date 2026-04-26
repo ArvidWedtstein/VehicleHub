@@ -3,8 +3,7 @@ UPageCard
 import BarChart from "~/components/charts/BarChart.vue";
 
 const vehicleId = useRouteParam("id", "number");
-const { data: services, pending: loading } =
-  await useVehicleServices(vehicleId);
+const { data: services, pending: loading } = useVehicleServices(vehicleId);
 
 type Option = {
   value: string;

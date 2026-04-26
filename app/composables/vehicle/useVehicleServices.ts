@@ -51,7 +51,6 @@ export function useVehicleServices(
   watch(items, (newPage) => {
     if (!newPage) return;
 
-    // First page = replace
     if (offset.value === 0) {
       data.value = newPage;
     } else {
