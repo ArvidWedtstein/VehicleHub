@@ -163,60 +163,63 @@ defineExpose({
     direction="left"
     title="Changelog"
     v-model:open="open"
-    :snapPoints="[0.3, 0.5]"
+    :snapPoints="[0.5, 1]"
   >
     <template #body>
-      <UChangelogVersions
-        :indicator="false"
-        :versions="
-          formattedChangelog.map((change) => ({
-            author: {
-              name: change.createdby_name || 'N/A',
-              avatar: {
-                loading: 'lazy' as const,
-                src: change.createdby_profile_image_url || '',
-                alt: change.createdby_name || 'N/A',
+      <UContainer>
+        <UChangelogVersions
+          :indicator="false"
+          :versions="
+            formattedChangelog.map((change) => ({
+              author: {
+                name: change.createdby_name || 'N/A',
+                avatar: {
+                  loading: 'lazy' as const,
+                  src: change.createdby_profile_image_url || '',
+                  alt: change.createdby_name || 'N/A',
+                },
               },
-            },
 
-            title: change.action,
-            description: change.sentence,
-            date: change.created_at || '',
-            ui: {
-              container: 'max-w-lg w-auto me-0',
-            },
-          }))
-        "
-      >
-        <template #title="{ version }">
-          <div class="capitalize" v-html="version.title"></div>
-        </template>
-        <template #description="{ version }">
-          <div v-html="version.description"></div>
-        </template>
-        <template #footer="{ version }">
-          <UUser v-bind="version.author" />
-        </template>
-      </UChangelogVersions>
+              title: change.action,
+              description: change.sentence,
+              date: change.created_at || '',
+              ui: {
+                container: 'max-w-lg w-auto me-0',
+              },
+            }))
+          "
+        >
+          <template #title="{ version }">
+            <div class="capitalize" v-html="version.title"></div>
+          </template>
+          <template #description="{ version }">
+            <div v-html="version.description"></div>
+          </template>
+          <template #footer="{ version }">
+            <UUser v-bind="version.author" />
+          </template>
+        </UChangelogVersions>
 
-      <UEmpty
-        v-if="!formattedChangelog.length || loading"
-        :title="loading ? 'Loading' : 'No Changes found'"
-        :actions="[
-          {
-            label: 'Refresh',
-            icon: 'mdi:refresh',
-            loadingAuto: true,
-            onClick: () => refresh(),
-          },
-        ]"
-      />
+        <UEmpty
+          v-if="!formattedChangelog.length || loading"
+          :title="loading ? 'Loading' : 'No Changes found'"
+          :actions="[
+            {
+              label: 'Refresh',
+              icon: 'mdi:refresh',
+              loadingAuto: true,
+              onClick: () => refresh(),
+            },
+          ]"
+        />
+      </UContainer>
     </template>
 
     <template #footer>
       <UButton
         label="Close"
         variant="outline"
+        class="justify-center"
         block
         size="sm"
         @click="handleClose"

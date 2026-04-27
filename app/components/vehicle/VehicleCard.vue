@@ -72,7 +72,10 @@ const vehicleMenuItems: DropdownMenuItem[][] = [
     v-if="vehicle"
     orientation="horizontal"
     variant="subtle"
-    :ui="{ header: 'w-full', container: 'lg:items-start' }"
+    :ui="{
+      header: 'w-full',
+      container: ['lg:items-start', !vehicle.thumbnail ? 'lg:grid-cols-1' : ''],
+    }"
   >
     <template #header>
       <div class="flex justify-between gap-3">
