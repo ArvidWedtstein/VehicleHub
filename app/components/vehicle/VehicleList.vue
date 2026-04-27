@@ -14,7 +14,7 @@ const createVehicle = () => {
       v-else-if="vehicles && vehicles.length === 0"
       title="No Vehicles found"
       description="It looks like you haven't added any vehicles. Create one to get started."
-      class="w-full"
+      class="col-span-full"
       :actions="[
         {
           label: 'Create New',
