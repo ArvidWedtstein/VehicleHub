@@ -87,25 +87,6 @@ const groupedServices = computed(() => {
     ),
   }));
 
-  const grouped = groupBy(enriched, "monthYear");
-
-  return grouped;
-});
-const groupedServices2 = computed(() => {
-  const filtered = services.value || [];
-
-  const sorted = dynamicSort(filtered, sortControl.key, sortControl.direction);
-
-  const enriched = sorted.map((service) => ({
-    ...service,
-    monthYear: formatDate(
-      service.date || "",
-      sortControl.key === "date"
-        ? { year: "numeric", month: "long" }
-        : { year: "numeric" },
-    ),
-  }));
-
   const grouped = Object.values(groupBy(enriched, "monthYear"));
 
   return grouped;
@@ -150,7 +131,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <UPage>
     <div class="flex justify-between mb-3">
       <UButton icon="mdi:plus" label="Add" @click="handleCreateService" />
 
@@ -191,12 +172,17 @@ onMounted(() => {
       </div>
     </div>
 
-    {{ services.length }}
-
     <UScrollArea
       ref="scrollArea"
-      class="w-full h-100"
-      :items="groupedServices2"
+      class="w-full h-120"
+      :items="groupedServices"
+      :virtualize="{
+        estimateSize: (index) => {
+          const services = groupedServices[index] || [];
+          return 92 * services.length + 48; // 92px per item + 48px for the separator
+        },
+        skipMeasurement: true,
+      }"
       v-slot="{ item: services, index }"
     >
       <USeparator
@@ -211,7 +197,10 @@ onMounted(() => {
           :key="idx"
           variant="ghost"
           :title="item.type || ''"
-          href="/"
+          :to="{
+            name: 'vehicles-id-services-serviceId',
+            params: { id: item.vehicle_id, serviceId: item.id },
+          }"
         >
           <template #body>
             <UUser
@@ -230,5 +219,5 @@ onMounted(() => {
         </UPageCard>
       </UPageList>
     </UScrollArea>
-  </div>
+  </UPage>
 </template>

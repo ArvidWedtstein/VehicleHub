@@ -35,9 +35,6 @@ export default defineNuxtConfig({
       include: ["@vue/devtools-core", "@vue/devtools-kit", "zod"],
     },
   },
-  nitro: {
-    preset: "netlify",
-  },
   css: ["~/assets/app.css"],
   modules: ["@nuxt/ui", "@nuxtjs/supabase", "@nuxt/icon"],
   supabase: {
@@ -51,7 +48,6 @@ export default defineNuxtConfig({
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      domain: "",
       maxAge: 60 * 60 * 24 * 7, // 7 days
     },
     types: "~/types/supabase",

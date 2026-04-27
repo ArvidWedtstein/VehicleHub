@@ -1,5 +1,6 @@
 import { H3Event, H3EventContext } from "h3";
 import type { User } from "@supabase/supabase-js";
+import { serverSupabaseUser } from "#supabase/server";
 
 type AuthenticatedEvent = H3Event & {
   context: H3EventContext & {
@@ -11,7 +12,8 @@ export const defineAuthenticatedEventHandler = <T>(
   handler: (event: AuthenticatedEvent) => T,
 ) => {
   return defineEventHandler(async (event) => {
-    if (!event.context?.user) {
+    const user = await serverSupabaseUser(event);
+    if (!user) {
       throw createError({
         statusCode: 401,
         statusMessage: "Unauthorized",

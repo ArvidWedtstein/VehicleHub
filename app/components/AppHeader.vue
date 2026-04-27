@@ -80,7 +80,7 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
     <template #right>
       <UColorModeButton />
 
-      <UDropdownMenu :items="menuItems">
+      <ResponsiveMenu :items="menuItems">
         <UButton
           color="neutral"
           variant="ghost"
@@ -90,7 +90,11 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
             size: 'lg',
           }"
         />
-      </UDropdownMenu>
+      </ResponsiveMenu>
+    </template>
+
+    <template #body>
+      <UNavigationMenu :items="links" orientation="vertical" class="-mx-2.5" />
     </template>
   </UHeader>
 </template>
