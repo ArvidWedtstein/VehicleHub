@@ -89,6 +89,7 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
             alt: user?.user_metadata.name || 'User Avatar',
             size: 'lg',
           }"
+          loading
         />
       </ResponsiveMenu>
     </template>
