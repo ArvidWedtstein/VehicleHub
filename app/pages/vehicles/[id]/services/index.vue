@@ -176,6 +176,13 @@ onMounted(() => {
       ref="scrollArea"
       class="w-full h-120"
       :items="groupedServices"
+      :virtualize="{
+        estimateSize: (index) => {
+          const services = groupedServices[index] || [];
+          return 92 * services.length + 48; // 92px per item + 48px for the separator
+        },
+        skipMeasurement: true,
+      }"
       v-slot="{ item: services, index }"
     >
       <USeparator
