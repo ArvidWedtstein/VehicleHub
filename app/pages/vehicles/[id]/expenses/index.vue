@@ -19,6 +19,8 @@ definePageMeta({
   layout: "vehicle",
 });
 
+const route = useRoute();
+console.log(route);
 const overlay = useOverlay();
 const vehicleExpenseDialog = overlay.create(ExpenseDialog);
 const vehicleId = useRouteParam("id", "number");
@@ -149,7 +151,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <UPage>
     <div class="flex items-center justify-between gap-2 mb-3">
       <UButton label="Add" icon="mdi:plus" @click="handleCreateExpense" />
 
@@ -210,8 +212,8 @@ onMounted(() => {
           variant="ghost"
           :title="item.type || ''"
           :to="{
-            name: 'vehicle-expense-id',
-            params: { id: item.id },
+            name: 'vehicles-id-expenses-expenseId',
+            params: { id: item.vehicle_id, expenseId: item.id },
           }"
         >
           <template #body>
@@ -231,5 +233,5 @@ onMounted(() => {
         </UPageCard>
       </UPageList>
     </UScrollArea>
-  </div>
+  </UPage>
 </template>

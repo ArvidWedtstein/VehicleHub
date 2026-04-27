@@ -131,7 +131,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <UPage>
     <div class="flex justify-between mb-3">
       <UButton icon="mdi:plus" label="Add" @click="handleCreateService" />
 
@@ -174,7 +174,7 @@ onMounted(() => {
 
     <UScrollArea
       ref="scrollArea"
-      class="w-full h-100"
+      class="w-full h-120"
       :items="groupedServices"
       v-slot="{ item: services, index }"
     >
@@ -190,7 +190,10 @@ onMounted(() => {
           :key="idx"
           variant="ghost"
           :title="item.type || ''"
-          href="/"
+          :to="{
+            name: 'vehicles-id-services-serviceId',
+            params: { id: item.vehicle_id, serviceId: item.id },
+          }"
         >
           <template #body>
             <UUser
@@ -209,5 +212,5 @@ onMounted(() => {
         </UPageCard>
       </UPageList>
     </UScrollArea>
-  </div>
+  </UPage>
 </template>
