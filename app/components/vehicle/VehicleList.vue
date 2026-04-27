@@ -1,5 +1,9 @@
 <script setup lang="ts">
-const { data: vehicles, pending } = useVehicles();
+const { data: vehicles, pending, refresh } = useVehicles();
+
+const createVehicle = () => {
+  alert("Create new lol");
+};
 </script>
 
 <template>
@@ -10,6 +14,19 @@ const { data: vehicles, pending } = useVehicles();
       v-else-if="vehicles && vehicles.length === 0"
       title="No Vehicles found"
       description="It looks like you haven't added any vehicles. Create one to get started."
+      class="w-full"
+      :actions="[
+        {
+          label: 'Create New',
+          icon: 'mdi:plus',
+          onClick: createVehicle,
+        },
+        {
+          label: 'Refresh',
+          icon: 'mdi:refresh',
+          onClick: () => refresh(),
+        },
+      ]"
     />
 
     <UPageCard

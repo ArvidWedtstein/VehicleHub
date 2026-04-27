@@ -53,7 +53,7 @@ const links = computed<NavigationMenuItem[]>(() =>
       right: 'hidden',
     }"
   >
-    <LazyUNavigationMenu
+    <UNavigationMenu
       class="w-full"
       :ui="{
         root: 'justify-around border-t border-default py-2 w-full',

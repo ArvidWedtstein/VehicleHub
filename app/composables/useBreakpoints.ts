@@ -26,7 +26,7 @@ export const useBreakpoints = () => {
   const checkBreakpoints = () => {
     const { sm, md, lg, xl, "2xl": xxl } = breakpoints;
     const w = width.value;
-    isMobile.value = w <= md;
+    isMobile.value = w <= lg;
 
     isSm.value = w >= sm && w < md;
     isMd.value = w >= md;
@@ -36,14 +36,10 @@ export const useBreakpoints = () => {
   };
 
   if (import.meta.client) {
+    useEventListener(window, "resize", updateWidth);
     onMounted(() => {
       updateWidth();
       checkBreakpoints();
-      window.addEventListener("resize", updateWidth);
-    });
-
-    onUnmounted(() => {
-      window.removeEventListener("resize", updateWidth);
     });
   }
 
