@@ -19,8 +19,6 @@ definePageMeta({
   layout: "vehicle",
 });
 
-const route = useRoute();
-console.log(route);
 const overlay = useOverlay();
 const vehicleExpenseDialog = overlay.create(ExpenseDialog);
 const vehicleId = useRouteParam("id", "number");
@@ -159,6 +157,7 @@ onMounted(() => {
         <VehicleExpenseFilterDrawer @applyFilters="handleFilterApply" />
 
         <ResponsiveMenu
+          title="Sort By"
           :items="
             sortControl.options.map((p) => ({
               label: p.label || p.value,
@@ -167,14 +166,8 @@ onMounted(() => {
               onClick: () => setSortKey(p.value),
             }))
           "
-          alignMenu="end"
         >
-          <UButton
-            label="Sort"
-            icon="mdi:sort"
-            variant="outline"
-            color="secondary"
-          >
+          <UButton icon="mdi:sort" variant="outline" color="secondary">
             <template #trailing>
               <UBadge
                 :label="
