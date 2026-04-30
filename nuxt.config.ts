@@ -16,15 +16,25 @@ export default defineNuxtConfig({
         { rel: "manifest", href: "/manifest.webmanifest" },
         { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
       ],
-      title: "VehicleHub",
+      title: "Vehicle Hub",
       meta: [
         {
           name: "description",
           content: "A vehicle management application.",
         },
+        {
+          name: "theme-color",
+          content: "#ffffff",
+          media: "(prefers-color-scheme: light)",
+        },
+        {
+          name: "theme-color",
+          content: "#0f172a",
+          media: "(prefers-color-scheme: dark)",
+        },
         { name: "apple-mobile-web-app-capable", content: "yes" },
-        { name: "apple-mobile-web-app-status-bar-style", content: "black" },
-        { name: "apple-mobile-web-app-title", content: "VehicleHub" },
+        { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+        { name: "apple-mobile-web-app-title", content: "Vehicle Hub" },
       ],
     },
     pageTransition: { name: "fade", mode: "out-in" },
