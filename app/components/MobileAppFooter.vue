@@ -54,15 +54,16 @@ const links = computed<NavigationMenuItem[]>(() =>
     }"
   >
     <UNavigationMenu
-      class="w-full"
+      class="fixed bottom-0 w-full"
       :ui="{
         root: 'justify-around border-t border-default py-2 w-full',
         item: 'py-0',
         link: 'flex-col gap-1 px-3',
         linkLeadingIcon: 'size-5',
-        linkLabel: 'text-sm font-normal',
+        linkLabel: 'text-[10px]/3 font-normal',
       }"
       :items="links"
+      orientation="horizontal"
     />
   </LazyUFooter>
 </template>
