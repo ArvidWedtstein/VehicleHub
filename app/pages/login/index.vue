@@ -21,7 +21,6 @@ const signInWithGoogle = async () => {
   });
 
   if (error) console.error("Login error:", error);
-  console.log("ssss", data);
 };
 </script>
 

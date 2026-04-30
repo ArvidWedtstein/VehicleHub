@@ -1,59 +1,78 @@
 <script setup lang="ts">
-import type { DropdownMenuItem, DropdownMenuProps } from "@nuxt/ui";
+import type { ArrayOrNested, DrawerProps, DropdownMenuItem } from "@nuxt/ui";
 
-type ActionSheetItem = Omit<
-  DropdownMenuItem,
-  "children" | "type" | "color" | "block" | "size" | "variant"
->;
-type Props = {
-  items?: ActionSheetItem[] | ActionSheetItem[][];
-};
+type ActionSheetItem = Omit<DropdownMenuItem, "type" | "children">;
 
-withDefaults(defineProps<Props>(), {
+interface ActionSheetProps extends Omit<
+  DrawerProps,
+  "direction" | "inset" | "open"
+> {
+  items?: ArrayOrNested<ActionSheetItem>;
+}
+
+const props = withDefaults(defineProps<ActionSheetProps>(), {
   items: () => [],
 });
 
 const open = ref(false);
 
+const groups = computed<ActionSheetItem[][]>(() => {
+  if (props.items.length === 0) return [];
+
+  return Array.isArray(props.items[0])
+    ? (props.items as ActionSheetItem[][])
+    : [props.items as ActionSheetItem[]];
+});
+
+const close = () => {
+  open.value = false;
+};
+
+const handleClick = (event: MouseEvent, item: ActionSheetItem) => {
+  item.onSelect?.(event);
+  close();
+};
+
 defineExpose({
   open: () => {
     open.value = true;
   },
-  close: () => {
-    open.value = false;
-  },
+  close,
 });
 </script>
+
 <template>
-  <UDrawer v-model:open="open" direction="bottom" inset>
+  <UDrawer
+    v-model:open="open"
+    direction="bottom"
+    inset
+    :title="title"
+    v-bind="$attrs"
+    :ui="{
+      title: 'text-center',
+    }"
+  >
     <slot></slot>
     <template #body>
-      <UPageList divide class="gap-1">
-        <template v-for="(item, idx) in items" :key="idx">
-          <UFieldGroup v-if="Array.isArray(item)" orientation="vertical">
-            <UButton
-              v-for="(subItem, subIdx) in item"
-              :key="subIdx"
-              v-bind="subItem"
-              variant="soft"
-              color="neutral"
-              block
-              size="xl"
-              :disabled="subItem.disabled"
-            />
-          </UFieldGroup>
-
+      <div class="relative flex flex-col gap-3">
+        <UFieldGroup
+          v-for="group in groups"
+          :key="group[0]?.label"
+          orientation="vertical"
+          size="xl"
+        >
           <UButton
-            v-else
+            v-for="item in group"
+            :key="item.label"
             v-bind="item"
             variant="soft"
+            activeColor="primary"
             color="neutral"
             block
-            size="xl"
-            :disabled="item.disabled"
+            @click="($event) => handleClick($event, item)"
           />
-        </template>
-      </UPageList>
+        </UFieldGroup>
+      </div>
     </template>
 
     <template #footer>
@@ -63,7 +82,7 @@ defineExpose({
         color="error"
         block
         size="lg"
-        @click="open = false"
+        @click="close"
       />
     </template>
   </UDrawer>

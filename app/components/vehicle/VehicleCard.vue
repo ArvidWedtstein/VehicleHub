@@ -72,7 +72,10 @@ const vehicleMenuItems: DropdownMenuItem[][] = [
     v-if="vehicle"
     orientation="horizontal"
     variant="subtle"
-    :ui="{ header: 'w-full', container: 'lg:items-start' }"
+    :ui="{
+      header: 'w-full',
+      container: ['lg:items-start', !vehicle.thumbnail ? 'lg:grid-cols-1' : ''],
+    }"
   >
     <template #header>
       <div class="flex justify-between gap-3">
@@ -104,8 +107,8 @@ const vehicleMenuItems: DropdownMenuItem[][] = [
 
     <template #description>
       <div class="flex flex-col gap-1">
-        <div class="flex gap-1 items-center">
-          <span v-show="vehicle.engine_displacement">
+        <div class="flex flex-wrap gap-1 items-center">
+          <span v-show="vehicle.engine_displacement" class="text-nowrap">
             {{
               formatNumber(vehicle.engine_displacement, {
                 style: "unit",
@@ -114,12 +117,15 @@ const vehicleMenuItems: DropdownMenuItem[][] = [
               })
             }}
           </span>
-          <span>{{ vehicle.body_type }}</span>
+          <div
+            class="w-1 h-1 bg-current rounded-full inline-block leading-none mx-1"
+          ></div>
+          <span class="text-nowrap">{{ vehicle.body_type }}</span>
           <div
             class="w-1 h-1 bg-current rounded-full inline-block leading-none mx-1"
           ></div>
 
-          <span class="flex gap-1 items-center">
+          <span class="flex gap-1 items-center flex-nowrap text-nowrap">
             <UIcon
               :name="
                 vehicle.fuel_type === 'Electric'

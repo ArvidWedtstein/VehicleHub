@@ -54,7 +54,6 @@ const getServiceInsights = async () => {
     return null;
   }
 
-  console.log("Service insights:", data);
   if (!data || (Array.isArray(data) && data.length === 0)) {
     return;
   }
@@ -280,14 +279,11 @@ onMounted(() => {
         <UPageList>
           <div class="inline-flex gap-1 items-center">
             <span class="font-semibold">Date:</span>
-            <span>
-              {{
-                formatDate(service.date, {
-                  dateStyle: "long",
-                  timeStyle: "short",
-                })
-              }}
-            </span>
+            <NuxtTime
+              :datetime="service.date"
+              dateStyle="long"
+              timeStyle="short"
+            />
           </div>
 
           <div class="inline-flex gap-1 items-center">
@@ -378,10 +374,7 @@ onMounted(() => {
         /> -->
         <FileGrid :files="files" class="mt-5">
           <template #actions="{ file }">
-            <UDropdownMenu
-              alignMenu="end"
-              :items="generateFileGridActions(file as File)"
-            >
+            <UDropdownMenu :items="generateFileGridActions(file as File)">
               <UButton
                 icon="mdi:dots-vertical"
                 variant="ghost"

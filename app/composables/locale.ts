@@ -1,5 +1,3 @@
-import type { Ref } from "vue";
-
 export function useLocale() {
   return useState<string>("locale", () => useDefaultLocale().value);
 }

@@ -139,21 +139,17 @@ onMounted(() => {
         <VehicleServiceFilterDrawer @applyFilters="handleFilterApply" />
 
         <ResponsiveMenu
+          title="Sort By"
           :items="
             sortControl.options.map((p) => ({
               label: p.label || p.value,
               value: p.value,
               active: sortControl.key === p.value,
-              onClick: () => setSortKey(p.value),
+              onSelect: () => setSortKey(p.value),
             }))
           "
         >
-          <UButton
-            label="Sort"
-            icon="mdi:sort"
-            variant="outline"
-            color="secondary"
-          >
+          <UButton icon="mdi:sort" variant="outline" color="secondary">
             <template #trailing>
               <UBadge
                 :label="

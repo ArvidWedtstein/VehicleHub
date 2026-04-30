@@ -110,8 +110,6 @@ export function useInfiniteScroll<T extends InfiniteScrollElement>(
     )
       return;
 
-    console.log("ænd checkAndLoad", direction, observedElement.value);
-
     const { scrollHeight, clientHeight, scrollWidth, clientWidth } =
       observedElement.value as HTMLElement;
     const isNarrower =
