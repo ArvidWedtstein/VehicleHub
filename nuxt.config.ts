@@ -13,6 +13,8 @@ export default defineNuxtConfig({
           type: "image/x-icon",
           href: "/favicon.ico",
         },
+        { rel: "manifest", href: "/manifest.webmanifest" },
+        { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
       ],
       title: "VehicleHub",
       meta: [
@@ -20,6 +22,9 @@ export default defineNuxtConfig({
           name: "description",
           content: "A vehicle management application.",
         },
+        { name: "apple-mobile-web-app-capable", content: "yes" },
+        { name: "apple-mobile-web-app-status-bar-style", content: "black" },
+        { name: "apple-mobile-web-app-title", content: "VehicleHub" },
       ],
     },
     pageTransition: { name: "fade", mode: "out-in" },
