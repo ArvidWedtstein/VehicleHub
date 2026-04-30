@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { nb_no } from "@nuxt/ui/locale";
-
 useHead({
   meta: [
     { charset: "utf-8" },
@@ -14,7 +12,7 @@ useHead({
 </script>
 
 <template>
-  <UApp :locale="nb_no">
+  <UApp>
     <NuxtLoadingIndicator />
 
     <AppHeader />
