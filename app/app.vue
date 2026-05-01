@@ -22,7 +22,5 @@ useHead({
         <NuxtPage />
       </NuxtLayout>
     </UMain>
-
-    <MobileAppFooter />
   </UApp>
 </template>

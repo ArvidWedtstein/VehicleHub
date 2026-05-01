@@ -64,30 +64,8 @@ const sortControl = reactive<{
   ],
 });
 
+// TODO: fix expense not showing up after creation
 const groupedExpenses = computed(() => {
-  // TODO: move sort to api call?
-  const sorted = dynamicSort(
-    expenses.value,
-    sortControl.key,
-    sortControl.direction,
-  );
-
-  if (!sorted || !Array.isArray(sorted)) return {};
-
-  const enriched = sorted.map((expense) => ({
-    ...expense,
-    monthYear: formatDate(
-      expense.date,
-      sortControl.key === "date"
-        ? { year: "numeric", month: "long" }
-        : { year: "numeric" },
-    ),
-  }));
-
-  const grouped = groupBy(enriched, "monthYear");
-  return grouped;
-});
-const groupedExpenses2 = computed(() => {
   const sorted = dynamicSort(
     expenses.value,
     sortControl.key,
@@ -189,7 +167,14 @@ onMounted(() => {
     <UScrollArea
       ref="scrollArea"
       class="w-full h-100"
-      :items="groupedExpenses2"
+      :items="groupedExpenses"
+      :virtualize="{
+        estimateSize: (index) => {
+          const expenses = groupedExpenses[index] || [];
+          return 92 * expenses.length + 48; // 92px per item + 48px for the separator
+        },
+        skipMeasurement: true,
+      }"
       v-slot="{ item: expenses, index }"
     >
       <USeparator
