@@ -170,7 +170,7 @@ onMounted(() => {
 
     <UScrollArea
       ref="scrollArea"
-      class="w-full h-120"
+      class="w-full h-80"
       :items="groupedServices"
       :virtualize="{
         estimateSize: (index) => {
@@ -197,6 +197,7 @@ onMounted(() => {
             name: 'vehicles-id-services-serviceId',
             params: { id: item.vehicle_id, serviceId: item.id },
           }"
+          :ui="{ body: 'flex items-center justify-between w-full' }"
         >
           <template #body>
             <UUser
@@ -211,6 +212,8 @@ onMounted(() => {
               "
               size="xl"
             />
+
+            <UIcon name="mdi:chevron-right" class="size-8" />
           </template>
         </UPageCard>
       </UPageList>
