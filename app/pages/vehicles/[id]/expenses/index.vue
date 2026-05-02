@@ -113,7 +113,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <UPage class="flex-1 min-h-0">
+  <UPage class="flex-1 overflow-hidden">
     <div class="flex items-center justify-between gap-2 mb-3">
       <UButton label="Add" icon="mdi:plus" @click="handleCreateExpense" />
 
@@ -152,9 +152,13 @@ onMounted(() => {
 
     <UScrollArea
       ref="scrollArea"
-      class="w-full"
+      class="w-full h-full min-h-0"
       :items="expenses"
-      v-slot="{ item, index }"
+      :virtualize="{
+        estimateSize: 92,
+        skipMeasurement: true,
+      }"
+      v-slot="{ item }"
     >
       <!-- <USeparator
         :label="expenses[0]?.monthYear || ''"
@@ -165,7 +169,20 @@ onMounted(() => {
       <UPageList> -->
       <!-- v-for="(item, idx) in expenses"
         :key="idx" -->
+
+      <div
+        v-if="status === 'pending' || status === 'idle'"
+        class="flex items-center gap-4 p-4 sm:p-6"
+      >
+        <USkeleton class="size-12 rounded-full" />
+
+        <div class="grid gap-2">
+          <USkeleton class="h-4 w62.5" />
+          <USkeleton class="h-4 w-50" />
+        </div>
+      </div>
       <UPageCard
+        v-else
         :key="item.id"
         variant="ghost"
         :title="item.type || ''"

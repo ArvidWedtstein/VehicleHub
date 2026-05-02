@@ -96,7 +96,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <div class="relative flex flex-col gap-4 flex-1 w-full p-4 lg:mb-0 mb-16">
+    <div class="relative flex flex-col gap-4 flex-1 w-full p-4">
       <NuxtRouteAnnouncer />
       <NuxtAnnouncer />
 
@@ -116,7 +116,7 @@ onMounted(() => {
     <LazyUNavigationMenu
       v-if="isMobile"
       hydrateOnVisible
-      class="fixed bottom-0 w-full backdrop-blur-xl lg:hidden"
+      class="w-full backdrop-blur-xl lg:hidden"
       :ui="{
         root: 'border-t border-default py-2 w-full [&>div]:w-full',
         list: 'justify-evenly justify-items-stretch w-full',

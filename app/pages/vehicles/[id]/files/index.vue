@@ -221,5 +221,11 @@ const generateFileGridActions = (file: File) => {
         </span>
       </template>
     </UFileUpload>
+
+    <LazyUEmpty
+      icon="mdi:file"
+      title="No files found"
+      description="It looks like you haven't added any files. Upload one to get started."
+    />
   </div>
 </template>

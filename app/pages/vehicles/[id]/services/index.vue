@@ -166,7 +166,7 @@ onMounted(() => {
 
     <UScrollArea
       ref="scrollArea"
-      class="w-full h-80"
+      class="w-full min-h-0 flex-1"
       :items="groupedServices"
       :virtualize="{
         estimateSize: (index) => {
