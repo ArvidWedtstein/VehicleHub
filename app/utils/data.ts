@@ -1,19 +1,3 @@
-/**
- * Returns a pluralized string based on the count and noun provided.
- *
- * @param {number} count - The number of items.
- * @param {string} noun - The noun to be pluralized.
- * @param {string} [suffix='s'] - The suffix to be added to the noun.
- * @param {boolean} [includeCount=true] - The suffix to be added to the noun.
- * @return {string} - The pluralized string.
- */
-export const pluralize = (
-  count: number,
-  noun: string,
-  suffix = "s",
-  includeCount: boolean = true,
-): string => `${includeCount ? count : ""} ${noun}${count !== 1 ? suffix : ""}`;
-
 // Helper function to safely access nested properties with strict typing
 export const getNestedProperty = <
   T extends Record<string, unknown>, // Base object type

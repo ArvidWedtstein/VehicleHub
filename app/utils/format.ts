@@ -1,3 +1,19 @@
+/**
+ * Returns a pluralized string based on the count and noun provided.
+ *
+ * @param {number} count - The number of items.
+ * @param {string} noun - The noun to be pluralized.
+ * @param {string} [suffix='s'] - The suffix to be added to the noun.
+ * @param {boolean} [includeCount=true] - The suffix to be added to the noun.
+ * @return {string} - The pluralized string.
+ */
+export const pluralize = (
+  count: number,
+  noun: string,
+  suffix = "s",
+  includeCount: boolean = true,
+): string => `${includeCount ? count : ""} ${noun}${count !== 1 ? suffix : ""}`;
+
 export const formatDate = (
   dateTime: string | Date,
   options: Intl.DateTimeFormatOptions = {

@@ -67,7 +67,7 @@ defineExpose({
             v-bind="item"
             variant="soft"
             activeColor="primary"
-            color="neutral"
+            :color="item.color || 'neutral'"
             block
             @click="($event) => handleClick($event, item)"
           />

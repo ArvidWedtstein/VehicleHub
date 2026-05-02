@@ -118,11 +118,11 @@ const vehicleMenuItems: DropdownMenuItem[][] = [
             }}
           </span>
           <div
-            class="w-1 h-1 bg-current rounded-full inline-block leading-none mx-1"
+            class="size-1 bg-current rounded-full inline-block leading-none mx-1"
           ></div>
           <span class="text-nowrap">{{ vehicle.body_type }}</span>
           <div
-            class="w-1 h-1 bg-current rounded-full inline-block leading-none mx-1"
+            class="size-1 bg-current rounded-full inline-block leading-none mx-1"
           ></div>
 
           <span class="flex gap-1 items-center flex-nowrap text-nowrap">
