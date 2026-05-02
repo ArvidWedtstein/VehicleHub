@@ -83,14 +83,14 @@ onMounted(() => {
 
 <template>
   <div>
-    <div class="relative flex flex-col gap-3 flex-1 w-full p-4">
+    <div class="relative flex flex-col gap-3 flex-1 w-full p-3 lg:mb-0 mb-16">
       <NuxtRouteAnnouncer />
       <NuxtAnnouncer />
 
       <VehicleCard />
 
       <UTabs
-        v-if="!isMobile"
+        class="hidden lg:flex"
         v-model="activeTab"
         :items="tabs"
         :content="false"
@@ -102,6 +102,7 @@ onMounted(() => {
 
     <LazyUNavigationMenu
       v-if="isMobile"
+      hydrateOnVisible
       class="fixed bottom-0 w-full backdrop-blur-xl lg:hidden"
       :ui="{
         root: 'border-t border-default py-2 w-full [&>div]:w-full',

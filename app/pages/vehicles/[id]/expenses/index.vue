@@ -64,7 +64,6 @@ const sortControl = reactive<{
   ],
 });
 
-// TODO: fix expense not showing up after creation
 const groupedExpenses = computed(() => {
   const sorted = dynamicSort(
     expenses.value,
@@ -127,7 +126,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <UPage>
+  <UPage class="flex-1 min-h-0">
     <div class="flex items-center justify-between gap-2 mb-3">
       <UButton label="Add" icon="mdi:plus" @click="handleCreateExpense" />
 
@@ -166,53 +165,47 @@ onMounted(() => {
 
     <UScrollArea
       ref="scrollArea"
-      class="w-full h-80"
-      :items="groupedExpenses"
-      :virtualize="{
-        estimateSize: (index) => {
-          const expenses = groupedExpenses[index] || [];
-          return 92 * expenses.length + 48; // 92px per item + 48px for the separator
-        },
-        skipMeasurement: true,
-      }"
-      v-slot="{ item: expenses, index }"
+      class="w-full"
+      :items="expenses"
+      v-slot="{ item, index }"
     >
-      <USeparator
+      <!-- <USeparator
         :label="expenses[0]?.monthYear || ''"
         orientation="horizontal"
         :key="index"
         size="lg"
       />
-      <UPageList>
-        <UPageCard
-          v-for="(item, idx) in expenses"
-          :key="idx"
-          variant="ghost"
-          :title="item.type || ''"
-          :to="{
-            name: 'vehicles-id-expenses-expenseId',
-            params: { id: item.vehicle_id, expenseId: item.id },
-          }"
-          :ui="{ body: 'flex items-center justify-between w-full' }"
-        >
-          <template #body>
-            <UUser
-              :avatar="{
-                icon: item.type === 'Fuel' ? 'mdi:gas-station' : 'mdi:cash',
-              }"
-              :name="item.type || 'Unknown Expense'"
-              :description="
-                formatDate(item.date, {
-                  dateStyle: 'medium',
-                })
-              "
-              size="xl"
-            />
+      <UPageList> -->
+      <!-- v-for="(item, idx) in expenses"
+        :key="idx" -->
+      <UPageCard
+        :key="item.id"
+        variant="ghost"
+        :title="item.type || ''"
+        :to="{
+          name: 'vehicles-id-expenses-expenseId',
+          params: { id: item.vehicle_id, expenseId: item.id },
+        }"
+        :ui="{ body: 'flex items-center justify-between w-full' }"
+      >
+        <template #body>
+          <UUser
+            :avatar="{
+              icon: item.type === 'Fuel' ? 'mdi:gas-station' : 'mdi:cash',
+            }"
+            :name="item.type || 'Unknown Expense'"
+            :description="
+              formatDate(item.date, {
+                dateStyle: 'medium',
+              })
+            "
+            size="xl"
+          />
 
-            <UIcon name="mdi:chevron-right" class="size-8" />
-          </template>
-        </UPageCard>
-      </UPageList>
+          <UIcon name="mdi:chevron-right" class="size-8" />
+        </template>
+      </UPageCard>
+      <!-- </UPageList> -->
     </UScrollArea>
   </UPage>
 </template>

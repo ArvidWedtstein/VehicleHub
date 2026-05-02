@@ -9,15 +9,7 @@ export const useVehicleExpenses = (
   const resolvedFilters = computed(() => unref(filters));
   const limit = computed(() => unref(pageSize));
 
-  const key = computed(() =>
-    [
-      "vehicle-expenses",
-      resolvedVehicleId.value,
-      limit.value,
-      offset.value,
-      JSON.stringify(resolvedFilters.value),
-    ].join(":"),
-  );
+  const key = computed(() => `vehicle-${resolvedVehicleId.value}_expenses`);
   const offset = ref(0);
   const hasMore = ref(true);
 
@@ -33,6 +25,7 @@ export const useVehicleExpenses = (
     {
       key,
       method: "post",
+      watch: [offset, resolvedFilters, limit],
       body: computed(() => ({
         filters: resolvedFilters.value,
         pagination: {
@@ -41,6 +34,7 @@ export const useVehicleExpenses = (
         },
       })),
       lazy: true,
+      immediate: !!resolvedVehicleId.value,
       default: () => [],
     },
   );

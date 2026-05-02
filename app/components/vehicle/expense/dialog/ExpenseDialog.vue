@@ -23,7 +23,6 @@ const onOpen = () => {
 
 const onFormSubmit = async () => {
   try {
-    // TODO: add form validation
     await save();
 
     toast.add({

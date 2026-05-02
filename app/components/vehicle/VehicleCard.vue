@@ -153,7 +153,6 @@ const vehicleMenuItems: DropdownMenuItem[][] = [
             size="xs"
             :avatar="{
               src: currentVehicleOwner?.profile_image_url,
-              alt: currentVehicleOwner.name,
             }"
             :name="currentVehicleOwner.name"
             :to="{
