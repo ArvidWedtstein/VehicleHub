@@ -152,7 +152,7 @@ onMounted(() => {
 
     <UScrollArea
       ref="scrollArea"
-      class="w-full h-full min-h-0"
+      class="w-full min-h-0 h-[calc(100dvh-var(--ui-header-height)-9rem)]"
       :items="expenses"
       :virtualize="{
         estimateSize: 92,
@@ -181,6 +181,7 @@ onMounted(() => {
           <USkeleton class="h-4 w-50" />
         </div>
       </div>
+
       <UPageCard
         v-else
         :key="item.id"

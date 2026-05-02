@@ -166,7 +166,7 @@ onMounted(() => {
 
     <UScrollArea
       ref="scrollArea"
-      class="w-full min-h-0 flex-1"
+      class="w-full min-h-0 flex-1 h-[calc(100dvh-calc(var(--ui-header-height)*2))]"
       :items="groupedServices"
       :virtualize="{
         estimateSize: (index) => {

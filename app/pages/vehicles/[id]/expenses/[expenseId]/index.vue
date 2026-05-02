@@ -77,7 +77,7 @@ const handleDeleteExpense = async () => {
 </script>
 
 <template>
-  <div>
+  <UContainer class="flex-1">
     <ULink
       :to="{
         name: 'vehicles-id-expenses',
@@ -201,5 +201,5 @@ const handleDeleteExpense = async () => {
         />
       </template>
     </UPageCard>
-  </div>
+  </UContainer>
 </template>

@@ -218,7 +218,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <UPage class="flex-1">
     <NuxtLink
       :to="{
         name: 'vehicles-id-services',
@@ -385,5 +385,5 @@ onMounted(() => {
         </FileGrid>
       </template>
     </UPageCard>
-  </div>
+  </UPage>
 </template>
