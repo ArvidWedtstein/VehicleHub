@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ExpenseDialog from "~/components/vehicle/expense/dialog/ExpenseDialog.vue";
+import VehicleExpenseDialog from "~/components/vehicle/expense/dialog/VehicleExpenseDialog.vue";
 
 useHead({
   title: "Expense",
@@ -29,7 +29,7 @@ const overlay = useOverlay();
 const toast = useToast();
 const confirm = useConfirmDialog();
 
-const vehicleExpenseDialog = overlay.create(ExpenseDialog);
+const vehicleExpenseDialog = overlay.create(VehicleExpenseDialog);
 
 /** TODO: remove & move to fetching of expense instead */
 const createdBy = computed(() => {

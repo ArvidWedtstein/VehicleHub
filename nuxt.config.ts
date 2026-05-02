@@ -39,6 +39,10 @@ export default defineNuxtConfig({
     },
     pageTransition: { name: "fade", mode: "out-in" },
   },
+  routeRules: {
+    "/vehicles/": { appLayout: false },
+    "/vehicles/:id/**": { appLayout: "vehicle" },
+  },
   imports: {
     dirs: ["~/composables", "~/composables/vehicle/**"],
   },

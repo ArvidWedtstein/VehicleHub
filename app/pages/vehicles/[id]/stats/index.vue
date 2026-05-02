@@ -4,7 +4,6 @@ useHead({
 });
 definePageMeta({
   auth: true,
-  layout: "vehicle",
 });
 </script>
 

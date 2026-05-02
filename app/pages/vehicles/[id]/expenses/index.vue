@@ -1,26 +1,13 @@
 <script setup lang="ts">
-// import {
-//   downloadBlob,
-//   exportToCSV,
-//   exportToTxt,
-//   generateExpenseReport,
-//   parseRowsToTable,
-// } from '@/utils/export';
-// import { formatDate, toLocalPeriod } from '@/utils/date';
-// import { type FilterOption } from '@/components/general/filter/FilterMenu.vue';
-
-import ExpenseDialog from "~/components/vehicle/expense/dialog/ExpenseDialog.vue";
+import VehicleExpenseDialog from "~/components/vehicle/expense/dialog/VehicleExpenseDialog.vue";
 import type { Tables } from "~/types/supabase";
 
 useHead({
   title: "Expenses",
 });
-definePageMeta({
-  layout: "vehicle",
-});
 
 const overlay = useOverlay();
-const vehicleExpenseDialog = overlay.create(ExpenseDialog);
+const vehicleExpenseDialog = overlay.create(VehicleExpenseDialog);
 const vehicleId = useRouteParam("id", "number");
 
 const filters = ref<Array<FilterOption<Tables<"VehicleExpenses">>>>([]);

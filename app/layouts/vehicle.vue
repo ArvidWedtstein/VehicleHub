@@ -39,8 +39,21 @@ const tabs: TabsItem[] = [
   },
 ];
 
-const mobileTabs = computed<NavigationMenuItem[]>(() =>
-  tabs.map((tab) => {
+const mobileTabs = computed<NavigationMenuItem[]>(() => {
+  const baseTabs = [...tabs];
+
+  if (isMobile.value) {
+    baseTabs.unshift({
+      label: "Home",
+      value: "vehicles-id",
+      icon: "mdi:home",
+      to: {
+        name: "vehicles-id",
+      },
+    });
+  }
+
+  return baseTabs.map((tab) => {
     const routeName = (tab.value || "").toString();
     return {
       label: tab.label,
@@ -51,12 +64,12 @@ const mobileTabs = computed<NavigationMenuItem[]>(() =>
         params: { id: vehicleId.value },
       },
     };
-  }),
-);
+  });
+});
 
 const activeTab = computed({
   get() {
-    return (route.name as string) || "vehicles-id-expenses";
+    return (route.name as string) || "vehicles-id";
   },
   set(tab) {
     router.push({
@@ -83,11 +96,11 @@ onMounted(() => {
 
 <template>
   <div>
-    <div class="relative flex flex-col gap-3 flex-1 w-full p-3 lg:mb-0 mb-16">
+    <div class="relative flex flex-col gap-4 flex-1 w-full p-4 lg:mb-0 mb-16">
       <NuxtRouteAnnouncer />
       <NuxtAnnouncer />
 
-      <VehicleCard />
+      <LazyVehicleCard class="hidden lg:flex" />
 
       <UTabs
         class="hidden lg:flex"

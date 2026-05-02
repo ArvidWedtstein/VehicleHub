@@ -125,7 +125,6 @@ const serviceData = computed(() => {
             :ui="{
               list: 'ring ring-accented rounded-full',
               indicator: 'rounded-full',
-              trigger: 'w-1/2',
             }"
           />
 

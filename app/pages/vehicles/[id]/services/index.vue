@@ -5,10 +5,6 @@ import type { Tables } from "~/types/supabase";
 useHead({
   title: "Services",
 });
-definePageMeta({
-  auth: true,
-  layout: "vehicle",
-});
 
 const vehicleId = useRouteParam("id", "number");
 

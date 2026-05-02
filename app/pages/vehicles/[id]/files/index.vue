@@ -7,7 +7,6 @@ useHead({
 });
 definePageMeta({
   auth: true,
-  layout: "vehicle",
 });
 
 const vehicleId = useRouteParam("id", "number");
