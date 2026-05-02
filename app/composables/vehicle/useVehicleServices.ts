@@ -12,15 +12,7 @@ export function useVehicleServices(
 
   const limit = computed(() => unref(pageSize));
 
-  const key = computed(() =>
-    [
-      "vehicle-services",
-      resolvedVehicleId.value,
-      limit.value,
-      offset.value,
-      JSON.stringify(resolvedFilters.value),
-    ].join(":"),
-  );
+  const key = computed(() => `vehicle-${resolvedVehicleId.value}_services`);
   const offset = ref(0);
   const hasMore = ref(true);
 
@@ -36,6 +28,7 @@ export function useVehicleServices(
     {
       method: "post",
       key,
+      watch: [offset, resolvedFilters, limit],
       body: computed(() => ({
         filters: resolvedFilters.value,
         pagination: {
@@ -43,6 +36,7 @@ export function useVehicleServices(
           offset: offset.value,
         },
       })),
+      lazy: true,
       immediate: !!resolvedVehicleId.value,
       default: () => [],
     },

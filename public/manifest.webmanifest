@@ -1,15 +1,37 @@
 {
-  "name": "VehicleHub",
-  "short_name": "VehicleHub",
+  "name": "Vehicle Hub",
+  "short_name": "Vehicle Hub",
+  "description": "A vehicle management application.",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
+  "lang": "en",
+  "categories": ["car", "productivity", "utilities"],
+  "display_override": ["window-controls-overlay"],
   "icons": [
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/img/StartImg.jpg",
+      "sizes": "2334x1369",
+      "type": "image/jpeg"
+    }
+  ],
+
+  "shortcuts": [
+    {
+      "name": "Vehicles",
+      "short_name": "Vehicles",
+      "url": "/vehicles/",
+      "icons": [{ "src": "/icons/icon-512.png", "sizes": "192x192" }]
     }
   ]
 }

@@ -22,6 +22,7 @@ const { data: service, pending: loading } = await useVehicleService(
 );
 
 const { data: vehicle } = useVehicle(vehicleId.value);
+const { data: createdBy } = useProfile(service.value?.createdby_id);
 
 const toast = useToast();
 const overlay = useOverlay();
@@ -38,7 +39,12 @@ const serviceInsights = ref<
       type: string;
     }
   | undefined
->(undefined);
+>({
+  previous_date: addToDate(new Date(), -1, "year").toISOString(),
+  previous_mileage: 32000,
+  avg_interval: 1000,
+  type: "Oil Change",
+});
 
 const getServiceInsights = async () => {
   if (!serviceId.value) return;
@@ -218,30 +224,161 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <NuxtLink
+  <UContainer class="flex-1">
+    <ULink
       :to="{
         name: 'vehicles-id-services',
-        params: { id: useRouteParam('id').value },
+        params: { id: vehicleId },
       }"
-      class="link flex items-center gap-2 mb-2"
+      class="inline-flex items-center"
     >
-      <Icon name="mdi:chevron-left" />
+      <UIcon name="mdi:chevron-left" class="size-5" />
       Back to Services
-    </NuxtLink>
+    </ULink>
 
-    <!-- <SkeletonLoader v-if="loading" /> -->
+    <UCard
+      v-if="service"
+      :title="service.type || ''"
+      :ui="{
+        description: 'flex gap-2 items-center',
+        footer: 'flex gap-2',
+      }"
+    >
+      <template #description>
+        <NuxtTime
+          :datetime="service.date"
+          dateStyle="long"
+          :relative="addToDate(new Date(), -7, 'day') < new Date(service.date)"
+        />
 
+        <div
+          class="size-1 bg-current rounded-full inline-block leading-none mx-1"
+        ></div>
+
+        <UUser
+          v-if="createdBy"
+          :avatar="{
+            src: createdBy.profile_image_url || '',
+            loading: 'lazy',
+          }"
+          :name="createdBy.name || ''"
+          :to="{
+            name: 'profiles-profileId',
+            params: { profileId: createdBy.id },
+          }"
+          size="xs"
+        />
+      </template>
+
+      <UPageGrid :ui="{ base: 'grid-cols-2 gap-4 lg:gap-8' }">
+        <UPageCard
+          title="Mileage"
+          :description="
+            formatNumber(service.mileage || 0, {
+              style: 'unit',
+              unit: vehicle?.mileage_unit || 'kilometer',
+              compactDisplay: 'short',
+            })
+          "
+          variant="subtle"
+          :ui="{
+            title: 'text-xs font-normal text-muted',
+            description: 'text-highlighted font-semibold',
+          }"
+        />
+
+        <UPageCard
+          v-if="service.provider"
+          title="Provider"
+          :description="service.provider"
+          variant="subtle"
+          :ui="{
+            title: 'text-xs font-normal text-muted capitalize',
+            description: 'text-highlighted font-semibold',
+          }"
+        />
+
+        <UPageCard
+          title="Cost"
+          :description="
+            formatNumber(service.totalCost || 0, {
+              style: 'currency',
+              currency: service.currency || 'EUR',
+              currencyDisplay: 'narrowSymbol',
+              compactDisplay: 'short',
+              maximumFractionDigits: 2,
+              minimumFractionDigits: 0,
+            })
+          "
+          variant="subtle"
+          :ui="{
+            title: 'text-xs font-normal text-muted',
+            description: 'text-highlighted font-semibold',
+          }"
+        />
+
+        <UPageCard
+          v-if="serviceInsights"
+          :title="`Last ${service.type}`"
+          variant="subtle"
+          :ui="{
+            title: 'text-xs font-normal text-muted',
+            description:
+              'flex gap-2 items-center text-highlighted font-semibold',
+          }"
+          #description
+        >
+          {{
+            formatNumber(
+              (service.mileage || 0) - serviceInsights.previous_mileage,
+              {
+                style: "unit",
+                unit: vehicle?.mileage_unit || "kilometer",
+                compactDisplay: "short",
+              },
+            )
+          }}
+          <span
+            class="size-1 bg-current rounded-full inline-block leading-none"
+          ></span>
+
+          <NuxtTime
+            v-if="serviceInsights.previous_date"
+            relative
+            :datetime="serviceInsights.previous_date"
+            numeric="always"
+            relativeStyle="long"
+            year="2-digit"
+            month="2-digit"
+          />
+        </UPageCard>
+      </UPageGrid>
+
+      <template #footer>
+        <UButton
+          label="Edit"
+          icon="mdi:pencil"
+          block
+          @click="handleEditService"
+        />
+        <UButton
+          label="Delete"
+          icon="mdi:trash"
+          color="error"
+          variant="soft"
+          block
+          @click="handleServiceDelete"
+        />
+      </template>
+    </UCard>
+
+    <!-- TODO: fix-->
     <UPageCard
       v-if="service"
       variant="soft"
       :ui="{ header: 'w-full flex justify-between gap-3', body: 'w-full' }"
     >
       <template #header>
-        <div class="text-base text-pretty font-semibold text-highlighted">
-          {{ service.type }}
-        </div>
-
         <div class="flex gap-1">
           <LazyUButton
             v-if="new Date(service.date) > new Date()"
@@ -276,82 +413,6 @@ onMounted(() => {
         </div>
       </template>
       <template #body>
-        <UPageList>
-          <div class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Date:</span>
-            <NuxtTime
-              :datetime="service.date"
-              dateStyle="long"
-              timeStyle="short"
-            />
-          </div>
-
-          <div class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Provider:</span>
-            <span>
-              {{ service.provider }}
-            </span>
-          </div>
-
-          <div class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Mileage:</span>
-            <span>
-              {{
-                formatNumber(service.mileage || 0, {
-                  style: "unit",
-                  unit: vehicle?.mileage_unit || "kilometer",
-                  compactDisplay: "short",
-                })
-              }}
-            </span>
-          </div>
-
-          <div class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Cost:</span>
-            <span>
-              {{
-                formatNumber(service.totalCost || 0, {
-                  style: "currency",
-                  currency: service.currency || "EUR",
-                  currencyDisplay: "narrowSymbol",
-                  compactDisplay: "short",
-                  maximumFractionDigits: 2,
-                  minimumFractionDigits: 0,
-                })
-              }}
-            </span>
-          </div>
-
-          <div v-if="serviceInsights" class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Last {{ service.type }}:</span>
-            <span>
-              {{
-                formatNumber(
-                  (service.mileage || 0) - serviceInsights.previous_mileage,
-                  {
-                    style: "unit",
-                    unit: vehicle?.mileage_unit || "kilometer",
-                    compactDisplay: "short",
-                  },
-                )
-              }}
-              ago
-            </span>
-            <span
-              class="w-1 h-1 bg-neutral-content rounded-full inline-block leading-none mx-1"
-            ></span>
-            <NuxtTime
-              v-if="serviceInsights.previous_date"
-              relative
-              :datetime="serviceInsights.previous_date"
-              numeric="always"
-              relativeStyle="long"
-              year="2-digit"
-              month="2-digit"
-            />
-          </div>
-        </UPageList>
-
         <UCard class="mt-5">
           <LazyVehicleServiceDialogComponentsItemsTable
             v-if="serviceId != null && vehicleId != null"
@@ -385,5 +446,5 @@ onMounted(() => {
         </FileGrid>
       </template>
     </UPageCard>
-  </div>
+  </UContainer>
 </template>

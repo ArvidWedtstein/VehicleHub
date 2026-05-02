@@ -12,7 +12,9 @@ export function useVehicles(filters: FilterOption<Tables<"Vehicles">>[] = []) {
   });
 }
 
-export const useVehicle = (id?: MaybeRef<Tables<"Vehicles">["id"]>) => {
+export const useVehicle = (
+  id?: MaybeRef<Tables<"Vehicles">["id"] | undefined>,
+) => {
   const vehicleId = computed(() => unref(id));
 
   return useFetch<

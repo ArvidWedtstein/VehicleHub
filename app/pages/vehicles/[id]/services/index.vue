@@ -5,10 +5,6 @@ import type { Tables } from "~/types/supabase";
 useHead({
   title: "Services",
 });
-definePageMeta({
-  auth: true,
-  layout: "vehicle",
-});
 
 const vehicleId = useRouteParam("id", "number");
 
@@ -164,13 +160,13 @@ onMounted(() => {
           </UButton>
         </ResponsiveMenu>
 
-        <ExportButton @export="handleServicesExport" />
+        <!-- <ExportButton @export="handleServicesExport" /> -->
       </div>
     </div>
 
     <UScrollArea
       ref="scrollArea"
-      class="w-full h-120"
+      class="w-full min-h-0 flex-1 h-[calc(100dvh-calc(var(--ui-header-height)*2))]"
       :items="groupedServices"
       :virtualize="{
         estimateSize: (index) => {
@@ -197,6 +193,7 @@ onMounted(() => {
             name: 'vehicles-id-services-serviceId',
             params: { id: item.vehicle_id, serviceId: item.id },
           }"
+          :ui="{ body: 'flex items-center justify-between w-full' }"
         >
           <template #body>
             <UUser
@@ -211,6 +208,8 @@ onMounted(() => {
               "
               size="xl"
             />
+
+            <UIcon name="mdi:chevron-right" class="size-8" />
           </template>
         </UPageCard>
       </UPageList>

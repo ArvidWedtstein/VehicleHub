@@ -1,26 +1,13 @@
 <script setup lang="ts">
-// import {
-//   downloadBlob,
-//   exportToCSV,
-//   exportToTxt,
-//   generateExpenseReport,
-//   parseRowsToTable,
-// } from '@/utils/export';
-// import { formatDate, toLocalPeriod } from '@/utils/date';
-// import { type FilterOption } from '@/components/general/filter/FilterMenu.vue';
-
-import ExpenseDialog from "~/components/vehicle/expense/dialog/ExpenseDialog.vue";
+import VehicleExpenseDialog from "~/components/vehicle/expense/dialog/VehicleExpenseDialog.vue";
 import type { Tables } from "~/types/supabase";
 
 useHead({
   title: "Expenses",
 });
-definePageMeta({
-  layout: "vehicle",
-});
 
 const overlay = useOverlay();
-const vehicleExpenseDialog = overlay.create(ExpenseDialog);
+const vehicleExpenseDialog = overlay.create(VehicleExpenseDialog);
 const vehicleId = useRouteParam("id", "number");
 
 const filters = ref<Array<FilterOption<Tables<"VehicleExpenses">>>>([]);
@@ -65,29 +52,6 @@ const sortControl = reactive<{
 });
 
 const groupedExpenses = computed(() => {
-  // TODO: move sort to api call?
-  const sorted = dynamicSort(
-    expenses.value,
-    sortControl.key,
-    sortControl.direction,
-  );
-
-  if (!sorted || !Array.isArray(sorted)) return {};
-
-  const enriched = sorted.map((expense) => ({
-    ...expense,
-    monthYear: formatDate(
-      expense.date,
-      sortControl.key === "date"
-        ? { year: "numeric", month: "long" }
-        : { year: "numeric" },
-    ),
-  }));
-
-  const grouped = groupBy(enriched, "monthYear");
-  return grouped;
-});
-const groupedExpenses2 = computed(() => {
   const sorted = dynamicSort(
     expenses.value,
     sortControl.key,
@@ -149,7 +113,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <UPage>
+  <UPage class="flex-1 overflow-hidden">
     <div class="flex items-center justify-between gap-2 mb-3">
       <UButton label="Add" icon="mdi:plus" @click="handleCreateExpense" />
 
@@ -188,43 +152,65 @@ onMounted(() => {
 
     <UScrollArea
       ref="scrollArea"
-      class="w-full h-100"
-      :items="groupedExpenses2"
-      v-slot="{ item: expenses, index }"
+      class="w-full min-h-0 h-[calc(100dvh-var(--ui-header-height)-9rem)]"
+      :items="expenses"
+      :virtualize="{
+        estimateSize: 92,
+        skipMeasurement: true,
+      }"
+      v-slot="{ item }"
     >
-      <USeparator
+      <!-- <USeparator
         :label="expenses[0]?.monthYear || ''"
         orientation="horizontal"
         :key="index"
         size="lg"
       />
-      <UPageList>
-        <UPageCard
-          v-for="(item, idx) in expenses"
-          :key="idx"
-          variant="ghost"
-          :title="item.type || ''"
-          :to="{
-            name: 'vehicles-id-expenses-expenseId',
-            params: { id: item.vehicle_id, expenseId: item.id },
-          }"
-        >
-          <template #body>
-            <UUser
-              :avatar="{
-                icon: item.type === 'Fuel' ? 'mdi:gas-station' : 'mdi:cash',
-              }"
-              :name="item.type || 'Unknown Expense'"
-              :description="
-                formatDate(item.date, {
-                  dateStyle: 'medium',
-                })
-              "
-              size="xl"
-            />
-          </template>
-        </UPageCard>
-      </UPageList>
+      <UPageList> -->
+      <!-- v-for="(item, idx) in expenses"
+        :key="idx" -->
+
+      <div
+        v-if="status === 'pending' || status === 'idle'"
+        class="flex items-center gap-4 p-4 sm:p-6"
+      >
+        <USkeleton class="size-12 rounded-full" />
+
+        <div class="grid gap-2">
+          <USkeleton class="h-4 w62.5" />
+          <USkeleton class="h-4 w-50" />
+        </div>
+      </div>
+
+      <UPageCard
+        v-else
+        :key="item.id"
+        variant="ghost"
+        :title="item.type || ''"
+        :to="{
+          name: 'vehicles-id-expenses-expenseId',
+          params: { id: item.vehicle_id, expenseId: item.id },
+        }"
+        :ui="{ body: 'flex items-center justify-between w-full' }"
+      >
+        <template #body>
+          <UUser
+            :avatar="{
+              icon: item.type === 'Fuel' ? 'mdi:gas-station' : 'mdi:cash',
+            }"
+            :name="item.type || 'Unknown Expense'"
+            :description="
+              formatDate(item.date, {
+                dateStyle: 'medium',
+              })
+            "
+            size="xl"
+          />
+
+          <UIcon name="mdi:chevron-right" class="size-8" />
+        </template>
+      </UPageCard>
+      <!-- </UPageList> -->
     </UScrollArea>
   </UPage>
 </template>

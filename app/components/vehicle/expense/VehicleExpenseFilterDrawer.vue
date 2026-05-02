@@ -52,7 +52,7 @@ const applyFilters = async () => {
   >
     <UButton
       label="Filter"
-      icon="mdi:filter-variant"
+      icon="mdi:filter"
       variant="outline"
       color="secondary"
     />

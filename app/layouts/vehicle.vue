@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import type { TabsItem } from "@nuxt/ui";
+import type { NavigationMenuItem, TabsItem } from "@nuxt/ui";
 
 const router = useRouter();
 const route = useRoute();
+
+const { isMobile } = useBreakpoints();
 
 const vehicleId = useRouteParam("id", "number");
 
@@ -37,9 +39,37 @@ const tabs: TabsItem[] = [
   },
 ];
 
+const mobileTabs = computed<NavigationMenuItem[]>(() => {
+  const baseTabs = [...tabs];
+
+  if (isMobile.value) {
+    baseTabs.unshift({
+      label: "Home",
+      value: "vehicles-id",
+      icon: "mdi:home",
+      to: {
+        name: "vehicles-id",
+      },
+    });
+  }
+
+  return baseTabs.map((tab) => {
+    const routeName = (tab.value || "").toString();
+    return {
+      label: tab.label,
+      icon: tab.icon,
+      value: routeName,
+      to: {
+        name: routeName,
+        params: { id: vehicleId.value },
+      },
+    };
+  });
+});
+
 const activeTab = computed({
   get() {
-    return (route.name as string) || "vehicles-id-expenses";
+    return (route.name as string) || "vehicles-id";
   },
   set(tab) {
     router.push({
@@ -65,21 +95,38 @@ onMounted(() => {
 </script>
 
 <template>
-  <NuxtRouteAnnouncer />
-  <NuxtAnnouncer />
+  <div
+    class="relative flex flex-col gap-4 flex-1 w-full p-4 min-h-0 h-[calc(100dvh-calc(var(--ui-header-height)*2))] overflow-auto"
+  >
+    <NuxtRouteAnnouncer />
+    <NuxtAnnouncer />
 
-  <div>
-    <div class="relative flex flex-col gap-3 flex-1 w-full p-4">
-      <VehicleCard />
+    <LazyVehicleCard class="hidden lg:flex" />
 
-      <UTabs
-        v-model="activeTab"
-        :items="tabs"
-        :content="false"
-        :unmountOnHide="false"
-      />
+    <UTabs
+      class="hidden lg:flex"
+      v-model="activeTab"
+      :items="tabs"
+      :content="false"
+      :unmountOnHide="false"
+    />
 
-      <slot />
-    </div>
+    <slot />
   </div>
+
+  <LazyUNavigationMenu
+    v-if="isMobile"
+    hydrateOnVisible
+    class="sticky bottom-0 w-full backdrop-blur-xl lg:hidden h-(--ui-header-height)"
+    :ui="{
+      root: 'border-t border-default py-2 w-full [&>div]:w-full h-[]',
+      list: 'justify-evenly justify-items-stretch w-full',
+      item: 'py-0 min-w-16',
+      link: 'flex-col gap-1 px-3',
+      linkLeadingIcon: 'size-5',
+      linkLabel: 'text-[10px]/3 font-normal',
+    }"
+    :items="mobileTabs"
+    orientation="horizontal"
+  />
 </template>

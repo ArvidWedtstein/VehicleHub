@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ExpenseDialog from "~/components/vehicle/expense/dialog/ExpenseDialog.vue";
+import VehicleExpenseDialog from "~/components/vehicle/expense/dialog/VehicleExpenseDialog.vue";
 
 useHead({
   title: "Expense",
@@ -23,13 +23,15 @@ const {
   error,
 } = useVehicleExpense(vehicleId, expenseId);
 
+const { data: vehicle } = useVehicle(vehicleId);
+
 const { data: profiles } = useProfiles();
 
 const overlay = useOverlay();
 const toast = useToast();
 const confirm = useConfirmDialog();
 
-const vehicleExpenseDialog = overlay.create(ExpenseDialog);
+const vehicleExpenseDialog = overlay.create(VehicleExpenseDialog);
 
 /** TODO: remove & move to fetching of expense instead */
 const createdBy = computed(() => {
@@ -40,8 +42,6 @@ const createdBy = computed(() => {
 
 const handleEditExpense = () => {
   if (!vehicleId.value) return;
-
-  console.log("Opening expense dialog for expense", expense.value);
 
   vehicleExpenseDialog.open({
     vehicleId: vehicleId.value,
@@ -74,132 +74,145 @@ const handleDeleteExpense = async () => {
     params: { id: vehicleId.value },
   });
 };
+
+const formatDistance = (distance: number | null) =>
+  formatNumber(distance || 0, {
+    style: "unit",
+    unit: vehicle.value?.mileage_unit || "kilometer",
+    compactDisplay: "short",
+    useGrouping: true,
+  });
+
+const formatAmount = (amount?: number | null) =>
+  formatNumber(amount || 0, {
+    style: "unit",
+    unit: expense.value?.unit || "liter",
+    unitDisplay: "short",
+    compactDisplay: "short",
+  });
+
+const formatCurrency = (cost?: number | null) =>
+  formatNumber(cost || 0, {
+    style: "currency",
+    currency: expense.value?.currency || "EUR",
+    currencyDisplay: "narrowSymbol",
+    compactDisplay: "short",
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+  });
 </script>
 
 <template>
-  <div>
+  <UContainer class="flex-1">
     <ULink
       :to="{
         name: 'vehicles-id-expenses',
         params: { id: vehicleId },
       }"
-      icon="mdi:chevron-left"
-      label="Back to Expenses"
-    />
+      class="inline-flex items-center"
+    >
+      <UIcon name="mdi:chevron-left" class="size-5" />
+      Back to Expenses
+    </ULink>
 
     <span v-if="error">{{ error }}</span>
-    <span v-else-if="loading">loading</span>
 
-    <!-- <SkeletonLoader v-if="loading" /> -->
+    <LazyVehicleExpenseSkeleton v-else-if="loading" />
 
-    <UPageCard
+    <UCard
       v-else-if="expense"
       :title="expense.type || ''"
-      variant="soft"
-      :ui="{ footer: 'flex gap-3' }"
+      :ui="{
+        description: 'flex gap-2 items-center',
+        footer: 'flex gap-2',
+      }"
     >
       <template #description>
-        <UPageList>
-          <UUser
-            v-if="createdBy"
-            :avatar="{
-              src: createdBy.profile_image_url || '',
-              alt: createdBy.name || '',
-              loading: 'lazy',
-            }"
-            :name="createdBy.name || ''"
-            :to="{
-              name: 'profiles-profileId',
-              params: { profileId: createdBy.id },
-            }"
-            size="sm"
-          />
+        <NuxtTime
+          :datetime="expense.date"
+          dateStyle="long"
+          :relative="addToDate(new Date(), -7, 'day') < new Date(expense.date)"
+        />
 
-          <div class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Date:</span>
-            <span>
-              {{
-                formatDate(expense.date, {
-                  dateStyle: "long",
-                  timeStyle: "short",
-                })
-              }}
-            </span>
-          </div>
+        <div
+          class="size-1 bg-current rounded-full inline-block leading-none mx-1"
+        ></div>
 
-          <div class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Mileage:</span>
-            <span>
-              {{
-                formatNumber(expense.mileage || 0, {
-                  style: "unit",
-                  unit: "kilometer",
-                  compactDisplay: "short",
-                  useGrouping: true,
-                })
-              }}
-            </span>
-          </div>
-          <div class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Amount:</span>
-            <span>
-              {{
-                formatNumber(expense.amount || 0, {
-                  style: "unit",
-                  unit: expense.unit || "liter",
-                  unitDisplay: "long",
-                  compactDisplay: "short",
-                })
-              }}
-            </span>
-          </div>
-          <div class="inline-flex gap-1 items-center">
-            <span class="font-semibold">Cost:</span>
-            <span>
-              {{
-                formatNumber(expense.cost || 0, {
-                  style: "currency",
-                  currency: expense.currency || "EUR",
-                  currencyDisplay: "narrowSymbol",
-                  compactDisplay: "short",
-                  notation: "standard",
-                })
-              }}
-            </span>
-          </div>
-          <div class="inline-flex gap-1 items-center">
-            <span class="font-semibold"
-              >Price per {{ expense.unit || "litre" }}:</span
-            >
-            <span>
-              {{
-                formatNumber(expense.price_per_unit || 0, {
-                  style: "currency",
-                  currency: expense.currency || "EUR",
-                  currencyDisplay: "narrowSymbol",
-                  maximumFractionDigits: 2,
-                })
-              }}
-            </span>
-          </div>
-        </UPageList>
+        <UUser
+          v-if="createdBy"
+          :avatar="{
+            src: createdBy.profile_image_url || '',
+            loading: 'lazy',
+          }"
+          :name="createdBy.name || ''"
+          :to="{
+            name: 'profiles-profileId',
+            params: { profileId: createdBy.id },
+          }"
+          size="xs"
+        />
       </template>
+
+      <UPageGrid :ui="{ base: 'grid-cols-2 gap-4 lg:gap-8' }">
+        <UPageCard
+          title="Mileage"
+          :description="formatDistance(expense.mileage)"
+          variant="subtle"
+          :ui="{
+            title: 'text-xs font-normal text-muted',
+            description: 'text-highlighted font-semibold',
+          }"
+        />
+
+        <UPageCard
+          :title="
+            pluralize(expense.amount || 0, expense.unit || 'Liter', 's', false)
+          "
+          :description="formatAmount(expense.amount)"
+          variant="subtle"
+          :ui="{
+            title: 'text-xs font-normal text-muted capitalize',
+            description: 'text-highlighted font-semibold',
+          }"
+        />
+
+        <UPageCard
+          title="Cost"
+          :description="formatCurrency(expense.cost)"
+          variant="subtle"
+          :ui="{
+            title: 'text-xs font-normal text-muted',
+            description: 'text-highlighted font-semibold',
+          }"
+        />
+
+        <UPageCard
+          :title="`Per ${expense.unit || 'liter'}`"
+          :description="formatCurrency(expense.price_per_unit)"
+          variant="subtle"
+          :ui="{
+            title: 'text-xs font-normal text-muted',
+            description: 'text-highlighted font-semibold',
+          }"
+        />
+      </UPageGrid>
+
       <template #footer>
         <UButton
           label="Edit"
           icon="mdi:pencil"
-          variant="subtle"
-          color="neutral"
+          block
           @click="handleEditExpense"
         />
         <UButton
           label="Delete"
           icon="mdi:trash"
-          variant="subtle"
           color="error"
+          variant="soft"
+          block
           @click="handleDeleteExpense"
         />
       </template>
-    </UPageCard>
-  </div>
+    </UCard>
+  </UContainer>
 </template>
