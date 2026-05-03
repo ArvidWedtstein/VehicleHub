@@ -15,7 +15,7 @@ definePageMeta({
 const vehicleId = useRouteParam("id", "number");
 const serviceId = useRouteParam("serviceId", "number");
 
-const { data: service, pending: loading } = await useVehicleService(
+const { data: service, pending: loading } = useVehicleService(
   vehicleId.value,
   serviceId.value,
 );
@@ -38,12 +38,7 @@ const serviceInsights = ref<
       type: string;
     }
   | undefined
->({
-  previous_date: addToDate(new Date(), -1, "year").toISOString(),
-  previous_mileage: 32000,
-  avg_interval: 1000,
-  type: "Oil Change",
-});
+>(undefined);
 
 const getServiceInsights = async () => {
   if (!serviceId.value) return;
@@ -155,6 +150,10 @@ const handleFileDelete = async (file: File) => {
     fileToDelete.file_path,
   );
 
+  refreshNuxtData(
+    `vehicle-${fileToDelete.vehicle_id}_service-${fileToDelete.service_log_id}`,
+  );
+
   toast.add({
     title: `Successfully deleted file '${file.name}'`,
     color: "success",
@@ -252,23 +251,24 @@ onMounted(() => {
           :relative="addToDate(new Date(), -7, 'day') < new Date(service.date)"
         />
 
-        <div
-          class="size-1 bg-current rounded-full inline-block leading-none"
-        ></div>
+        <template v-if="createdBy">
+          <div
+            class="size-1 bg-current rounded-full inline-block leading-none"
+          ></div>
 
-        <UUser
-          v-if="createdBy"
-          :avatar="{
-            src: createdBy.profile_image_url || '',
-            loading: 'lazy',
-          }"
-          :name="createdBy.name || ''"
-          :to="{
-            name: 'profiles-profileId',
-            params: { profileId: createdBy.id },
-          }"
-          size="xs"
-        />
+          <UUser
+            :avatar="{
+              src: createdBy.profile_image_url || '',
+              loading: 'lazy',
+            }"
+            :name="createdBy.name || ''"
+            :to="{
+              name: 'profiles-profileId',
+              params: { profileId: createdBy.id },
+            }"
+            size="xs"
+          />
+        </template>
       </template>
 
       <UPageGrid :ui="{ base: 'gap-4 lg:gap-4' }">
