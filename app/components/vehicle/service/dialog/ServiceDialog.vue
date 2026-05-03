@@ -119,6 +119,7 @@ const onFormSubmit = async () => {
       />
 
       <UButton
+        :key="service.id"
         type="submit"
         :label="isEdit ? 'Save' : 'Create'"
         color="primary"

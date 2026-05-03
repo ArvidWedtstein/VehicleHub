@@ -209,7 +209,6 @@ const generateFileGridActions = (file: File) => {
       label="Click to upload or drag & drop"
       class="mb-2"
       description="Max 5MB"
-      :maxSize="5242880"
       multiple
       fileIcon="mdi:file"
       v-model="files"
@@ -219,6 +218,14 @@ const generateFileGridActions = (file: File) => {
         <span class="link-hover truncate" @click="handleFilePreview(file)">
           {{ file.name }}
         </span>
+      </template>
+
+      <template #file-trailing="{ file }">
+        <div class="grow"></div>
+
+        <ResponsiveMenu :items="generateFileGridActions(file)">
+          <UButton icon="mdi:dots-vertical" variant="ghost" color="neutral" />
+        </ResponsiveMenu>
       </template>
     </UFileUpload>
 

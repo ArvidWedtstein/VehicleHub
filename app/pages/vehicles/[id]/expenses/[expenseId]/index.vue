@@ -103,7 +103,7 @@ const formatCurrency = (cost?: number | null) =>
 </script>
 
 <template>
-  <UContainer class="flex-1">
+  <UContainer class="flex-1 px-0">
     <ULink
       :to="{
         name: 'vehicles-id-expenses',
@@ -135,7 +135,7 @@ const formatCurrency = (cost?: number | null) =>
         />
 
         <div
-          class="size-1 bg-current rounded-full inline-block leading-none mx-1"
+          class="size-1 bg-current rounded-full inline-block leading-none"
         ></div>
 
         <UUser
@@ -159,6 +159,7 @@ const formatCurrency = (cost?: number | null) =>
           :description="formatDistance(expense.mileage)"
           variant="subtle"
           :ui="{
+            container: 'p-2 sm:p-4',
             title: 'text-xs font-normal text-muted',
             description: 'text-highlighted font-semibold',
           }"
@@ -171,6 +172,7 @@ const formatCurrency = (cost?: number | null) =>
           :description="formatAmount(expense.amount)"
           variant="subtle"
           :ui="{
+            container: 'p-2 sm:p-4',
             title: 'text-xs font-normal text-muted capitalize',
             description: 'text-highlighted font-semibold',
           }"
@@ -181,6 +183,7 @@ const formatCurrency = (cost?: number | null) =>
           :description="formatCurrency(expense.cost)"
           variant="subtle"
           :ui="{
+            container: 'p-2 sm:p-4',
             title: 'text-xs font-normal text-muted',
             description: 'text-highlighted font-semibold',
           }"
@@ -191,6 +194,7 @@ const formatCurrency = (cost?: number | null) =>
           :description="formatCurrency(expense.price_per_unit)"
           variant="subtle"
           :ui="{
+            container: 'p-2 sm:p-4',
             title: 'text-xs font-normal text-muted',
             description: 'text-highlighted font-semibold',
           }"
@@ -201,6 +205,7 @@ const formatCurrency = (cost?: number | null) =>
         <UButton
           label="Edit"
           icon="mdi:pencil"
+          variant="soft"
           block
           @click="handleEditExpense"
         />
