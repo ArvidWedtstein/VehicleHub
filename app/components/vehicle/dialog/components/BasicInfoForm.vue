@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SelectMenuItem } from "@nuxt/ui";
 import type { VehicleSchema } from "../useVehicleForm";
 
 const vehicle = defineModel<Partial<VehicleSchema>>({ required: true });
@@ -51,7 +52,7 @@ const getModels = async () => {
   }
 };
 
-const vehicleTypes = [
+const vehicleTypes: SelectMenuItem[] = [
   { value: "Car", icon: "mdi:car" },
   { value: "Boat", icon: "mdi:boat" },
   { value: "Tractor", icon: "mdi:tractor" },
@@ -61,30 +62,45 @@ const vehicleTypes = [
   { value: "Other" },
 ];
 
-const vehicleColors = [
-  { value: "Black" },
-  { value: "Silver" },
-  { value: "Grey" },
-  { value: "Brown" },
-  { value: "Red" },
-  { value: "Yellow" },
-  { value: "Orange" },
-  { value: "Purple" },
-  { value: "Pink" },
-  { value: "Blue" },
-  { value: "Turquise" },
-  { value: "Magenta" },
-  { value: "White" },
-  { value: "Beige" },
-  { value: "Green" },
-  { value: "Lime" },
-  { value: "Aqua" },
-  { value: "Olive" },
+const vehicleColors: SelectMenuItem[] = [
+  "Black",
+  "Silver",
+  "Grey",
+  "Brown",
+  "Red",
+  "Yellow",
+  "Orange",
+  "Purple",
+  "Pink",
+  "Blue",
+  "Turquise",
+  "Magenta",
+  "White",
+  "Beige",
+  "Green",
+  "Lime",
+  "Aqua",
+  "Olive",
 ];
 </script>
 
 <template>
   <div class="my-2 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6 flex-1">
+    <UFormField label="Type" name="type" class="sm:col-span-2" required>
+      <USelectMenu
+        v-model="vehicle.type"
+        class="w-full"
+        :items="vehicleTypes"
+        labelKey="value"
+        valueKey="value"
+        :icon="
+          vehicle.type !== 'Other'
+            ? `mdi:${vehicle.type?.toLowerCase()}`
+            : undefined
+        "
+      />
+    </UFormField>
+
     <UFormField
       label="License Plate Number"
       name="licenseplate_number"
@@ -103,6 +119,7 @@ const vehicleColors = [
     <UFormField
       label="Vehicle Identification Number"
       name="vehicle_identification_number"
+      help="We'll auto-fill make, model and year from this"
       class="sm:col-span-2"
     >
       <template #hint>
@@ -119,21 +136,10 @@ const vehicleColors = [
         v-model="vehicle.vehicle_identification_number"
         class="w-full"
         @blur="handleVIN"
-        :maxlength="17"
       />
     </UFormField>
 
-    <UFormField label="Type" name="type" class="sm:col-span-2">
-      <USelectMenu
-        v-model="vehicle.type"
-        class="w-full"
-        :items="vehicleTypes"
-        labelKey="value"
-        valueKey="value"
-      />
-    </UFormField>
-
-    <UFormField label="Make" name="make" class="sm:col-span-2">
+    <UFormField label="Make" name="make" class="sm:col-span-2" required>
       <UInputMenu
         v-model="vehicle.make"
         class="w-full"
@@ -184,7 +190,7 @@ const vehicleColors = [
         <template #item-leading="{ item }">
           <span
             :style="{
-              backgroundColor: item.value.toLowerCase(),
+              backgroundColor: (item || '').toString().toLowerCase(),
             }"
             class="size-3 shrink-0 rounded-full self-center"
           ></span>

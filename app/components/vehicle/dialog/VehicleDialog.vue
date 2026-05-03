@@ -15,9 +15,10 @@ const toast = useToast();
 const stepper = useTemplateRef("stepper");
 
 const activeStep = ref("general");
-const steps = ref<StepperItem[]>([
+const steps: StepperItem[] = [
   {
     title: "General",
+    description: "General Vehicle Info",
     slot: "general",
     value: "general",
   },
@@ -33,7 +34,7 @@ const steps = ref<StepperItem[]>([
     value: "transmission",
     slot: "transmission",
   },
-]);
+];
 
 const onOpen = () => {
   console.log("Initializing vehicle form with ID:", vehicleId);
@@ -80,6 +81,9 @@ const onFormSubmit = async () => {
           class="my-2 w-full"
           v-model="activeStep"
           :items="steps"
+          :ui="{
+            description: 'invisible lg:visible',
+          }"
         >
           <template #general>
             <VehicleDialogComponentsBasicInfoForm

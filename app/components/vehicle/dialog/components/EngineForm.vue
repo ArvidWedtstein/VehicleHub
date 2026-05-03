@@ -27,6 +27,7 @@ const fuelCapacityUnitOptions = [
   { value: "liter", label: "Liter" },
   { value: "gallon", label: "US Gallon" },
   { value: "imp_gallon", label: "Imperial Gallon" },
+  { value: "fluid-ounce", label: "Ounce" },
 ];
 
 const engineDisplacementUnitOptions = [
@@ -40,6 +41,7 @@ const milageUnitOptions = [
   { value: "mile", label: "Mile" },
   { value: "yards", label: "Yards" },
   { value: "feet", label: "Feet" },
+  { value: "acre", label: "Acre" },
 ];
 </script>
 
@@ -49,7 +51,6 @@ const milageUnitOptions = [
       <UInputMenu
         v-model="vehicle.fuel_type"
         class="w-full"
-        autocomplete
         :items="fuelTypeOptions"
       />
     </UFormField>
@@ -57,31 +58,41 @@ const milageUnitOptions = [
     <UFormField
       label="Fuel Capacity"
       name="fuel_capacity"
-      class="sm:col-span-4"
+      class="sm:col-span-3"
     >
-      <UFieldGroup class="w-full">
-        <UInputMenu v-model="vehicle.fuel_capacity" class="grow" autocomplete />
-        <USelect
-          class="shrink-0"
-          v-model="vehicle.fuel_capacity_unit"
-          :items="fuelCapacityUnitOptions"
-        />
-      </UFieldGroup>
+      <UInput v-model.number="vehicle.fuel_capacity" class="w-full" />
     </UFormField>
 
     <UFormField
-      label="Engine Displacement"
-      name="engine_displacement"
-      class="sm:col-span-2"
+      label="Fuel Unit"
+      name="fuel_capacity_unit"
+      class="sm:col-span-1"
     >
-      <UFieldGroup class="w-full">
-        <UInput class="grow" v-model="vehicle.engine_displacement" />
-        <USelect
-          class="shrink-0"
-          v-model="vehicle.engine_displacement_unit"
-          :items="engineDisplacementUnitOptions"
-        />
-      </UFieldGroup>
+      <USelect
+        v-model="vehicle.fuel_capacity_unit"
+        :items="fuelCapacityUnitOptions"
+        class="w-full"
+      />
+    </UFormField>
+
+    <UFormField
+      label="Displacement"
+      name="engine_displacement"
+      class="sm:col-span-1"
+    >
+      <UInput class="w-full" v-model="vehicle.engine_displacement" />
+    </UFormField>
+
+    <UFormField
+      label="Displacement Unit"
+      name="engine_displacement_unit"
+      class="sm:col-span-1"
+    >
+      <USelect
+        class="w-full"
+        v-model="vehicle.engine_displacement_unit"
+        :items="engineDisplacementUnitOptions"
+      />
     </UFormField>
 
     <UFormField label="Cylinders" name="engine_cylinders" class="sm:col-span-2">

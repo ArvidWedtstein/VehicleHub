@@ -1,14 +1,19 @@
 import { serverSupabaseClient } from "#supabase/server";
 import { Database } from "~/types/supabase";
+import { z } from "zod";
+
+const BodySchema = z.object({
+  filters: z.array(z.any()).optional(),
+});
 
 export default defineAuthenticatedEventHandler(async (event) => {
-  const body = await readBody(event);
+  const body = await readValidatedBody(event, BodySchema.safeParse);
 
   if (!body) {
     throw createError({ statusCode: 400, statusMessage: "Body required" });
   }
 
-  const filters = body.filters;
+  const filters = body.data?.filters || [];
 
   const client = await serverSupabaseClient<Database>(event);
 

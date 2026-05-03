@@ -1,33 +1,46 @@
-import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server";
+import { serverSupabaseClient } from "#supabase/server";
 import { Database } from "~/types/supabase";
+import { z } from "zod";
+
+const BodySchema = z.object({
+  filters: z.any().array().default([]), // TODO: find better solution
+  pagination: z
+    .object({
+      limit: z.number().min(0),
+      offset: z.number().min(0),
+    })
+    .optional(),
+});
 
 export default defineAuthenticatedEventHandler(async (event) => {
-  const id = getRouterParam(event, "id");
-  if (!id)
-    throw createError({ statusCode: 400, statusMessage: "No id provided" });
+  const params = await getValidatedRouterParams(
+    event,
+    z.object({ id: z.number("No Vehicle ID provided") }).parse,
+  );
+  const id = params.id;
 
-  const body = await readBody(event);
+  const result = await readValidatedBody(event, BodySchema.safeParse);
 
-  if (!body) {
+  if (!result.success) {
     throw createError({ statusCode: 400, statusMessage: "Body required" });
   }
 
-  const filters = body.filters;
+  const { filters, pagination } = result.data;
 
   const client = await serverSupabaseClient<Database>(event);
 
   let query = client
     .from("VehicleExpenses")
     .select("*")
-    .eq("vehicle_id", parseInt(id))
+    .eq("vehicle_id", id)
     .order("date", { ascending: false });
 
   if (filters && filters.length > 0) {
     query = applyFilters<"VehicleExpenses", typeof query>(query, filters);
   }
 
-  if (body.pagination) {
-    const { limit, offset } = body.pagination;
+  if (pagination) {
+    const { limit, offset } = pagination;
     query = query.range(offset, offset + limit - 1);
   }
 

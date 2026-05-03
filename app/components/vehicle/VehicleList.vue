@@ -1,14 +1,24 @@
 <script setup lang="ts">
-const { data: vehicles, pending, refresh } = useVehicles();
+import VehicleDialog from "./dialog/VehicleDialog.vue";
+
+const { data: vehicles, pending, status, refresh } = useVehicles();
+
+const overlay = useOverlay();
+
+const vehicleModal = overlay.create(VehicleDialog);
 
 const createVehicle = () => {
-  alert("Create new lol");
+  vehicleModal.open();
 };
 </script>
 
 <template>
   <UPageGrid>
-    <span v-if="pending">Loading...</span>
+    <VehicleSkeleton
+      v-if="pending || status === 'idle' || status === 'pending'"
+      v-for="i in 3"
+      :key="i"
+    />
 
     <UEmpty
       v-else-if="vehicles && vehicles.length === 0"
@@ -48,5 +58,12 @@ const createVehicle = () => {
         />
       </template>
     </UPageCard>
+
+    <UPageCard
+      variant="subtle"
+      title="Add new Vehicle"
+      icon="mdi:plus"
+      @click="createVehicle"
+    />
   </UPageGrid>
 </template>

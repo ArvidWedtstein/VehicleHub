@@ -68,6 +68,7 @@ const onFormSubmit = async () => {
   <UModal
     :title="isEdit ? 'Edit Service' : 'Create Service'"
     :close="{ onClick: () => emit('close', false) }"
+    fullscreen
     @after:enter="onOpen"
     :ui="{ footer: 'justify-end' }"
   >
