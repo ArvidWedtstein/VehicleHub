@@ -4,9 +4,9 @@ import type { VehicleSchema } from "../useVehicleForm";
 
 const vehicle = defineModel<Partial<VehicleSchema>>({ required: true });
 
-const { data: vehicleManufacturers } = await useVehicleManufacturers();
+const { data: vehicleManufacturers } = useVehicleManufacturers();
 
-const handleVIN = () => {
+const handleVIN = async () => {
   const vin = vehicle.value.vehicle_identification_number;
 
   if (!vin) {
@@ -15,6 +15,7 @@ const handleVIN = () => {
 
   const decodedVIN = decodeVIN(vin);
 
+  console.log("VIN Decoded", decodedVIN);
   if (!decodedVIN) {
     return;
   }
@@ -22,15 +23,49 @@ const handleVIN = () => {
   vehicle.value.make = decodedVIN.manufacturer;
   vehicle.value.model_year = decodedVIN.modelYear;
 
-  getModels();
+  console.log(vehicle.value.make);
+  await retrieveModels();
 };
 
 const availableModels = ref<Array<string>>([]);
+
+const {
+  pending: modelsPending,
+  data: models,
+  clear: clearModels,
+  refresh: retrieveModels,
+} = await useFetch(
+  `https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${vehicle.value.make}`, // TODO: fix vehicle make not refreshing
+  {
+    key: `models-${vehicle.value.make}`,
+    query: {
+      format: "json",
+    },
+    default: () => [] as string[],
+    watch: [
+      () => {
+        console.log("d");
+        return vehicle.value.make;
+      },
+    ],
+    immediate: false,
+    transform: (data: {
+      Count: number;
+      Results: Partial<{ Model_Name: string }>[];
+    }) => {
+      console.log("data", data);
+      return data.Results.map((p) => p.Model_Name || "");
+    },
+  },
+);
 
 const getModels = async () => {
   try {
     if (!vehicle.value.make) return;
 
+    // https://vpic.nhtsa.dot.gov/api/
+
+    // https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/JKBZR800CDDA05501?format=json
     const res = await fetch(
       `https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${vehicle.value.make.replace(
         "Š",
@@ -45,6 +80,8 @@ const getModels = async () => {
     const { Results } = json as {
       Results: { Model_Name: string }[];
     };
+
+    console.log("Models", Results);
 
     availableModels.value = Results.map((p) => p.Model_Name);
   } catch (error) {
@@ -86,36 +123,6 @@ const vehicleColors: SelectMenuItem[] = [
 
 <template>
   <div class="my-2 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6 flex-1">
-    <UFormField label="Type" name="type" class="sm:col-span-2" required>
-      <USelectMenu
-        v-model="vehicle.type"
-        class="w-full"
-        :items="vehicleTypes"
-        labelKey="value"
-        valueKey="value"
-        :icon="
-          vehicle.type !== 'Other'
-            ? `mdi:${vehicle.type?.toLowerCase()}`
-            : undefined
-        "
-      />
-    </UFormField>
-
-    <UFormField
-      label="License Plate Number"
-      name="licenseplate_number"
-      class="sm:col-span-2"
-    >
-      <UInput
-        type="text"
-        v-model="vehicle.licenseplate_number"
-        pattern="^[a-zA-Z0-9]+$"
-        class="w-full"
-        placeholder="AB 123456"
-        autofocus
-      />
-    </UFormField>
-
     <UFormField
       label="Vehicle Identification Number"
       name="vehicle_identification_number"
@@ -136,21 +143,54 @@ const vehicleColors: SelectMenuItem[] = [
         v-model="vehicle.vehicle_identification_number"
         class="w-full"
         @blur="handleVIN"
+        autofocus
+      />
+    </UFormField>
+
+    <UFormField
+      label="License Plate Number"
+      name="licenseplate_number"
+      class="sm:col-span-2"
+    >
+      <UInput
+        type="text"
+        v-model="vehicle.licenseplate_number"
+        pattern="^[a-zA-Z0-9]+$"
+        class="w-full"
+        placeholder="AB 123456"
+      />
+    </UFormField>
+
+    <UFormField label="Type" name="type" class="sm:col-span-2" required>
+      <USelectMenu
+        v-model="vehicle.type"
+        class="w-full"
+        :items="vehicleTypes"
+        labelKey="value"
+        valueKey="value"
+        :icon="
+          vehicle.type !== 'Other'
+            ? `mdi:${vehicle.type?.toLowerCase()}`
+            : undefined
+        "
       />
     </UFormField>
 
     <UFormField label="Make" name="make" class="sm:col-span-2" required>
-      <UInputMenu
+      <USelectMenu
         v-model="vehicle.make"
         class="w-full"
-        autocomplete
         autocapitalize="words"
         :items="vehicleManufacturers"
         labelKey="name"
         valueKey="name"
-        :trailingIcon="false"
         :content="{ hideWhenEmpty: true }"
-        @blur="getModels"
+        :loading="modelsPending"
+        @change="
+          () => {
+            retrieveModels();
+          }
+        "
       />
     </UFormField>
 
@@ -160,8 +200,7 @@ const vehicleColors: SelectMenuItem[] = [
         class="w-full"
         autocomplete
         autocapitalize="words"
-        :items="availableModels"
-        :trailingIcon="false"
+        :items="models"
         :content="{ hideWhenEmpty: true }"
       />
     </UFormField>
