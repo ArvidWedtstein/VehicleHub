@@ -15,7 +15,11 @@ const BodySchema = z.object({
 export default defineAuthenticatedEventHandler(async (event) => {
   const params = await getValidatedRouterParams(
     event,
-    z.object({ id: z.number("No Vehicle ID provided") }).parse,
+    z.object({
+      id: z.coerce.number({
+        error: (val) => `Invalid Vehicle ID type provided ${val.message}`,
+      }),
+    }).parse,
   );
   const id = params.id;
 
@@ -38,7 +42,7 @@ export default defineAuthenticatedEventHandler(async (event) => {
     );
   }
 
-  if (pagination) {
+  if (pagination && pagination?.limit !== -1) {
     const { limit, offset } = pagination;
     query = query.range(offset, offset + limit - 1);
 

@@ -151,7 +151,6 @@ const vehicleColors: SelectMenuItem[] = [
         autocomplete
         autocapitalize="words"
         :items="models"
-        :content="{ hideWhenEmpty: true }"
       />
     </UFormField>
 

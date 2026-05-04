@@ -23,13 +23,15 @@ type Serie<T> = {
   valueFormatter?: (value: T[keyof T]) => string;
 };
 
+type Scale = (v: number | string | Date, i?: number) => number;
+
 type AxisDataType<S extends ScaleTypes> = S extends "linear" | "log" | "sqrt"
   ? number[]
   : S extends "time" | "utc"
-  ? Date[]
-  : S extends "band" | "point"
-  ? (string | number)[]
-  : number[];
+    ? Date[]
+    : S extends "band" | "point"
+      ? (string | number)[]
+      : number[];
 
 type Axis<T, S extends ScaleTypes> = {
   data?: AxisDataType<S>;
@@ -44,7 +46,7 @@ type Axis<T, S extends ScaleTypes> = {
       | T[keyof T]
       | (AxisDataType<S>[number] extends never
           ? number
-          : AxisDataType<S>[number])
+          : AxisDataType<S>[number]),
   ) => string;
 };
 
@@ -104,7 +106,7 @@ const chartBounds = computed(() => {
 
   const { top, bottom, left, right } = Object.assign(
     defaultMargins,
-    props.margin
+    props.margin,
   );
 
   return {
@@ -117,6 +119,34 @@ const chartBounds = computed(() => {
   };
 });
 
+function createBandScale(
+  domain: (string | number)[],
+  range: [number, number],
+  padding = 0.1,
+) {
+  const step = (range[1] - range[0]) / domain.length;
+  const band = step * (1 - padding);
+  const offset = (step - band) / 2;
+
+  const map = new Map(domain.map((d, i) => [d, i]));
+
+  const scale: Scale = (v) => range[0] + map.get(v as any)! * step + offset;
+
+  (scale as any).bandwidth = band;
+
+  return scale as Scale & { bandwidth: number };
+}
+
+function createLinearScale(
+  domain: [number, number],
+  range: [number, number],
+): Scale {
+  const [d0, d1] = domain;
+  const [r0, r1] = range;
+  const m = (r1 - r0) / (d1 - d0);
+  return (v) => r0 + (+v - d0) * m;
+}
+
 const seriesData = computed(() => {
   const colors = generateDistinctColors(props.series.length);
 
@@ -128,7 +158,8 @@ const seriesData = computed(() => {
 
     if (serie.dataKey && props.dataset && props.dataset?.length) {
       data = props.dataset.map(
-        (p) => getNestedProperty(p, [serie.dataKey?.toString() || ""]) as number
+        (p) =>
+          getNestedProperty(p, [serie.dataKey?.toString() || ""]) as number,
       );
     }
 
@@ -136,7 +167,7 @@ const seriesData = computed(() => {
     const serieColor =
       serie.color?.startsWith("--") && document
         ? getComputedStyle(document.documentElement).getPropertyValue(
-            serie.color
+            serie.color,
           )
         : serie.color;
 
@@ -151,7 +182,7 @@ const seriesData = computed(() => {
 
 const formatTick = (
   value: string | number | Date,
-  axis: Axis<Dataset, ScaleType>
+  axis: Axis<Dataset, ScaleType>,
 ) => {
   if (axis.valueFormatter) {
     return axis.valueFormatter(value as Dataset[keyof Dataset]);
@@ -175,14 +206,14 @@ const xAxes = computed(() => {
 
     if (dataKey && props.dataset) {
       data = props.dataset.map((p) =>
-        getNestedProperty(p, [dataKey?.toString() || ""])
+        getNestedProperty(p, [dataKey?.toString() || ""]),
       ) as AxisDataType<ScaleType>;
     }
 
     const steps = data.length;
 
     const maxSeriesLength = Math.max(
-      ...seriesData.value.map((serie) => serie.data.length - 1)
+      ...seriesData.value.map((serie) => serie.data.length - 1),
     );
 
     const { min, max } = getMinMax(
@@ -190,7 +221,7 @@ const xAxes = computed(() => {
         | string
         | number
         | Date
-      )[]
+      )[],
     );
 
     const axisTicks = generateAxisTicks(
@@ -202,7 +233,7 @@ const xAxes = computed(() => {
       steps,
       data,
       "extremities",
-      scaleType === "band" ? "middle" : "tick"
+      scaleType === "band" ? "middle" : "tick",
     );
 
     const ticksPosition = axisTicks.map(
@@ -218,7 +249,7 @@ const xAxes = computed(() => {
           labelX,
           labelY,
         };
-      }
+      },
     );
 
     // TODO: fix position
@@ -248,7 +279,7 @@ const yAxes = computed(() => {
 
     if (dataKey && props.dataset) {
       data = props.dataset.map((p) =>
-        getNestedProperty(p, [dataKey?.toString() || ""])
+        getNestedProperty(p, [dataKey?.toString() || ""]),
       ) as AxisDataType<ScaleType>;
     }
 
@@ -256,7 +287,7 @@ const yAxes = computed(() => {
     const steps = data.length;
 
     const { min, max } = getMinMax(
-      (data.length > 0 ? data : seriesFlat) as (string | number | Date)[]
+      (data.length > 0 ? data : seriesFlat) as (string | number | Date)[],
     );
 
     const axisTicks = generateAxisTicks(
@@ -268,7 +299,7 @@ const yAxes = computed(() => {
       steps,
       data,
       "extremities",
-      scaleType === "band" ? "middle" : "tick"
+      scaleType === "band" ? "middle" : "tick",
     );
 
     // console.log('y', axisTicks, min, max, data);
@@ -295,7 +326,7 @@ const yAxes = computed(() => {
           labelX,
           labelY,
         };
-      }
+      },
     );
 
     // TODO: fix position
@@ -340,11 +371,11 @@ const seriesDataPoints = computed(() => {
             return xAxis.data.length > 0
               ? xDataVal === label || xDataVal === tickValue
               : tickIndex === index;
-          }
+          },
         );
 
         const { min: xMin, max: xMax } = getMinMax(
-          xAxis.ticks.map((p) => p.label).filter((p) => p != null)
+          xAxis.ticks.map((p) => p.label).filter((p) => p != null),
         );
 
         const x = numberToChart(
@@ -353,11 +384,11 @@ const seriesDataPoints = computed(() => {
           xPos?.value || xAxis.ticks[index]?.value || 0,
           "x",
           xAxis.scaleType,
-          chartBounds.value
+          chartBounds.value,
         );
 
         const { min: yMin, max: yMax } = getMinMax(
-          yAxis.ticks.map((p) => p.label).filter((p) => p != null)
+          yAxis.ticks.map((p) => p.label).filter((p) => p != null),
         );
 
         const y = numberToChart(
@@ -366,7 +397,7 @@ const seriesDataPoints = computed(() => {
           value,
           "y",
           yAxis.scaleType,
-          chartBounds.value
+          chartBounds.value,
         );
 
         const showMark =
@@ -420,7 +451,7 @@ const tooltip = ref<Tooltip>({
   content: "",
 });
 
-const vColumnHoverPath = computed(() => {
+const columnHoverPath = computed(() => {
   const { bottom, top } = chartBounds.value;
   const { x } = tooltip.value;
 
@@ -485,7 +516,7 @@ const vColumnHoverPath = computed(() => {
       >
         <rect
           v-for="({ x, y, width, height }, index) in points.filter(
-            ({ showMark }) => showMark
+            ({ showMark }) => showMark,
           )"
           :key="`serie-${serieIndex}-bar-${index}`"
           color="#495AFB"
@@ -504,7 +535,7 @@ const vColumnHoverPath = computed(() => {
       <!-- Tooltip element -->
       <path
         v-if="tooltip.columnHover"
-        :d="vColumnHoverPath"
+        :d="columnHoverPath"
         class="fill-white/10"
       />
     </g>

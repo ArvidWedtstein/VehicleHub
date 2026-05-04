@@ -150,6 +150,28 @@ onMounted(() => {
       </div>
     </div>
 
+    <LazyUEmpty
+      v-if="!expenses.length"
+      title="No Expenses Found"
+      description="It looks like you haven't added any expenses. Create one to get started."
+      :actions="[
+        {
+          icon: 'mdi:plus',
+          label: 'Create new',
+          onClick: handleCreateExpense,
+        },
+        {
+          icon: 'mdi:refresh',
+          label: 'Refresh',
+          color: 'neutral',
+          variant: 'subtle',
+          loading: loading,
+          loadingAuto: true,
+          onClick: () => refresh(),
+        },
+      ]"
+    />
+
     <UScrollArea
       ref="scrollArea"
       class="w-full min-h-0 h-[calc(100dvh-var(--ui-header-height)-9rem)]"

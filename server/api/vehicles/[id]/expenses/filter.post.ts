@@ -16,7 +16,9 @@ export default defineAuthenticatedEventHandler(async (event) => {
   const params = await getValidatedRouterParams(
     event,
     z.object({
-      id: z.string("No Vehicle ID provided").transform((p) => parseInt(p)),
+      id: z.coerce.number({
+        error: (val) => `Invalid Vehicle ID type provided ${val.message}`,
+      }),
     }).parse,
   );
   const id = params.id;
@@ -41,8 +43,8 @@ export default defineAuthenticatedEventHandler(async (event) => {
     query = applyFilters<"VehicleExpenses", typeof query>(query, filters);
   }
 
-  if (pagination) {
-    const { limit, offset } = pagination;
+  if (pagination && pagination?.limit !== -1) {
+    const { limit, offset } = pagination || {};
     query = query.range(offset, offset + limit - 1);
   }
 

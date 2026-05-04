@@ -3,7 +3,11 @@ UPageCard
 import BarChart from "~/components/charts/BarChart.vue";
 
 const vehicleId = useRouteParam("id", "number");
-const { data: services, pending: loading } = useVehicleServices(vehicleId);
+const { data: services, pending: loading } = useVehicleServices(
+  vehicleId,
+  undefined,
+  -1,
+);
 
 type Option = {
   value: string;
@@ -103,9 +107,7 @@ const serviceData = computed(() => {
 
 <template>
   <div>
-    <template v-if="loading">
-      <StatCardSkeletonLoader />
-    </template>
+    <StatCardSkeletonLoader v-if="loading" />
 
     <UPageCard
       v-else
@@ -133,12 +135,11 @@ const serviceData = computed(() => {
             :items="chartSettings.periodOptions"
             :content="false"
             :unmountOnHide="false"
-            color="neutral"
             size="sm"
+            color="neutral"
             :ui="{
               list: 'ring ring-accented rounded-full',
               indicator: 'rounded-full',
-              trigger: 'w-1/2',
             }"
           />
         </div>
