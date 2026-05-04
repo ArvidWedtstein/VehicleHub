@@ -15,7 +15,9 @@ const BodySchema = z.object({
 export default defineAuthenticatedEventHandler(async (event) => {
   const params = await getValidatedRouterParams(
     event,
-    z.object({ id: z.number("No Vehicle ID provided") }).parse,
+    z.object({
+      id: z.string("No Vehicle ID provided").transform((p) => parseInt(p)),
+    }).parse,
   );
   const id = params.id;
 

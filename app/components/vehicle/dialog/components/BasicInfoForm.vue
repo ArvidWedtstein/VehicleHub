@@ -22,32 +22,17 @@ const handleVIN = async () => {
 
   vehicle.value.make = decodedVIN.manufacturer;
   vehicle.value.model_year = decodedVIN.modelYear;
-
-  console.log(vehicle.value.make);
-  await retrieveModels();
 };
 
-const availableModels = ref<Array<string>>([]);
-
-const {
-  pending: modelsPending,
-  data: models,
-  clear: clearModels,
-  refresh: retrieveModels,
-} = await useFetch(
-  `https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${vehicle.value.make}`, // TODO: fix vehicle make not refreshing
+const { pending: modelsPending, data: models } = await useFetch(
+  () =>
+    `https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${vehicle.value.make?.toLowerCase()}`,
   {
-    key: `models-${vehicle.value.make}`,
+    key: () => `models-${vehicle.value.make?.toLowerCase()}`,
     query: {
       format: "json",
     },
     default: () => [] as string[],
-    watch: [
-      () => {
-        console.log("d");
-        return vehicle.value.make;
-      },
-    ],
     immediate: false,
     transform: (data: {
       Count: number;
@@ -58,36 +43,6 @@ const {
     },
   },
 );
-
-const getModels = async () => {
-  try {
-    if (!vehicle.value.make) return;
-
-    // https://vpic.nhtsa.dot.gov/api/
-
-    // https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/JKBZR800CDDA05501?format=json
-    const res = await fetch(
-      `https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${vehicle.value.make.replace(
-        "Š",
-        "S",
-      )}?format=json`,
-    );
-
-    if (!res.ok || res.status !== 200) return;
-
-    const json = await res.json();
-
-    const { Results } = json as {
-      Results: { Model_Name: string }[];
-    };
-
-    console.log("Models", Results);
-
-    availableModels.value = Results.map((p) => p.Model_Name);
-  } catch (error) {
-    console.error(error);
-  }
-};
 
 const vehicleTypes: SelectMenuItem[] = [
   { value: "Car", icon: "mdi:car" },
@@ -186,11 +141,6 @@ const vehicleColors: SelectMenuItem[] = [
         valueKey="name"
         :content="{ hideWhenEmpty: true }"
         :loading="modelsPending"
-        @change="
-          () => {
-            retrieveModels();
-          }
-        "
       />
     </UFormField>
 
