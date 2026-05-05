@@ -49,7 +49,7 @@ export const useVehicleExpenses = (
       data.value = [...data.value, ...newPage];
     }
 
-    if (newPage.length < limit.value) {
+    if (newPage.length < limit.value || limit.value === -1) {
       hasMore.value = false;
     }
   });

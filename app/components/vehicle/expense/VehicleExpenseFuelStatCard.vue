@@ -9,6 +9,7 @@ const { data: expenses, pending: loading } = useVehicleExpenses(
 const selectedPeriod = ref("month");
 
 const statFuelCostPerMonth = computed(() => {
+  console.log("we", expenses.value);
   const currentDate = new Date();
   const currentPeriod = formatDateToFormat(currentDate, "yyyy-MM");
   const prevPeriod = formatDateToFormat(

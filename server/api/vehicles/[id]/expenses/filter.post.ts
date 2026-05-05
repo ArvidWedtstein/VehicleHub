@@ -6,7 +6,7 @@ const BodySchema = z.object({
   filters: z.any().array().default([]), // TODO: find better solution
   pagination: z
     .object({
-      limit: z.number().min(0),
+      limit: z.number().min(-1),
       offset: z.number().min(0),
     })
     .optional(),
@@ -26,7 +26,7 @@ export default defineAuthenticatedEventHandler(async (event) => {
   const result = await readValidatedBody(event, BodySchema.safeParse);
 
   if (!result.success) {
-    throw createError({ statusCode: 400, statusMessage: "Body required" });
+    throw createError({ statusCode: 400, message: `${result.error}` });
   }
 
   const { filters, pagination } = result.data;

@@ -119,34 +119,6 @@ const chartBounds = computed(() => {
   };
 });
 
-function createBandScale(
-  domain: (string | number)[],
-  range: [number, number],
-  padding = 0.1,
-) {
-  const step = (range[1] - range[0]) / domain.length;
-  const band = step * (1 - padding);
-  const offset = (step - band) / 2;
-
-  const map = new Map(domain.map((d, i) => [d, i]));
-
-  const scale: Scale = (v) => range[0] + map.get(v as any)! * step + offset;
-
-  (scale as any).bandwidth = band;
-
-  return scale as Scale & { bandwidth: number };
-}
-
-function createLinearScale(
-  domain: [number, number],
-  range: [number, number],
-): Scale {
-  const [d0, d1] = domain;
-  const [r0, r1] = range;
-  const m = (r1 - r0) / (d1 - d0);
-  return (v) => r0 + (+v - d0) * m;
-}
-
 const seriesData = computed(() => {
   const colors = generateDistinctColors(props.series.length);
 
@@ -462,181 +434,181 @@ const columnHoverPath = computed(() => {
 </script>
 
 <template>
-  <svg
-    :width="width"
-    :height="height"
-    :viewBox="`0 0 ${width} ${height}`"
-    class="relative w-full h-full"
-    xmlns="http://www.w3.org/2000/svg"
-    @mousemove="
-      (e) => {
-        const { pageX, pageY } = e;
-        const { left, top } = chartBounds;
-        tooltip.x = pageX - left;
-        tooltip.y = pageY - top;
+  <ClientOnly>
+    <svg
+      :width="width"
+      :height="height"
+      :viewBox="`0 0 ${width} ${height}`"
+      class="relative w-full h-full"
+      xmlns="http://www.w3.org/2000/svg"
+      @mousemove="
+        (e) => {
+          const { pageX, pageY } = e;
+          const { left, top } = chartBounds;
+          tooltip.x = pageX - left;
+          tooltip.y = pageY - top;
 
-        tooltip.visible = true;
+          tooltip.visible = true;
+        }
+      "
+      @mouseleave="tooltip.visible = false"
+    >
+      <title></title>
+      <desc></desc>
+      <defs></defs>
+      <g>
+        <template v-if="grid?.vertical">
+          <line
+            v-for="({ x }, index) in xAxes[0]?.ticks"
+            :key="`grid-vertical-line-${index}`"
+            :y1="chartBounds.top"
+            :y2="chartBounds.bottom"
+            :x1="x"
+            :x2="x"
+            class="stroke-white/10 stroke-1"
+          />
+        </template>
+        <template v-if="grid?.horizontal">
+          <line
+            v-for="({ y }, index) in yAxes[0]?.ticks"
+            :key="`grid-horizontal-line-${index}`"
+            :y1="y"
+            :y2="y"
+            :x1="chartBounds.left"
+            :x2="chartBounds.right"
+            class="stroke-white/10 stroke-1"
+          />
+        </template>
+      </g>
+      <g>
+        <g
+          v-for="({ color, points }, serieIndex) in seriesDataPoints"
+          :key="`serie-${serieIndex}-points`"
+        >
+          <rect
+            v-for="({ x, y, width, height }, index) in points.filter(
+              ({ showMark }) => showMark,
+            )"
+            :key="`serie-${serieIndex}-bar-${index}`"
+            color="#495AFB"
+            :x="x"
+            :y="y"
+            :width="width"
+            :height="height"
+            cursor="unset"
+            stroke="none"
+            :fill="color"
+            layout="vertical"
+            opacity="1"
+          ></rect>
+        </g>
 
-        console.log('tooltip', tooltip.x, tooltip.y);
-      }
-    "
-    @mouseleave="tooltip.visible = false"
-  >
-    <title></title>
-    <desc></desc>
-    <defs></defs>
-    <g>
-      <template v-if="grid?.vertical">
-        <line
-          v-for="({ x }, index) in xAxes[0]?.ticks"
-          :key="`grid-vertical-line-${index}`"
-          :y1="chartBounds.top"
-          :y2="chartBounds.bottom"
-          :x1="x"
-          :x2="x"
-          class="stroke-white/10 stroke-1"
+        <!-- Tooltip element -->
+        <path
+          v-if="tooltip.columnHover"
+          :d="columnHoverPath"
+          class="fill-white/10"
         />
-      </template>
-      <template v-if="grid?.horizontal">
+      </g>
+
+      <g
+        v-for="(axis, axisIndex) in xAxes"
+        :key="`x-axis-${axisIndex}`"
+        :transform="`translate(${axis.x}, ${axis.y})`"
+      >
         <line
-          v-for="({ y }, index) in yAxes[0]?.ticks"
-          :key="`grid-horizontal-line-${index}`"
-          :y1="y"
-          :y2="y"
           :x1="chartBounds.left"
           :x2="chartBounds.right"
-          class="stroke-white/10 stroke-1"
+          class="stroke-white"
         />
-      </template>
-    </g>
-    <g>
+
+        <g
+          v-for="(
+            { label, x, y, tickX, tickY, labelX, labelY }, index
+          ) in axis.ticks"
+          :key="`x-axis-${axisIndex}-ticks-${index}`"
+          :transform="`translate(${x}, ${y})`"
+        >
+          <line :x1="tickX" :x2="tickX" :y2="tickY" class="stroke-white" />
+
+          <text
+            :x="labelX"
+            :y="labelY"
+            class="text-xs fill-white"
+            text-anchor="middle"
+            dominant-baseline="hanging"
+          >
+            <tspan :x="labelX" dy="0px" dominant-baseline="central">
+              {{ formatTick(label as number | string | Date, axis) }}
+            </tspan>
+          </text>
+        </g>
+      </g>
       <g
-        v-for="({ color, points }, serieIndex) in seriesDataPoints"
-        :key="`serie-${serieIndex}-points`"
+        v-for="(axis, axisIndex) in yAxes"
+        :key="`y-axis-${axisIndex}`"
+        :transform="`translate(${axis.x}, ${axis.y})`"
       >
+        <line
+          :y1="chartBounds.top"
+          :y2="chartBounds.bottom"
+          shape-rendering="auto"
+          class="stroke-white"
+          stroke-linecap="square"
+        />
+
+        <g
+          v-for="(
+            { label, x, y, tickX, tickY, labelX, labelY }, index
+          ) in axis.ticks"
+          :key="'y-tick-' + index"
+          :transform="`translate(${x}, ${y})`"
+        >
+          <line :x2="tickX" :y2="tickY" class="stroke-white" />
+          <text
+            class="text-xs fill-white"
+            :x="labelX"
+            :y="labelY"
+            text-anchor="end"
+            dominant-baseline="central"
+          >
+            <tspan :x="labelX" dy="0px" dominant-baseline="central">
+              {{ formatTick(label as number | string | Date, axis) }}
+            </tspan>
+          </text>
+        </g>
+      </g>
+
+      <g v-if="tooltip.visible">
         <rect
-          v-for="({ x, y, width, height }, index) in points.filter(
-            ({ showMark }) => showMark,
-          )"
-          :key="`serie-${serieIndex}-bar-${index}`"
-          color="#495AFB"
-          :x="x"
-          :y="y"
-          :width="width"
-          :height="height"
-          cursor="unset"
-          stroke="none"
-          :fill="color"
-          layout="vertical"
-          opacity="1"
-        ></rect>
-      </g>
-
-      <!-- Tooltip element -->
-      <path
-        v-if="tooltip.columnHover"
-        :d="columnHoverPath"
-        class="fill-white/10"
-      />
-    </g>
-
-    <g
-      v-for="(axis, axisIndex) in xAxes"
-      :key="`x-axis-${axisIndex}`"
-      :transform="`translate(${axis.x}, ${axis.y})`"
-    >
-      <line
-        :x1="chartBounds.left"
-        :x2="chartBounds.right"
-        class="stroke-white"
-      />
-
-      <g
-        v-for="(
-          { label, x, y, tickX, tickY, labelX, labelY }, index
-        ) in axis.ticks"
-        :key="`x-axis-${axisIndex}-ticks-${index}`"
-        :transform="`translate(${x}, ${y})`"
-      >
-        <line :x1="tickX" :x2="tickX" :y2="tickY" class="stroke-white" />
-
+          class="fill-red-500"
+          width="100"
+          height="50"
+          rx="7"
+          :x="tooltip.x"
+          :y="tooltip.y"
+        />
         <text
-          :x="labelX"
-          :y="labelY"
+          :x="tooltip.x"
+          :y="tooltip.y"
           class="text-xs fill-white"
-          text-anchor="middle"
           dominant-baseline="hanging"
         >
-          <tspan :x="labelX" dy="0px" dominant-baseline="central">
-            {{ formatTick(label as number | string | Date, axis) }}
-          </tspan>
+          <tspan
+            dy="0px"
+            dominant-baseline="hanging"
+            v-html="tooltip.content"
+          ></tspan>
         </text>
       </g>
-    </g>
-    <g
-      v-for="(axis, axisIndex) in yAxes"
-      :key="`y-axis-${axisIndex}`"
-      :transform="`translate(${axis.x}, ${axis.y})`"
-    >
-      <line
-        :y1="chartBounds.top"
-        :y2="chartBounds.bottom"
-        shape-rendering="auto"
-        class="stroke-white"
-        stroke-linecap="square"
-      />
-
-      <g
-        v-for="(
-          { label, x, y, tickX, tickY, labelX, labelY }, index
-        ) in axis.ticks"
-        :key="'y-tick-' + index"
-        :transform="`translate(${x}, ${y})`"
-      >
-        <line :x2="tickX" :y2="tickY" class="stroke-white" />
-        <text
-          class="text-xs fill-white"
-          :x="labelX"
-          :y="labelY"
-          text-anchor="end"
-          dominant-baseline="central"
-        >
-          <tspan :x="labelX" dy="0px" dominant-baseline="central">
-            {{ formatTick(label as number | string | Date, axis) }}
-          </tspan>
-        </text>
-      </g>
-    </g>
-
-    <g v-if="tooltip.visible">
-      <rect
-        class="fill-red-500"
-        width="100"
-        height="50"
-        rx="7"
-        :x="tooltip.x"
-        :y="tooltip.y"
-      />
-      <text
-        :x="tooltip.x"
-        :y="tooltip.y"
-        class="text-xs fill-white"
-        dominant-baseline="hanging"
-      >
-        <tspan
-          dy="0px"
-          dominant-baseline="hanging"
-          v-html="tooltip.content"
-        ></tspan>
-      </text>
-    </g>
-    <clipPath id="some-clip-path">
-      <rect
-        :x="chartBounds.left"
-        :y="chartBounds.top"
-        :width="chartBounds.width"
-        :height="chartBounds.height"
-      />
-    </clipPath>
-  </svg>
+      <clipPath id="some-clip-path">
+        <rect
+          :x="chartBounds.left"
+          :y="chartBounds.top"
+          :width="chartBounds.width"
+          :height="chartBounds.height"
+        />
+      </clipPath>
+    </svg>
+  </ClientOnly>
 </template>

@@ -6,7 +6,7 @@ const BodySchema = z.object({
   filters: z.any().array().default([]), // TODO: find better solution
   pagination: z
     .object({
-      limit: z.number().min(0),
+      limit: z.number().min(-1),
       offset: z.number().min(0),
     })
     .optional(),
