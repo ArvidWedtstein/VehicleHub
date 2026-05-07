@@ -9,6 +9,7 @@ const fuelTypeOptions = [
   "Kerosene",
   "Gas",
   "Electric",
+  "Hybrid",
   "Hydrogen",
   "Other",
   "Biodiesel",

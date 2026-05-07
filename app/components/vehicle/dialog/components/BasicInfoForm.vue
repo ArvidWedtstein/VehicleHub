@@ -13,15 +13,17 @@ const handleVIN = async () => {
     return;
   }
 
-  const decodedVIN = decodeVIN(vin);
+  const decodedVIN = await decodeVINAsync(vin);
 
   console.log("VIN Decoded", decodedVIN);
   if (!decodedVIN) {
     return;
   }
 
-  vehicle.value.make = decodedVIN.manufacturer;
-  vehicle.value.model_year = decodedVIN.modelYear;
+  vehicle.value.make ??= decodedVIN.manufacturer;
+  vehicle.value.model ??= decodedVIN.model;
+  vehicle.value.model_year ??= decodedVIN.modelYear;
+  vehicle.value.fuel_type ??= decodedVIN.fuelType;
 };
 
 const { pending: modelsPending, data: models } = await useFetch(
@@ -38,7 +40,6 @@ const { pending: modelsPending, data: models } = await useFetch(
       Count: number;
       Results: Partial<{ Model_Name: string }>[];
     }) => {
-      console.log("data", data);
       return data.Results.map((p) => p.Model_Name || "");
     },
   },
@@ -95,7 +96,7 @@ const vehicleColors: SelectMenuItem[] = [
 
       <UInput
         type="text"
-        v-model="vehicle.vehicle_identification_number"
+        v-model.lazy="vehicle.vehicle_identification_number"
         class="w-full"
         @blur="handleVIN"
         autofocus
