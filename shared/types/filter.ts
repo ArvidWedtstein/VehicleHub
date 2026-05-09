@@ -25,16 +25,6 @@ const _FilterOperatorDocs = {
   cs: "cs",
   /** Contained by: Full-text search: column is contained by the full-text search query */
   cd: "cd",
-  /** Slightly Left: strictly left of, e.g. ?range=sl.(1,10) */
-  // sl: "sl",
-  // /** Slightly Right: strictly right of, e.g. ?range=sr.(1,10) */
-  // sr: "sr",
-  // /** Not Extend Left: Does not extend to the left of value */
-  // nxl: "nxl",
-  // /** Not Extend Right: Does not extend to the right of value */
-  // nxr: "nxr",
-  // /** Adjacent: column value is adjacent to  */
-  // adj: "adj",
   /** Overlaps: (have points in common). Only relevant for array and range columns */
   ov: "ov",
   /** Full-text search: column matches the full-text search query using to_tsquery */

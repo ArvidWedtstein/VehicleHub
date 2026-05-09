@@ -52,6 +52,8 @@ const handleInviteUser = async () => {
   toast.add({ title: `Invite sent` });
 
   console.log(selectedPersons.value);
+
+  vehicleShares.value.push(...selectedPersons.value);
 };
 </script>
 
@@ -77,7 +79,6 @@ const handleInviteUser = async () => {
               class="grow"
               multiple
               :filterFields="['label']"
-              valueKey="user_id"
               v-model="selectedPersons"
             />
           </UFormField>
