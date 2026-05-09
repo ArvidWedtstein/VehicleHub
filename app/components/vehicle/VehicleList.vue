@@ -23,7 +23,7 @@ const createVehicle = () => {
     <UEmpty
       v-else-if="vehicles && vehicles.length === 0"
       title="No Vehicles found"
-      description="It looks like you haven't added any vehicles. Create one to get started."
+      description="It looks like you haven't added any vehicles. Try searching or create one to get started."
       class="col-span-full"
       :actions="[
         {

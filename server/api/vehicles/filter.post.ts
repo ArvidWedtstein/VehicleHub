@@ -22,9 +22,9 @@ export default defineAuthenticatedEventHandler(async (event) => {
     .select("*")
     .order("created_at", { ascending: true });
 
-  if (filters && filters.length > 0) {
-    query = applyFilters<"Vehicles", typeof query>(query, filters);
-  }
+  query = applyFilters<"Vehicles", typeof query>(query, filters, {
+    matchAny: true,
+  });
 
   const { data, error } = await query;
 
