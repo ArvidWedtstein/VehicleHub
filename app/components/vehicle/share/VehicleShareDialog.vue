@@ -15,13 +15,15 @@ const { data: profiles } = useProfiles();
 
 const toast = useToast();
 
+const selectedPersons = ref([]);
+
 const profilesList = computed(() => {
   return profiles.value
     .filter((p) => p.user_id !== sessionUser.value?.id)
     .map((p) => ({
       label: p.name || "",
       avatar: { src: p.profile_image_url || "" },
-      value: p.id,
+      user_id: p.user_id,
       loading: "lazy" as const,
     }));
 });
@@ -48,6 +50,8 @@ const removeUser = async (userId: string) => {
 const handleInviteUser = async () => {
   // TODO: implement invite user logic
   toast.add({ title: `Invite sent` });
+
+  console.log(selectedPersons.value);
 };
 </script>
 
@@ -71,6 +75,10 @@ const handleInviteUser = async () => {
               :items="profilesList"
               placeholder="Search by name or email"
               class="grow"
+              multiple
+              :filterFields="['label']"
+              valueKey="user_id"
+              v-model="selectedPersons"
             />
           </UFormField>
 
@@ -85,6 +93,7 @@ const handleInviteUser = async () => {
               v-if="!vehicleShares.length"
               title="Only you have access"
               variant="soft"
+              class="grow w-full"
             />
             <div
               v-for="(share, idx) in vehicleShares"
