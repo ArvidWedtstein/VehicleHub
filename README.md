@@ -1,11 +1,22 @@
 <a name="readme-top"></a>
 
+<div align="center">
+
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![Version][version-shield]][version-url]
+[![Languages][languages-shield]][repo-url]
+
+</div>
+<div align="center">
+
+[![Created][repocreated-shield]][repo-url]
+[![Commit Diff][commitdiff-shield]][repo-url]
+[![Netlify][netlify-shield]][repo-url]
 [![Update database types][workflow-shield]][workflow-url]
+
+</div>
 
 <br />
 <div align="center">
@@ -183,7 +194,8 @@ Nothing to acknowledge yet :D
 
 <!-- MARKDOWN LINKS & IMAGES -->
 
-[workflow-shield]: https://github.com/ArvidWedtstein/VehicleHub/actions/workflows/update-types.yml/badge.svg
+[repo-url]: https://github.com/ArvidWedtstein/VehicleHub
+[workflow-shield]: https://github.com/ArvidWedtstein/VehicleHub/actions/workflows/update-types.yml/badge.svg?style=for-the-badge
 [workflow-url]: https://github.com/ArvidWedtstein/VehicleHub/actions/workflows/update-types.yml
 [contributors-shield]: https://img.shields.io/github/contributors/ArvidWedtstein/VehicleHub.svg?style=for-the-badge
 [contributors-url]: https://github.com/ArvidWedtstein/VehicleHub/graphs/contributors
@@ -191,12 +203,14 @@ Nothing to acknowledge yet :D
 [forks-url]: https://github.com/ArvidWedtstein/VehicleHub/network/members
 [stars-shield]: https://img.shields.io/github/stars/ArvidWedtstein/VehicleHub.svg?style=for-the-badge
 [stars-url]: https://github.com/ArvidWedtstein/VehicleHub/stargazers
+[repocreated-shield]: https://img.shields.io/github/created-at/ArvidWedtstein/VehicleHub?label=Created
 [issues-shield]: https://img.shields.io/github/issues/ArvidWedtstein/VehicleHub.svg?style=for-the-badge
 [issues-url]: https://github.com/ArvidWedtstein/VehicleHub/issues
 [license-shield]: https://img.shields.io/github/license/ArvidWedtstein/VehicleHub.svg?style=for-the-badge
+[commitdiff-shield]: https://img.shields.io/github/commits-difference/ArvidWedtstein/VehicleHub?base=prod&head=dev&label=Dev%20/%20Prod%20commit%20Diff
 [license-url]: https://github.com/ArvidWedtstein/VehicleHub/blob/prod/LICENSE.txt
-[version-shield]: https://img.shields.io/github/package-json/v/ArvidWedtstein/VehicleHub/dev?style=for-the-badge
-[version-url]: https://github.com/ArvidWedtstein/VehicleHub
+[languages-shield]: https://img.shields.io/github/languages/count/ArvidWedtstein/VehicleHub?style=for-the-badge
+[netlify-shield]: https://img.shields.io/netlify/5cd928d0-c022-438d-a367-029a608d8263?logo=netlify&label=Netlify
 [vue.js]: https://shields.io/badge/vue-black?logo=vue&style=for-the-badge
 [vue-url]: https://vuejs.org/
 [supabase]: https://shields.io/badge/supabase-black?logo=supabase&style=for-the-badge
