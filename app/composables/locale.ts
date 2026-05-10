@@ -4,12 +4,17 @@ export function useLocale() {
 
 export function useDefaultLocale(fallback = "en-US") {
   const locale = ref(fallback);
+
   if (import.meta.server) {
     const reqLocale = useRequestHeaders()["accept-language"]?.split(",")[0];
     if (reqLocale) {
       locale.value = reqLocale;
     }
-  } else if (import.meta.client) {
+
+    return locale;
+  }
+
+  if (import.meta.client) {
     const navLang = navigator.language;
     if (navLang) {
       locale.value = navLang;
@@ -29,8 +34,10 @@ export function useLocales() {
     "fa-IR",
     "ja-JP-u-ca-japanese",
   ]);
+
   if (!locales.value.includes(locale.value)) {
     locales.value.unshift(locale.value);
   }
+
   return locales;
 }

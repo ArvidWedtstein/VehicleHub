@@ -11,6 +11,7 @@ definePageMeta({
 });
 
 const supabase = useSupabaseClient<Database>();
+const redirect = (url: string) => {};
 
 const signInWithGoogle = async () => {
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -19,6 +20,10 @@ const signInWithGoogle = async () => {
       redirectTo: `${window.location.origin}/callback`,
     },
   });
+
+  if (data.url) {
+    redirect(data.url);
+  }
 
   if (error) console.error("Login error:", error);
 };

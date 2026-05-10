@@ -170,29 +170,6 @@ export const convertBytes = (value: number, fromUnit: Bytes, toUnit: Bytes) => {
   return (value * units[fromUnit]) / units[toUnit];
 };
 
-export const inchesToMetric = (
-  inches: number,
-  unit: "mm" | "cm" | "m" | "auto" = "auto",
-): string => {
-  if (inches < 0) return "Invalid measurement"; // Handle negative values
-
-  const mm = inches * 25.4; // Convert inches to millimeters
-
-  switch (unit) {
-    case "mm":
-      return `${mm.toFixed(1)} mm`;
-    case "cm":
-      return `${(mm / 10).toFixed(1)} cm`;
-    case "m":
-      return `${(mm / 1000).toFixed(2)} m`;
-    case "auto":
-    default:
-      if (mm >= 1000) return `${(mm / 1000).toFixed(2)} m`;
-      if (mm >= 10) return `${(mm / 10).toFixed(1)} cm`;
-      return `${mm.toFixed(1)} mm`;
-  }
-};
-
 /**
  * Tire size format: [width]/[aspect ratio]R[diameter][load index]
  * Example: 205/55R16 91V
