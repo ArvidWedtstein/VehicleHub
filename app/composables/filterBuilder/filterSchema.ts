@@ -1,4 +1,4 @@
-import type { Database, Tables } from "~/types/supabase";
+import type { Database } from "~/types/supabase";
 
 export type FilterFieldType =
   | "select"
@@ -12,28 +12,39 @@ export type FilterFieldType =
   | "number"
   | "custom"; // fallback for advanced cases
 
-export type FilterField<Row> = {
+type Tables = Database["public"]["Tables"];
+
+export type FilterField<T extends keyof Tables> = {
   /** DB column this filter applies to */
-  column: keyof Row;
+  column: keyof Tables[T]["Row"];
   /** Human-friendly label */
   label: string;
   /** UI control type */
   type: FilterFieldType;
   /** Default operator (no user selection) */
-  operator?: FilterOption<Row>["operator"];
+  operator?: FilterOperator;
   /** Predefined select options (for dropdowns) */
-  options?: { label: string; value: any }[];
+  options?: {
+    label: string;
+    value: Tables[T]["Row"][keyof Tables[T]["Row"]] extends string | undefined
+      ? Tables[T]["Row"][keyof Tables[T]["Row"]]
+      : string;
+  }[];
   /** Range config */
   range?: { min: number; max: number; step?: number };
 
-  /** TODO: fix type */
-  default?: any;
+  default?:
+    | Tables[T]["Row"][keyof Tables[T]["Row"]]
+    | Tables[T]["Row"][keyof Tables[T]["Row"]][]
+    | null;
 
-  transform?: (value: any) => FilterOption<Row>[] | null;
+  transform?: (
+    value: unknown,
+  ) => FilterOption<Tables[T]["Row"], any, any>[] | null;
 };
 
 /**
  * A table’s complete filter schema.
  */
-export type FilterSchema<Table extends keyof Database["public"]["Tables"]> =
-  FilterField<Tables<Table>>[];
+export type FilterSchema<Table extends Partial<keyof Tables>> =
+  FilterField<Table>[];

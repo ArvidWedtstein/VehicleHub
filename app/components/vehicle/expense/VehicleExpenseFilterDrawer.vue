@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FilterSchema } from "~/composables/filterBuilder/filterSchema";
+import type { Tables } from "~/types/supabase";
 
 const open = ref(false);
 
@@ -23,7 +24,7 @@ const filterSchema: FilterSchema<"VehicleExpenses"> = [
     label: "Amount",
     type: "range",
     range: { min: 0, max: 1000, step: 1 },
-    default: [0, 0],
+    default: [null, null],
   },
   {
     column: "cost",
@@ -31,7 +32,7 @@ const filterSchema: FilterSchema<"VehicleExpenses"> = [
     type: "number",
   },
   { column: "date", label: "Date", type: "date-range" },
-];
+] as const;
 
 const { schema, filterState, buildFilters, resetFilters } =
   useFilterBuilder(filterSchema);
@@ -39,6 +40,8 @@ const { schema, filterState, buildFilters, resetFilters } =
 const applyFilters = async () => {
   console.log("filters", buildFilters.value);
   emit("applyFilters", buildFilters);
+
+  open.value = false;
 };
 </script>
 

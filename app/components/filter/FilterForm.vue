@@ -4,7 +4,7 @@
   generic="Table extends keyof Database['public']['Tables']"
 >
 import type { FilterSchema } from "~/composables/filterBuilder/filterSchema";
-import type { Database, Tables } from "~/types/supabase";
+import type { Database } from "~/types/supabase";
 
 defineProps<{
   schema: FilterSchema<Table>;
@@ -14,7 +14,12 @@ defineProps<{
 
 <template>
   <div class="flex flex-col divide-y-2 divide-neutral">
-    <UAccordion type="multiple" :items="schema">
+    <UAccordion
+      type="multiple"
+      :items="schema"
+      valueKey="column"
+      :defaultValue="schema.map((item) => item.column.toString())"
+    >
       <template #body="{ item }">
         <div class="p-4">
           <UCheckboxGroup
