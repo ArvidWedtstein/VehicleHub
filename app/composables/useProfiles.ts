@@ -15,7 +15,7 @@ export const useProfile = (
   return useFetch<Tables<"Profiles">>(`/api/profiles/${profileId.value}`, {
     key: () => `profile-${profileId.value}`,
     immediate: !!profileId.value,
-    watch: [profileId],
+    watch: [() => profileId],
   });
 };
 

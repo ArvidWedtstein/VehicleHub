@@ -10,14 +10,30 @@ definePageMeta({
 
 onMounted(async () => {
   console.info("LOGO9OOG");
-  if (!user) {
+  if (!user.value) {
     console.warn("No user found");
     router.push("/login");
-  } else {
-    const path = redirectInfo.pluck();
-    console.log("Logged in user:", user);
-    return navigateTo(path || "/");
   }
 });
+
+watch(
+  user,
+  () => {
+    if (user.value) {
+      const path = redirectInfo.pluck();
+
+      console.log("user found", path);
+
+      return navigateTo(path || "/");
+    }
+  },
+  { immediate: true, deep: true },
+);
 </script>
-<template>Logging in..</template>
+<template>
+  <UContainer>
+    <UPage>
+      <UPageHeader title="Logging you in..." />
+    </UPage>
+  </UContainer>
+</template>

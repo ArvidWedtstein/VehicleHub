@@ -304,6 +304,7 @@ export type Database = {
           model: string | null
           model_year: number | null
           owner_user_id: string | null
+          search_column: unknown
           thumbnail: string | null
           transmission_gears: number | null
           transmission_type: string | null
@@ -330,6 +331,7 @@ export type Database = {
           model?: string | null
           model_year?: number | null
           owner_user_id?: string | null
+          search_column?: unknown
           thumbnail?: string | null
           transmission_gears?: number | null
           transmission_type?: string | null
@@ -356,6 +358,7 @@ export type Database = {
           model?: string | null
           model_year?: number | null
           owner_user_id?: string | null
+          search_column?: unknown
           thumbnail?: string | null
           transmission_gears?: number | null
           transmission_type?: string | null
@@ -574,26 +577,16 @@ export type Database = {
           unit: string
         }[]
       }
-      get_service_insights:
-        | {
-            Args: { service_log_id: number }
-            Returns: {
-              previous_date: string
-              previous_mileage: number
-            }[]
-          }
-        | {
-            Args: { service_log_id: number; vehicle_id: number }
-            Returns: {
-              avg_interval: number
-              previous_date: string
-              previous_mileage: number
-              type: string
-            }[]
-          }
-      jwt_custom_claims:
-        | { Args: never; Returns: Json }
-        | { Args: { event: Json }; Returns: Json }
+      get_service_insights: {
+        Args: { service_log_id: number; vehicle_id: number }
+        Returns: {
+          avg_interval: number
+          previous_date: string
+          previous_mileage: number
+          type: string
+        }[]
+      }
+      jwt_custom_claims: { Args: { event: Json }; Returns: Json }
       terminate_user: { Args: { profile_user_id: string }; Returns: undefined }
     }
     Enums: {

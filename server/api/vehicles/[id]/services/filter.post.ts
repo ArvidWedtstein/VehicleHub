@@ -1,51 +1,38 @@
 import { serverSupabaseClient } from "#supabase/server";
-import { Database, Tables } from "~/types/supabase";
+import { Database } from "~/types/supabase";
+import { z } from "zod";
 
-type FilterBody = {
-  filters?: FilterOption<Tables<"vehicleservicelogs_with_items">>[];
-  pagination?: {
-    limit: number;
-    offset: number;
-  };
-};
+const BodySchema = z.object({
+  filters: z.any().array().default([]), // TODO: find better solution
+  pagination: z
+    .object({
+      limit: z.number().min(-1),
+      offset: z.number().min(0),
+    })
+    .optional(),
+});
 
 export default defineAuthenticatedEventHandler(async (event) => {
-  const id = getRouterParam(event, "id");
-  if (!id)
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No vehicle id provided",
-    });
+  const params = await getValidatedRouterParams(
+    event,
+    z.object({
+      id: z.coerce.number({
+        error: (val) => `Invalid Vehicle ID type provided ${val.message}`,
+      }),
+    }).parse,
+  );
+  const id = params.id;
 
-  const result = await readValidatedBody<FilterBody>(event, (data) => {
-    if (!data) {
-      throw createError({ statusCode: 400, statusMessage: "Body required" });
-    }
+  const result = await readValidatedBody(event, BodySchema.safeParse);
 
-    if (typeof data !== "object" || data === null) {
-      throw createError({ statusCode: 400 });
-    }
-
-    const b = data as Record<string, unknown>;
-
-    if (b.filters && !Array.isArray(b.filters)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: "Filters should be an array",
-      });
-    }
-
-    return data;
-  });
-
-  const { filters = [], pagination } = result;
+  const { filters = [], pagination } = result.data || {};
 
   const client = await serverSupabaseClient<Database>(event);
 
   let query = client
     .from("vehicleservicelogs_with_items")
     .select("*")
-    .eq("vehicle_id", parseInt(id))
+    .eq("vehicle_id", id)
     .order("date", { ascending: false });
 
   if (filters && filters.length > 0) {
@@ -55,7 +42,7 @@ export default defineAuthenticatedEventHandler(async (event) => {
     );
   }
 
-  if (pagination) {
+  if (pagination && pagination?.limit !== -1) {
     const { limit, offset } = pagination;
     query = query.range(offset, offset + limit - 1);
 

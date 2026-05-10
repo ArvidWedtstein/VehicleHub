@@ -33,5 +33,12 @@
       "url": "/vehicles/",
       "icons": [{ "src": "/icons/icon-512.png", "sizes": "192x192" }]
     }
-  ]
+  ],
+  "client": {
+    "installPrompt": true
+  },
+  "devOptions": {
+    "enabled": true,
+    "type": "module"
+  }
 }

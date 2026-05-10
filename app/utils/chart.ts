@@ -17,6 +17,14 @@ export type ChartBounds = {
   height: number;
 };
 
+type ContinuousScale = (v: number | Date) => number;
+
+type BandScale = {
+  (v: string | number): number;
+  bandwidth: number;
+  step: number;
+};
+
 export type TickLabelPlacement = "middle" | "tick";
 
 const offsetRatio = {
@@ -32,7 +40,7 @@ export const numberToChart = (
   value: number | string | Date,
   axis: "x" | "y",
   scaleType: ScaleTypes,
-  chartBounds: ChartBounds
+  chartBounds: ChartBounds,
 ) => {
   const { width, height, left, right, top, bottom } = chartBounds;
 
@@ -49,8 +57,8 @@ export const numberToChart = (
     value instanceof Date
       ? value.getTime()
       : typeof value === "string"
-      ? 0
-      : value;
+        ? 0
+        : value;
 
   const range =
     scaleType === "log"
@@ -93,7 +101,7 @@ export const generateAxisTicks = (
   numTicks: number = 0,
   data: (string | number)[] | number[] | Date[] = [],
   tickPlacement: "start" | "end" | "middle" | "extremities" = "extremities",
-  tickLabelPlacement: TickLabelPlacement = "tick"
+  tickLabelPlacement: TickLabelPlacement = "tick",
 ) => {
   const { width, height } = chartBounds;
 
@@ -118,7 +126,7 @@ export const generateAxisTicks = (
         ? 1
         : 10
       : 5,
-    stepExponent
+    stepExponent,
   );
 
   const stepSize = Math.ceil(rawStepSize / stepMultiplier) * stepMultiplier;
@@ -163,10 +171,10 @@ export const generateAxisTicks = (
             ? value
             : 0
           : scaleType === "band" || scaleType === "point"
-          ? (data || [])[i]
-          : scaleType === "time" || scaleType === "utc"
-          ? new Date(value)
-          : value;
+            ? (data || [])[i]
+            : scaleType === "time" || scaleType === "utc"
+              ? new Date(value)
+              : value;
 
       // TODO: fix
       let coord =
@@ -178,7 +186,7 @@ export const generateAxisTicks = (
               value,
               axis,
               scaleType,
-              chartBounds
+              chartBounds,
             );
 
       if (scaleType === "band" || scaleType === "point") {
@@ -200,8 +208,8 @@ export const generateAxisTicks = (
         axis === "x"
           ? 9
           : scaleType === "band" || scaleType === "point"
-          ? -labelOffset
-          : labelOffset;
+            ? -labelOffset
+            : labelOffset;
 
       return {
         coord,
@@ -213,7 +221,7 @@ export const generateAxisTicks = (
         labelY,
         index: i,
       };
-    }
+    },
   );
 
   return axisTicks;
@@ -224,7 +232,7 @@ export const generateTicks = (
   max: number | Date | string,
   numTicks: number,
   scaleType: ScaleTypes,
-  data: (string | number)[] | number[] | Date[] = []
+  data: (string | number)[] | number[] | Date[] = [],
 ) => {
   if (
     scaleType === "log" &&
@@ -310,7 +318,7 @@ export const scale = <S extends ScaleTypes>(
   }[],
   chartBounds: ChartBounds,
   tickPlacement: "start" | "end" | "middle" | "extremities" = "extremities",
-  tickLabelPlacement: "middle" | "tick" = "tick"
+  tickLabelPlacement: "middle" | "tick" = "tick",
 ) => {
   const { left, right, top, bottom, width, height } = chartBounds;
 
@@ -370,7 +378,7 @@ export const scale = <S extends ScaleTypes>(
     const step = scaleSize / ticks.length;
 
     const tickIndex = ticks.findIndex(
-      ({ value: tickValue }) => tickValue === value
+      ({ value: tickValue }) => tickValue === value,
     );
 
     const labelOffset =
@@ -383,7 +391,7 @@ export const scale = <S extends ScaleTypes>(
         ((value as number) - Math.min(...ticks.map((p) => p.value as number))) /
         Math.ceil(
           Math.max(...ticks.map((p) => p.value as number)) -
-            Math.min(...ticks.map((p) => p.value as number))
+            Math.min(...ticks.map((p) => p.value as number)),
         );
 
       const scaledValue = rangeMin + normalized * scaleSize;
@@ -431,12 +439,12 @@ export const generatePath = (
     | "natural"
     | "step"
     | "stepBefore"
-    | "stepAfter"
+    | "stepAfter",
 ): string => {
   if (interpolation === "linear") {
     return points
       .map((point, i) =>
-        i === 0 ? `M${point.x},${point.y}` : `L${point.x},${point.y}`
+        i === 0 ? `M${point.x},${point.y}` : `L${point.x},${point.y}`,
       )
       .join(" ");
   }
@@ -458,7 +466,7 @@ export const generatePath = (
     return points.reduce(
       (path, point, i) =>
         i === 0 ? `M${point.x},${point.y}` : `${path} H${point.x} V${point.y}`,
-      ""
+      "",
     );
   }
 
@@ -468,7 +476,7 @@ export const generatePath = (
         i === 0
           ? `M${point.x},${point.y}`
           : `${path} V${arr[i - 1]?.y} H${point.x}`,
-      ""
+      "",
     );
   }
 
@@ -476,20 +484,20 @@ export const generatePath = (
     return points.reduce(
       (path, point, i) =>
         i === 0 ? `M${point.x},${point.y}` : `${path} H${point.x} V${point.y}`,
-      ""
+      "",
     );
   }
 
   return points
     .map((point, i) =>
-      i === 0 ? `M${point.x},${point.y}` : `L${point.x},${point.y}`
+      i === 0 ? `M${point.x},${point.y}` : `L${point.x},${point.y}`,
     )
     .join(" ");
 };
 
 const calculateMonotonePath = (
   points: { x: number; y: number }[],
-  isY: boolean = false
+  isY: boolean = false,
 ): string => {
   if (points.length < 2) return "";
 
@@ -563,7 +571,7 @@ const calculateNaturalSpline = (points: { x: number; y: number }[]): string => {
 
 const calculateCatmullRomPath = (
   points: { x: number; y: number }[],
-  tension: number = 0.5
+  tension: number = 0.5,
 ): string => {
   if (points.length < 2) return "";
 
@@ -589,7 +597,7 @@ const calculateCatmullRomPath = (
 };
 
 export const getMinMax = <T extends string | number | Date>(
-  data: T[]
+  data: T[],
 ): { min: T; max: T } => {
   if (!data || data.length === 0) {
     return { min: 0 as T, max: 0 as T };
@@ -608,4 +616,36 @@ export const getMinMax = <T extends string | number | Date>(
   }
 
   return { min, max };
+};
+
+export const createBandScale = (
+  domain: (string | number)[],
+  range: [number, number],
+): BandScale => {
+  const [start, end] = range;
+  const step = (end - start) / domain.length;
+  const bandwidth = step * 0.8; // padding built-in
+
+  const map = new Map(domain.map((d, i) => [d, i]));
+
+  const scale = ((v: string | number) => {
+    const i = map.get(v) ?? 0;
+    return start + i * step + (step - bandwidth) / 2;
+  }) as BandScale;
+
+  scale.bandwidth = bandwidth;
+  scale.step = step;
+
+  return scale;
+};
+
+export const createLinearScale = (
+  domain: [number, number],
+  range: [number, number],
+): ContinuousScale => {
+  const [d0, d1] = domain;
+  const [r0, r1] = range;
+
+  return (v: number | Date) =>
+    r0 + (((v instanceof Date ? v.getTime() : v) - d0) / (d1 - d0)) * (r1 - r0);
 };

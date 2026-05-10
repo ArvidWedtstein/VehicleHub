@@ -2,8 +2,11 @@
 import BarChart from "~/components/charts/BarChart.vue";
 
 const vehicleId = useRouteParam("id", "number");
-const { data: expenses, pending: loading } =
-  await useVehicleExpenses(vehicleId);
+const { data: expenses, pending: loading } = useVehicleExpenses(
+  vehicleId,
+  undefined,
+  -1,
+);
 
 type Option = {
   value: string;
@@ -167,7 +170,6 @@ const uniqueUnits = computed(() => {
             :ui="{
               list: 'ring ring-accented rounded-full',
               indicator: 'rounded-full',
-              trigger: 'w-1/2',
             }"
           />
         </div>

@@ -13,20 +13,30 @@ const transmissionTypeOptions: SelectMenuItem[] = [
   { label: "Sequential Manual" },
 ];
 
-const drivetrainOptions = ["FWD", "RWD", "AWD", "4WD"];
+const drivetrainOptions: ("FWD" | "RWD" | "AWD" | "4WD")[] = [
+  "FWD",
+  "RWD",
+  "AWD",
+  "4WD",
+];
 </script>
 
 <template>
-  <div class="mt-2 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6 flex-1">
-    <UFormField label="Mileage Unit" name="mileage_unit" class="sm:col-span-2">
+  <div class="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-6 flex-1">
+    <UFormField
+      label="Transmission Type"
+      name="transmission_type"
+      class="md:col-span-2"
+    >
       <USelectMenu
         class="w-full"
         v-model="vehicle.transmission_type"
         :items="transmissionTypeOptions"
+        valueKey="label"
       />
     </UFormField>
 
-    <UFormField label="Gears" name="transmission_gears" class="sm:col-span-2">
+    <UFormField label="Gears" name="transmission_gears" class="md:col-span-2">
       <UInput
         icon="mdi:gear"
         type="number"
@@ -39,7 +49,7 @@ const drivetrainOptions = ["FWD", "RWD", "AWD", "4WD"];
     <UFormField
       label="Drivetrain"
       name="drivetrain"
-      class="sm:col-span-2"
+      class="md:col-span-2"
       :ui="{ container: 'flex gap-2' }"
     >
       <!-- <URadioGroup

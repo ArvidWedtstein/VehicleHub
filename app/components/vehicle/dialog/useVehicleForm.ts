@@ -11,32 +11,44 @@ const ACCEPTED_IMAGE_TYPES = [
   "image/webp",
 ];
 
+const dbToForm = <T extends z.ZodTypeAny>(schema: T) =>
+  schema.nullish().transform((val) => val ?? undefined);
+
 const vehicleSchema = z.object({
   id: z.number().optional(),
-  licenseplate_number: z.string().optional(),
-  vehicle_identification_number: z.string().optional(),
-  type: z.string().min(1).default("Car"),
-  body_type: z.string().optional().default(""),
-  make: z.string().optional().default(""),
-  model: z.string().optional().default(""),
-  model_year: z
-    .number()
-    .min(1885)
-    .max(new Date().getFullYear() + 10)
+  licenseplate_number: dbToForm(z.string()),
+  vehicle_identification_number: dbToForm(z.string()),
+  type: z.string().min(1).nonoptional().default("Car"),
+  body_type: dbToForm(z.string().default("")),
+  make: z
+    .string()
     .optional()
-    .default(new Date().getFullYear()),
-  color: z.string().optional(),
-  engine_displacement: z.number().optional(),
-  engine_displacement_unit: z.string().optional(),
+    .transform((val) => val ?? undefined)
+    .default(""),
+  model: z
+    .string()
+    .optional()
+    .transform((val) => val ?? undefined)
+    .default(""),
+  model_year: dbToForm(
+    z
+      .number()
+      .min(1885)
+      .max(new Date().getFullYear() + 10)
+      .default(new Date().getFullYear()),
+  ),
+  color: dbToForm(z.string()),
+  engine_displacement: dbToForm(z.number()),
+  engine_displacement_unit: dbToForm(z.string()),
   drivetrain: z.string().toUpperCase().default("FWD"),
-  engine_cylinders: z.number().min(1).max(100).optional(),
-  weight: z.number().optional(),
-  transmission_gears: z.number().optional(),
-  transmission_type: z.string().optional().default("automatic"),
-  fuel_type: z.string().optional().default("Gasoline"),
-  fuel_capacity: z.number().optional().default(0),
-  fuel_capacity_unit: z.string().optional().default("liter"),
-  mileage_unit: z.string().optional().default("kilometer"),
+  engine_cylinders: dbToForm(z.number().min(0).max(100)),
+  weight: dbToForm(z.number()),
+  transmission_gears: dbToForm(z.number()),
+  transmission_type: dbToForm(z.string()).default("Automatic"),
+  fuel_type: dbToForm(z.string()).default("Gasoline"),
+  fuel_capacity: dbToForm(z.number()).default(0),
+  fuel_capacity_unit: dbToForm(z.string()).default("liter"),
+  mileage_unit: dbToForm(z.string()).default("kilometer"),
   thumbnail: z
     .instanceof(File, {
       message: "Please select an image file.",
@@ -91,6 +103,8 @@ export const useVehicleForm = () => {
     if (!editVehicle.value) {
       return;
     }
+
+    console.log("edit", editVehicle.value);
 
     vehicle.value = vehicleSchema.parse({
       ...omit(editVehicle.value, ["shares"]),

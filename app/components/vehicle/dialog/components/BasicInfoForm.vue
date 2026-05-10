@@ -1,57 +1,51 @@
 <script setup lang="ts">
+import type { SelectMenuItem } from "@nuxt/ui";
 import type { VehicleSchema } from "../useVehicleForm";
 
 const vehicle = defineModel<Partial<VehicleSchema>>({ required: true });
 
-const { data: vehicleManufacturers } = await useVehicleManufacturers();
+const { data: vehicleManufacturers } = useVehicleManufacturers();
 
-const handleVIN = () => {
+const handleVIN = async () => {
   const vin = vehicle.value.vehicle_identification_number;
 
   if (!vin) {
     return;
   }
 
-  const decodedVIN = decodeVIN(vin);
+  const decodedVIN = await decodeVINAsync(vin);
 
+  console.log("VIN Decoded", decodedVIN);
   if (!decodedVIN) {
     return;
   }
 
-  vehicle.value.make = decodedVIN.manufacturer;
-  vehicle.value.model_year = decodedVIN.modelYear;
-
-  getModels();
+  vehicle.value.make ??= decodedVIN.manufacturer;
+  vehicle.value.model ??= decodedVIN.model;
+  vehicle.value.model_year ??= decodedVIN.modelYear;
+  vehicle.value.fuel_type ??= decodedVIN.fuelType;
 };
 
-const availableModels = ref<Array<string>>([]);
+const { pending: modelsPending, data: models } = await useFetch(
+  () =>
+    `https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${vehicle.value.make?.toLowerCase()}`,
+  {
+    key: () => `models-${vehicle.value.make?.toLowerCase()}`,
+    query: {
+      format: "json",
+    },
+    default: () => [] as string[],
+    immediate: false,
+    transform: (data: {
+      Count: number;
+      Results: Partial<{ Model_Name: string }>[];
+    }) => {
+      return data.Results.map((p) => p.Model_Name || "");
+    },
+  },
+);
 
-const getModels = async () => {
-  try {
-    if (!vehicle.value.make) return;
-
-    const res = await fetch(
-      `https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${vehicle.value.make.replace(
-        "Š",
-        "S",
-      )}?format=json`,
-    );
-
-    if (!res.ok || res.status !== 200) return;
-
-    const json = await res.json();
-
-    const { Results } = json as {
-      Results: { Model_Name: string }[];
-    };
-
-    availableModels.value = Results.map((p) => p.Model_Name);
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-const vehicleTypes = [
+const vehicleTypes: SelectMenuItem[] = [
   { value: "Car", icon: "mdi:car" },
   { value: "Boat", icon: "mdi:boat" },
   { value: "Tractor", icon: "mdi:tractor" },
@@ -61,48 +55,34 @@ const vehicleTypes = [
   { value: "Other" },
 ];
 
-const vehicleColors = [
-  { value: "Black" },
-  { value: "Silver" },
-  { value: "Grey" },
-  { value: "Brown" },
-  { value: "Red" },
-  { value: "Yellow" },
-  { value: "Orange" },
-  { value: "Purple" },
-  { value: "Pink" },
-  { value: "Blue" },
-  { value: "Turquise" },
-  { value: "Magenta" },
-  { value: "White" },
-  { value: "Beige" },
-  { value: "Green" },
-  { value: "Lime" },
-  { value: "Aqua" },
-  { value: "Olive" },
+const vehicleColors: SelectMenuItem[] = [
+  "Black",
+  "Silver",
+  "Grey",
+  "Brown",
+  "Red",
+  "Yellow",
+  "Orange",
+  "Purple",
+  "Pink",
+  "Blue",
+  "Turquise",
+  "Magenta",
+  "White",
+  "Beige",
+  "Green",
+  "Lime",
+  "Aqua",
+  "Olive",
 ];
 </script>
 
 <template>
   <div class="my-2 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6 flex-1">
     <UFormField
-      label="License Plate Number"
-      name="licenseplate_number"
-      class="sm:col-span-2"
-    >
-      <UInput
-        type="text"
-        v-model="vehicle.licenseplate_number"
-        pattern="^[a-zA-Z0-9]+$"
-        class="w-full"
-        placeholder="AB 123456"
-        autofocus
-      />
-    </UFormField>
-
-    <UFormField
       label="Vehicle Identification Number"
       name="vehicle_identification_number"
+      help="We'll auto-fill make, model and year from this"
       class="sm:col-span-2"
     >
       <template #hint>
@@ -116,35 +96,52 @@ const vehicleColors = [
 
       <UInput
         type="text"
-        v-model="vehicle.vehicle_identification_number"
+        v-model.lazy="vehicle.vehicle_identification_number"
         class="w-full"
         @blur="handleVIN"
-        :maxlength="17"
+        autofocus
       />
     </UFormField>
 
-    <UFormField label="Type" name="type" class="sm:col-span-2">
+    <UFormField
+      label="License Plate Number"
+      name="licenseplate_number"
+      class="sm:col-span-2"
+    >
+      <UInput
+        type="text"
+        v-model="vehicle.licenseplate_number"
+        pattern="^[a-zA-Z0-9]+$"
+        class="w-full"
+        placeholder="AB 123456"
+      />
+    </UFormField>
+
+    <UFormField label="Type" name="type" class="sm:col-span-2" required>
       <USelectMenu
         v-model="vehicle.type"
         class="w-full"
         :items="vehicleTypes"
         labelKey="value"
         valueKey="value"
+        :icon="
+          vehicle.type !== 'Other'
+            ? `mdi:${vehicle.type?.toLowerCase()}`
+            : undefined
+        "
       />
     </UFormField>
 
-    <UFormField label="Make" name="make" class="sm:col-span-2">
-      <UInputMenu
+    <UFormField label="Make" name="make" class="sm:col-span-2" required>
+      <USelectMenu
         v-model="vehicle.make"
         class="w-full"
-        autocomplete
         autocapitalize="words"
         :items="vehicleManufacturers"
         labelKey="name"
         valueKey="name"
-        :trailingIcon="false"
         :content="{ hideWhenEmpty: true }"
-        @blur="getModels"
+        :loading="modelsPending"
       />
     </UFormField>
 
@@ -154,9 +151,7 @@ const vehicleColors = [
         class="w-full"
         autocomplete
         autocapitalize="words"
-        :items="availableModels"
-        :trailingIcon="false"
-        :content="{ hideWhenEmpty: true }"
+        :items="models"
       />
     </UFormField>
 
@@ -184,7 +179,7 @@ const vehicleColors = [
         <template #item-leading="{ item }">
           <span
             :style="{
-              backgroundColor: item.value.toLowerCase(),
+              backgroundColor: (item || '').toString().toLowerCase(),
             }"
             class="size-3 shrink-0 rounded-full self-center"
           ></span>

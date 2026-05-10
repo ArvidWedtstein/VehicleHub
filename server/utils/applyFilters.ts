@@ -4,11 +4,52 @@ import {
 } from "@supabase/postgrest-js";
 import type { Database, Tables } from "~/types/supabase";
 
+type ApplyFn = (q: any, col: string, value: any) => any;
+type OrSerializeFn = (col: string, value: any) => string | null;
+
+const OperatorMap: Record<
+  FilterOperator,
+  { apply: ApplyFn; or: OrSerializeFn }
+> = {
+  eq: { apply: (q, c, v) => q.eq(c, v), or: (c, v) => `${c}.eq.${v}` },
+  neq: { apply: (q, c, v) => q.neq(c, v), or: (c, v) => `${c}.neq.${v}` },
+  gt: { apply: (q, c, v) => q.gt(c, v), or: (c, v) => `${c}.gt.${v}` },
+  gte: { apply: (q, c, v) => q.gte(c, v), or: (c, v) => `${c}.gte.${v}` },
+  lt: { apply: (q, c, v) => q.lt(c, v), or: (c, v) => `${c}.lt.${v}` },
+  lte: { apply: (q, c, v) => q.lte(c, v), or: (c, v) => `${c}.lte.${v}` },
+  like: { apply: (q, c, v) => q.like(c, v), or: (c, v) => `${c}.like.${v}` },
+  ilike: { apply: (q, c, v) => q.ilike(c, v), or: (c, v) => `${c}.ilike.${v}` },
+  in: {
+    apply: (q, c, v) => q.in(c, v),
+    or: (c, v) => `${c}.in.(${v.join(",")})`,
+  },
+  is: {
+    apply: (q, c, v) => q.is(c, v),
+    or: (c, v) => `${c}.is.${v ?? "null"}`,
+  },
+  cs: { apply: (q, c, v) => q.contains(c, v), or: (c, v) => `${c}.cs.${v}` },
+  cd: { apply: (q, c, v) => q.containedBy(c, v), or: (c, v) => `${c}.cd.${v}` },
+  ov: { apply: (q, c, v) => q.overlaps(c, v), or: (c, v) => `${c}.ov.${v}` },
+  fts: {
+    apply: (q, c, v) => q.textSearch(c, v),
+    or: (c, v) => `${c}.fts.${v}`,
+  },
+  plfts: {
+    apply: (q, c, v) => q.textSearch(c, v, { type: "plain" }),
+    or: (c, v) => `${c}.plfts.${v}`,
+  },
+  phfts: {
+    apply: (q, c, v) => q.textSearch(c, v, { type: "phrase" }),
+    or: (c, v) => `${c}.phfts.${v}`,
+  },
+  wfts: {
+    apply: (q, c, v) => q.textSearch(c, v, { type: "websearch" }),
+    or: (c, v) => `${c}.wfts.${v}`,
+  },
+};
 /**
  * Filters must be applied after any of select(), update(), upsert(), delete(), and rpc() and before modifiers.
  *
- * !TODO: finish filter options for generating dynamic filters for supabase querying
- * TODO: create a filter / POSTgrest operator map to handle all filter options
  * @param query
  * @param filters
  * @returns
@@ -25,66 +66,30 @@ export const applyFilters = <
     unknown,
     unknown,
     unknown
-  >
+  >,
 >(
   query: Q,
   filters: FilterOption<Tables<TableName>>[],
   options: {
     matchAny?: boolean;
-  } = { matchAny: false }
+  } = { matchAny: false },
 ): Q => {
-  if (!filters || filters.length === 0) {
-    return query;
-  }
+  if (!filters?.length) return query;
 
   let q = query;
-  const { matchAny } = options;
-
-  if (matchAny) {
-    const filterStrings = filters
-      .map((filter) => {
-        const { column, operator, value } = filter;
-        const col = column as string;
-
-        if (operator === "in" && Array.isArray(value)) {
-          if (value.length === 0) {
-            return null;
-          }
-          return `${col}.${operator}.(${value.join(", ")})`;
-        }
-
-        if (operator === "is" || value === null || typeof value === "boolean") {
-          return `${col}.${operator}.${
-            typeof value === "boolean" ? value : "null"
-          }`;
-        }
-
-        if (
-          ["like", "ilike", "cs", "cd"].includes(operator) &&
-          typeof value === "string"
-        ) {
-          return `${col}.${operator}.${value}`;
-        }
-
-        if (["gt", "gte", "lt", "lte", "neq", "eq"].includes(operator)) {
-          return `${col}.${operator}.${value as string}`;
-        }
-
-        // Handle number values without quotes
-        return `${col}.${operator}.${value as string}`;
-      })
+  if (options.matchAny) {
+    const parts = filters
+      .map((f) => OperatorMap[f.operator].or(f.column as string, f.value))
       .filter(Boolean);
 
-    if (filterStrings.length === 0) {
-      return q;
-    }
-
-    q = q.or(filterStrings.join(", "));
-
-    return q;
+    return parts.length ? q.or(parts.join(",")) : q;
   }
 
-  filters.forEach((filter) => {
+  for (const f of filters) {
+    q = OperatorMap[f.operator].apply(q, f.column as string, f.value);
+  }
+
+  /*filters.forEach((filter) => {
     const { column, operator, value } = filter;
     const col = column as string;
 
@@ -125,7 +130,7 @@ export const applyFilters = <
       case "is":
         q = q.is(
           col,
-          typeof value === "boolean" ? value : operator === "is" ? null : null
+          typeof value === "boolean" ? value : operator === "is" ? null : null,
         );
         break;
       case "cs":
@@ -172,7 +177,7 @@ export const applyFilters = <
     // if (operator === 'neq' && value != null && !Array.isArray(value)) {
     //   q = q.neq(col, value);
     // }
-  });
+  });*/
 
   return q as Q;
 };

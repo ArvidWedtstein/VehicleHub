@@ -1,14 +1,17 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
-export function useVehicles(filters: FilterOption<Tables<"Vehicles">>[] = []) {
+export function useVehicles(
+  filters: MaybeRef<FilterOption<Tables<"Vehicles">>[]> = [],
+) {
+  const resolvedFilters = computed(() => unref(filters));
+
   return useFetch<Tables<"Vehicles">[]>("/api/vehicles/filter", {
     method: "post",
-    body: {
-      filters,
-    },
+    body: computed(() => ({
+      filters: resolvedFilters.value,
+    })),
     key: `vehicles`,
     default: () => [],
-    watch: [() => filters],
   });
 }
 

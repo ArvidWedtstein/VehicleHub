@@ -43,80 +43,87 @@ const formatCostOptions: Intl.NumberFormatOptions = {
   minimumFractionDigits: 0,
 };
 
-const columns: TableColumn<ServiceItem>[] = [
-  {
-    accessorKey: "description",
-    header: "Description",
-  },
-  {
-    accessorKey: "cost",
-    cell: ({ row }) => {
-      const cost = Number.parseFloat(row.getValue("cost"));
-
-      return formatNumber(cost, formatCostOptions);
+const columns = computed<TableColumn<ServiceItem>[]>(() => {
+  const cols: TableColumn<ServiceItem>[] = [
+    {
+      accessorKey: "description",
+      header: "Description",
     },
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted();
+    {
+      accessorKey: "cost",
+      cell: ({ row }) => {
+        const cost = Number.parseFloat(row.getValue("cost"));
 
-      return h(UButton, {
-        color: "neutral",
-        variant: "ghost",
-        label: "Cost",
-        icon: isSorted
-          ? isSorted === "asc"
-            ? "mdi:sort-ascending"
-            : "mdi:sort-descending"
-          : "mdi:sort",
-        class: "-mx-2.5",
-        onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
-      });
-    },
-    footer: ({ column }) => {
-      const total = column
-        .getFacetedRowModel()
-        .rows.reduce(
-          (acc: number, row: TableRow<ServiceItem>) =>
-            acc + Number.parseFloat(row.getValue("cost")),
-          0,
-        );
+        return formatNumber(cost, formatCostOptions);
+      },
+      header: ({ column }) => {
+        const isSorted = column.getIsSorted();
 
-      return formatNumber(total, formatCostOptions);
-    },
-  },
-  {
-    accessorKey: "quantity",
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted();
+        return h(UButton, {
+          color: "neutral",
+          variant: "ghost",
+          label: "Cost",
+          icon: isSorted
+            ? isSorted === "asc"
+              ? "mdi:sort-ascending"
+              : "mdi:sort-descending"
+            : "mdi:sort",
+          class: "-mx-2.5",
+          onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+        });
+      },
+      footer: ({ column }) => {
+        const total = column
+          .getFacetedRowModel()
+          .rows.reduce(
+            (acc: number, row: TableRow<ServiceItem>) =>
+              acc + Number.parseFloat(row.getValue("cost")),
+            0,
+          );
 
-      return h(UButton, {
-        color: "neutral",
-        variant: "ghost",
-        label: "Quantity",
-        icon: isSorted
-          ? isSorted === "asc"
-            ? "mdi:sort-ascending"
-            : "mdi:sort-descending"
-          : "mdi:sort",
-        class: "-mx-2.5",
-        onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
-      });
+        return formatNumber(total, formatCostOptions);
+      },
     },
-    footer: ({ column }) => {
-      const total = column
-        .getFacetedRowModel()
-        .rows.reduce(
-          (acc: number, row: TableRow<ServiceItem>) =>
-            acc + Number.parseFloat(row.getValue("quantity")),
-          0,
-        );
+    {
+      accessorKey: "quantity",
+      header: ({ column }) => {
+        const isSorted = column.getIsSorted();
 
-      return total;
+        return h(UButton, {
+          color: "neutral",
+          variant: "ghost",
+          label: "Quantity",
+          icon: isSorted
+            ? isSorted === "asc"
+              ? "mdi:sort-ascending"
+              : "mdi:sort-descending"
+            : "mdi:sort",
+          class: "-mx-2.5",
+          onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+        });
+      },
+      footer: ({ column }) => {
+        const total = column
+          .getFacetedRowModel()
+          .rows.reduce(
+            (acc: number, row: TableRow<ServiceItem>) =>
+              acc + Number.parseFloat(row.getValue("quantity")),
+            0,
+          );
+
+        return total;
+      },
     },
-  },
-  {
-    id: "action",
-  },
-];
+  ];
+
+  if (allowEdit) {
+    cols.push({
+      id: "action",
+    });
+  }
+
+  return cols;
+});
 </script>
 
 <template>
@@ -154,7 +161,7 @@ const columns: TableColumn<ServiceItem>[] = [
         />
       </template>
 
-      <template #action-cell="{ row }">
+      <template v-if="allowEdit" #action-cell="{ row }">
         <UButton
           variant="soft"
           color="error"

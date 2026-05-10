@@ -61,7 +61,8 @@ export default defineNuxtConfig({
     redirectOptions: {
       callback: "/callback",
       login: "/login",
-      exclude: ["/"],
+      include: ["/vehicles(/*)"],
+      saveRedirectToCookie: true,
     },
     cookieOptions: {
       secure: process.env.NODE_ENV === "production",

@@ -127,7 +127,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <UPage>
+  <UPage class="flex-1 overflow-hidden">
     <div class="flex justify-between mb-3">
       <UButton icon="mdi:plus" label="Add" @click="handleCreateService" />
 
@@ -163,6 +163,28 @@ onMounted(() => {
         <!-- <ExportButton @export="handleServicesExport" /> -->
       </div>
     </div>
+
+    <LazyUEmpty
+      v-if="!services.length"
+      title="No services Found"
+      description="It looks like you haven't added any services. Create one to get started."
+      :actions="[
+        {
+          icon: 'mdi:plus',
+          label: 'Create new',
+          onClick: handleCreateService,
+        },
+        {
+          icon: 'mdi:refresh',
+          label: 'Refresh',
+          color: 'neutral',
+          variant: 'subtle',
+          loading: loading,
+          loadingAuto: true,
+          onClick: () => refresh(),
+        },
+      ]"
+    />
 
     <UScrollArea
       ref="scrollArea"

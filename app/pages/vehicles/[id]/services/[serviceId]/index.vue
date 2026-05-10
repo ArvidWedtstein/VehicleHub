@@ -10,13 +10,12 @@ useHead({
 
 definePageMeta({
   auth: true,
-  layout: "vehicle",
 });
 
 const vehicleId = useRouteParam("id", "number");
 const serviceId = useRouteParam("serviceId", "number");
 
-const { data: service, pending: loading } = await useVehicleService(
+const { data: service, pending: loading } = useVehicleService(
   vehicleId.value,
   serviceId.value,
 );
@@ -39,12 +38,7 @@ const serviceInsights = ref<
       type: string;
     }
   | undefined
->({
-  previous_date: addToDate(new Date(), -1, "year").toISOString(),
-  previous_mileage: 32000,
-  avg_interval: 1000,
-  type: "Oil Change",
-});
+>(undefined);
 
 const getServiceInsights = async () => {
   if (!serviceId.value) return;
@@ -156,6 +150,10 @@ const handleFileDelete = async (file: File) => {
     fileToDelete.file_path,
   );
 
+  refreshNuxtData(
+    `vehicle-${fileToDelete.vehicle_id}_service-${fileToDelete.service_log_id}`,
+  );
+
   toast.add({
     title: `Successfully deleted file '${file.name}'`,
     color: "success",
@@ -224,7 +222,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <UContainer class="flex-1">
+  <UContainer class="flex-1 px-0">
     <ULink
       :to="{
         name: 'vehicles-id-services',
@@ -236,11 +234,13 @@ onMounted(() => {
       Back to Services
     </ULink>
 
+    <LazyVehicleServiceSkeleton v-if="loading" />
+
     <UCard
-      v-if="service"
+      v-else-if="service"
       :title="service.type || ''"
       :ui="{
-        description: 'flex gap-2 items-center',
+        description: 'flex gap-1.5 items-center',
         footer: 'flex gap-2',
       }"
     >
@@ -251,26 +251,27 @@ onMounted(() => {
           :relative="addToDate(new Date(), -7, 'day') < new Date(service.date)"
         />
 
-        <div
-          class="size-1 bg-current rounded-full inline-block leading-none mx-1"
-        ></div>
+        <template v-if="createdBy">
+          <div
+            class="size-1 bg-current rounded-full inline-block leading-none"
+          ></div>
 
-        <UUser
-          v-if="createdBy"
-          :avatar="{
-            src: createdBy.profile_image_url || '',
-            loading: 'lazy',
-          }"
-          :name="createdBy.name || ''"
-          :to="{
-            name: 'profiles-profileId',
-            params: { profileId: createdBy.id },
-          }"
-          size="xs"
-        />
+          <UUser
+            :avatar="{
+              src: createdBy.profile_image_url || '',
+              loading: 'lazy',
+            }"
+            :name="createdBy.name || ''"
+            :to="{
+              name: 'profiles-profileId',
+              params: { profileId: createdBy.id },
+            }"
+            size="xs"
+          />
+        </template>
       </template>
 
-      <UPageGrid :ui="{ base: 'grid-cols-2 gap-4 lg:gap-8' }">
+      <UPageGrid :ui="{ base: 'gap-4 lg:gap-4' }">
         <UPageCard
           title="Mileage"
           :description="
@@ -282,6 +283,7 @@ onMounted(() => {
           "
           variant="subtle"
           :ui="{
+            container: 'p-2 sm:p-4',
             title: 'text-xs font-normal text-muted',
             description: 'text-highlighted font-semibold',
           }"
@@ -293,6 +295,7 @@ onMounted(() => {
           :description="service.provider"
           variant="subtle"
           :ui="{
+            container: 'p-2 sm:p-4',
             title: 'text-xs font-normal text-muted capitalize',
             description: 'text-highlighted font-semibold',
           }"
@@ -312,22 +315,18 @@ onMounted(() => {
           "
           variant="subtle"
           :ui="{
+            container: 'p-2 sm:p-4',
             title: 'text-xs font-normal text-muted',
             description: 'text-highlighted font-semibold',
           }"
         />
+      </UPageGrid>
 
-        <UPageCard
-          v-if="serviceInsights"
-          :title="`Last ${service.type}`"
-          variant="subtle"
-          :ui="{
-            title: 'text-xs font-normal text-muted',
-            description:
-              'flex gap-2 items-center text-highlighted font-semibold',
-          }"
-          #description
-        >
+      <USeparator class="mt-4 mb-3" />
+
+      <p v-if="serviceInsights" class="text-sm text-muted">
+        {{ `Last ${service.type}:` }}
+        <span class="inline-flex gap-1.5 items-center text-highlighted">
           {{
             formatNumber(
               (service.mileage || 0) - serviceInsights.previous_mileage,
@@ -338,29 +337,76 @@ onMounted(() => {
               },
             )
           }}
-          <span
-            class="size-1 bg-current rounded-full inline-block leading-none"
-          ></span>
+
+          <div class="size-1 bg-current rounded-full leading-none"></div>
 
           <NuxtTime
-            v-if="serviceInsights.previous_date"
-            relative
-            :datetime="serviceInsights.previous_date"
-            numeric="always"
-            relativeStyle="long"
-            year="2-digit"
-            month="2-digit"
+            :datetime="service.date"
+            dateStyle="long"
+            :relative="
+              addToDate(new Date(), -7, 'day') < new Date(service.date)
+            "
           />
-        </UPageCard>
-      </UPageGrid>
+        </span>
+      </p>
+
+      <USeparator class="mt-4 mb-3" />
+
+      <LazyVehicleServiceDialogComponentsItemsTable
+        v-if="serviceId != null && vehicleId != null"
+        v-model="service"
+        v-model:serviceItems="service.items"
+        :allowEdit="false"
+      />
+
+      <USeparator class="mt-4 mb-3 w-full" />
+
+      <UFileUpload
+        class="mt-5"
+        layout="list"
+        :dropzone="false"
+        :interactive="false"
+        :fileImage="false"
+        multiple
+        :ui="{
+          base: 'hidden',
+        }"
+        :modelValue="files"
+      >
+        <template #file-name="{ file }">
+          <span class="link-hover truncate" @click="handleFilePreview(file)">
+            {{ file.name }}
+          </span>
+        </template>
+
+        <template #file-trailing="{ file }">
+          <div class="grow"></div>
+
+          <ResponsiveMenu :items="generateFileGridActions(file)">
+            <UButton icon="mdi:dots-vertical" variant="ghost" color="neutral" />
+          </ResponsiveMenu>
+        </template>
+      </UFileUpload>
 
       <template #footer>
         <UButton
           label="Edit"
           icon="mdi:pencil"
+          variant="soft"
           block
           @click="handleEditService"
         />
+
+        <LazyUButton
+          v-if="new Date(service.date) > new Date()"
+          label="Add Reminder"
+          icon="mdi:calendar"
+          variant="outline"
+          color="neutral"
+          block
+          @click="addCalendarEvent"
+        />
+
         <UButton
           label="Delete"
           icon="mdi:trash"
@@ -371,80 +417,5 @@ onMounted(() => {
         />
       </template>
     </UCard>
-
-    <!-- TODO: fix-->
-    <UPageCard
-      v-if="service"
-      variant="soft"
-      :ui="{ header: 'w-full flex justify-between gap-3', body: 'w-full' }"
-    >
-      <template #header>
-        <div class="flex gap-1">
-          <LazyUButton
-            v-if="new Date(service.date) > new Date()"
-            label="Add Reminder"
-            icon="mdi:calendar"
-            variant="outline"
-            color="neutral"
-            @click="addCalendarEvent()"
-          />
-
-          <ResponsiveMenu
-            :items="[
-              {
-                label: 'Edit',
-                icon: 'mdi:pencil',
-                onClick: handleEditService,
-              },
-              {
-                label: 'Delete',
-                icon: 'mdi:trash',
-                color: 'error',
-                onClick: handleServiceDelete,
-              },
-            ]"
-          >
-            <UButton
-              icon="mdi:dots-vertical"
-              variant="outline"
-              color="secondary"
-            />
-          </ResponsiveMenu>
-        </div>
-      </template>
-      <template #body>
-        <UCard class="mt-5">
-          <LazyVehicleServiceDialogComponentsItemsTable
-            v-if="serviceId != null && vehicleId != null"
-            v-model="service"
-            v-model:serviceItems="service.items"
-            :allowEdit="false"
-          />
-        </UCard>
-
-        <!-- TODO: find solution -->
-        <!-- <UFileUpload
-          class="mt-5"
-          layout="grid"
-          position="inside"
-          multiple
-          :ui="{
-            base: 'min-h-48',
-          }"
-          :modelValue="files"
-        /> -->
-        <FileGrid :files="files" class="mt-5">
-          <template #actions="{ file }">
-            <UDropdownMenu :items="generateFileGridActions(file as File)">
-              <UButton
-                icon="mdi:dots-vertical"
-                variant="ghost"
-                color="neutral"
-              />
-            </UDropdownMenu>
-          </template>
-        </FileGrid>
-      </template>
-    </UPageCard>
   </UContainer>
 </template>

@@ -1,14 +1,19 @@
 import { serverSupabaseClient } from "#supabase/server";
 import { Database } from "~/types/supabase";
+import { z } from "zod";
+
+const BodySchema = z.object({
+  filters: z.array(z.any()).optional(),
+});
 
 export default defineAuthenticatedEventHandler(async (event) => {
-  const body = await readBody(event);
+  const body = await readValidatedBody(event, BodySchema.safeParse);
 
   if (!body) {
     throw createError({ statusCode: 400, statusMessage: "Body required" });
   }
 
-  const filters = body.filters;
+  const filters = body.data?.filters || [];
 
   const client = await serverSupabaseClient<Database>(event);
 
@@ -17,9 +22,9 @@ export default defineAuthenticatedEventHandler(async (event) => {
     .select("*")
     .order("created_at", { ascending: true });
 
-  if (filters && filters.length > 0) {
-    query = applyFilters<"Vehicles", typeof query>(query, filters);
-  }
+  query = applyFilters<"Vehicles", typeof query>(query, filters, {
+    matchAny: true,
+  });
 
   const { data, error } = await query;
 

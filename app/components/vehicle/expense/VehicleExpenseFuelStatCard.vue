@@ -1,6 +1,10 @@
 <script setup lang="ts">
 const vehicleId = useRouteParam("id", "number");
-const { data: expenses, pending: loading } = useVehicleExpenses(vehicleId);
+const { data: expenses, pending: loading } = useVehicleExpenses(
+  vehicleId,
+  undefined,
+  -1,
+);
 
 const selectedPeriod = ref("month");
 
