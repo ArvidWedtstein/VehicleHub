@@ -88,6 +88,43 @@ const groupedServices = computed(() => {
   return grouped;
 });
 
+const getServiceIcon = (
+  serviceType?: Tables<"VehicleServiceLogs">["type"] | null,
+) => {
+  if (!serviceType) return;
+
+  const type = serviceType.toLowerCase();
+  switch (type) {
+    case "wheel":
+      return "mdi:tire";
+    case "brakes":
+      return "mdi:car-brake-worn-linings";
+    case "light":
+      return "mdi:car-light-high";
+    case "coolant":
+      return "mdi:car-coolant-level";
+    case "ac":
+    case "aircondition":
+      return "mdi:air-conditioner";
+    case "wiper":
+      return "mdi:wiper-wash";
+    case "clutch":
+    case "esp":
+      return `mdi:car-${type}`;
+    case "tire":
+    case "oil":
+    case "piston":
+    case "fuse":
+    case "engine":
+    case "fan":
+    case "seatbelt":
+    case "airbag":
+      return `mdi:${type}`;
+    default:
+      return "mdi:wrench";
+  }
+};
+
 const setSortKey = (key: keyof Tables<"VehicleServiceLogs">) => {
   sortControl.key = key;
 };
@@ -220,7 +257,7 @@ onMounted(() => {
           <template #body>
             <UUser
               :avatar="{
-                icon: item.type === 'Fuel' ? 'mdi:gas-station' : 'mdi:cash',
+                icon: getServiceIcon(item.type),
               }"
               :name="item.type || 'Unknown Expense'"
               :description="
