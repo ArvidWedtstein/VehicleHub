@@ -48,15 +48,35 @@ export default defineAuthenticatedEventHandler(async (event) => {
     const { error: itemsError } = await client
       .from("VehicleServiceLogsItems")
       .upsert(
-        body.items.map((item) => ({
-          ...item,
-          service_log_id: parseInt(serviceId),
-        })),
+        body.items
+          .filter((row) => row.id)
+          .map((item) => ({
+            ...item,
+            service_log_id: parseInt(serviceId),
+          })),
       )
       .eq("service_log_id", parseInt(serviceId));
 
     if (itemsError)
       throw createError({ statusCode: 500, statusMessage: itemsError.message });
+
+    const { error: itemsInsertError } = await client
+      .from("VehicleServiceLogsItems")
+      .insert(
+        body.items
+          .filter((row) => !row.id)
+          .map((item) => ({
+            ...item,
+            service_log_id: parseInt(serviceId),
+          })),
+      )
+      .eq("service_log_id", parseInt(serviceId));
+
+    if (itemsInsertError)
+      throw createError({
+        statusCode: 500,
+        statusMessage: itemsInsertError.message,
+      });
   }
 
   if (error)

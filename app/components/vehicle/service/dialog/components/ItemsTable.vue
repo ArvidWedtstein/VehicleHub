@@ -72,12 +72,14 @@ const columns = computed<TableColumn<ServiceItem>[]>(() => {
           onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
         });
       },
-      footer: ({ column }) => {
+      footer: ({ column, ...j }) => {
         const total = column
           .getFacetedRowModel()
           .rows.reduce(
             (acc: number, row: TableRow<ServiceItem>) =>
-              acc + Number.parseFloat(row.getValue("cost")),
+              acc +
+              Number.parseFloat(row.getValue("cost")) *
+                Number.parseFloat(row.getValue("quantity")),
             0,
           );
 
@@ -147,6 +149,7 @@ const columns = computed<TableColumn<ServiceItem>[]>(() => {
       <template v-if="allowEdit" #cost-cell="{ row }">
         <UInputNumber
           v-model="row.original.cost"
+          class="min-w-5"
           size="sm"
           variant="none"
           :formatOptions="formatCostOptions"
