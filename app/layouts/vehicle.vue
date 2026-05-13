@@ -96,7 +96,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="relative flex flex-col gap-4 flex-1 w-full p-4 min-h-0 h-[calc(100dvh-calc(var(--ui-header-height)*2))] lg:h-[calc(100dvh-var(--ui-header-height))] overflow-auto"
+    class="relative flex flex-col gap-4 flex-1 w-full lg:p-4 min-h-0 h-[calc(100dvh-calc(var(--ui-header-height)*2))] lg:h-[calc(100dvh-var(--ui-header-height))] overflow-auto"
   >
     <NuxtRouteAnnouncer />
     <NuxtAnnouncer />
