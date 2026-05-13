@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { TableColumn, TableRow } from "@nuxt/ui";
+import type { TableColumn, TableOptions, TableRow } from "@nuxt/ui";
 import type { TablesInsert, TablesUpdate } from "~/types/supabase";
 
 const UButton = resolveComponent("UButton");
 const UInput = resolveComponent("UInput");
+
+const table = useTemplateRef("table");
 
 const { allowEdit = true } = defineProps<{
   allowEdit?: boolean;
@@ -26,6 +28,8 @@ const handleAddItem = () => {
     description: "",
     quantity: 1,
   } as TablesInsert<"VehicleServiceLogsItems">);
+
+  // table.value?.tableApi?.startRowCreation();
 };
 
 const handleRemoveItem = (id: ServiceItem["id"]) => {
@@ -126,6 +130,35 @@ const columns = computed<TableColumn<ServiceItem>[]>(() => {
 
   return cols;
 });
+
+// const RowCreationFeature: ArrayElement<NonNullable<TableOptions["_features"]>> =
+//   {
+//     getInitialState(state) {
+//       return { isCreatingRow: false, ...(state || {}) };
+//     },
+
+//     getDefaultOptions(table) {
+//       return {
+//         onRowCreate: undefined, // callback you provide
+//       };
+//     },
+
+//     createTable(table) {
+//       console.log("create table", table);
+//       table.startRowCreation = () => {
+//         console.log("ROWWW");
+//         table.setState((s) => ({ ...s, isCreatingRow: true }));
+//       };
+//       table.confirmRowCreation = (newItem) => {
+//         table.options.data.push(newItem); // or call a callback
+//         table.setState((s) => ({ ...s, isCreatingRow: false }));
+//       };
+//       table.cancelRowCreation = () => {
+//         table.setState((s) => ({ ...s, isCreatingRow: false }));
+//       };
+//       table.getIsCreatingRow = () => table.getState().isCreatingRow;
+//     },
+//   };
 </script>
 
 <template>
@@ -137,7 +170,8 @@ const columns = computed<TableColumn<ServiceItem>[]>(() => {
       <UButton label="Add Item" icon="mdi:plus" @click="handleAddItem" />
     </div>
 
-    <UTable :columns="columns" :data="serviceItems">
+    <UTable ref="table" :columns="columns" :data="serviceItems">
+      <!-- :_features="[RowCreationFeature]" -->
       <template v-if="allowEdit" #description-cell="{ row }">
         <UInput
           v-model="row.original.description"
@@ -174,5 +208,23 @@ const columns = computed<TableColumn<ServiceItem>[]>(() => {
         />
       </template>
     </UTable>
+
+    <!-- <div v-if="table?.tableApi?.getIsCreatingRow()">
+      <UInput placeholder="Description" />
+      <UInput type="number" placeholder="Cost" />
+      <UInput type="number" placeholder="Quantity" />
+
+      <UButton
+        @click="
+          table?.tableApi?.confirmRowCreation({
+            quantity: 5,
+            description: 'ls',
+            cost: 46,
+          })
+        "
+        >Save</UButton
+      >
+      <UButton @click="table?.tableApi?.cancelRowCreation()">Cancel</UButton>
+    </div> -->
   </div>
 </template>
