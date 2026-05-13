@@ -40,6 +40,9 @@ export const useServiceForm = () => {
   const originalServiceFiles = shallowRef<Tables<"VehicleDocuments">[]>([]);
   const serviceFiles = ref<File[]>([]);
 
+  const originalServiceItemIds = shallowRef<
+    Pick<TablesUpdate<"VehicleServiceLogsItems">, "id">[]
+  >([]);
   const serviceItems = ref<
     | TablesInsert<"VehicleServiceLogsItems">[]
     | TablesUpdate<"VehicleServiceLogsItems">[]
@@ -79,6 +82,10 @@ export const useServiceForm = () => {
 
       originalServiceFiles.value = editService.value?.files || [];
       serviceFiles.value = files;
+
+      originalServiceItemIds.value = (editService.value?.items || []).map(
+        (row) => pick(row, ["id"]),
+      );
       serviceItems.value = editService.value?.items || [];
 
       return;
@@ -102,6 +109,7 @@ export const useServiceForm = () => {
 
     console.log(service.value);
 
+    originalServiceItemIds.value = [];
     serviceItems.value = [];
     serviceFiles.value = [];
     originalServiceFiles.value = [];
@@ -117,6 +125,10 @@ export const useServiceForm = () => {
     try {
       let serviceId = service.value.id;
 
+      const itemsToDelete = originalServiceItemIds.value.filter(
+        ({ id }) => !serviceItems.value.some((item) => item.id === id),
+      );
+
       // Edit mode
       if (isEdit.value && serviceId) {
         await updateVehicleService(
@@ -127,6 +139,7 @@ export const useServiceForm = () => {
             date: convertLocalToUTC(service.value.date),
           },
           serviceItems.value,
+          itemsToDelete,
         );
       } else {
         const createdService = await createVehicleService(
