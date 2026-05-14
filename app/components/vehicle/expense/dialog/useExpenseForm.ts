@@ -12,7 +12,7 @@ const expenseSchema = z.object({
     .min(0, "Amount cannot be less than 0")
     .default(0),
   cost: z.number({ error: "Cost is required" }).default(0),
-  mileage: z.number().optional(),
+  mileage: z.number().min(0).optional(),
   currency: z.string().length(3).toUpperCase().default("NOK"),
   notes: z.string().optional(),
 });

@@ -2,12 +2,12 @@ import { serverSupabaseClient } from "#supabase/server";
 import type { Database } from "~/types/supabase";
 import { z } from "zod";
 
-const BodySchema = z.object({
+const bodySchema = z.object({
   filters: z.array(z.any()).optional().default([]),
 });
 
 export default defineAuthenticatedEventHandler(async (event) => {
-  const { filters } = await readValidatedBody(event, BodySchema.parse);
+  const { filters } = await readValidatedBody(event, bodySchema.parse);
 
   const client = await serverSupabaseClient<Database>(event);
 
