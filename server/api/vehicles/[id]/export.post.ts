@@ -1,5 +1,5 @@
 import { serverSupabaseClient } from "#supabase/server";
-import { Database, Tables } from "~/types/supabase";
+import type { Database } from "~/types/supabase";
 import { gzipSync } from "zlib";
 import z from "zod";
 

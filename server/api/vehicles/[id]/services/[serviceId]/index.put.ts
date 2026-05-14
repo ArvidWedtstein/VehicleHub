@@ -1,5 +1,5 @@
 import { serverSupabaseClient } from "#supabase/server";
-import { Database, TablesUpdate } from "~/types/supabase";
+import type { Database } from "~/types/supabase";
 import { z } from "zod";
 
 const serviceSchema = z.object({

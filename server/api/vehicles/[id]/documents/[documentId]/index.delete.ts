@@ -1,6 +1,6 @@
 import { serverSupabaseClient } from "#supabase/server";
-import z from "zod";
 import type { Database } from "~/types/supabase";
+import z from "zod";
 
 const paramsSchema = z.object({
   id: z.coerce.number().int().positive(),

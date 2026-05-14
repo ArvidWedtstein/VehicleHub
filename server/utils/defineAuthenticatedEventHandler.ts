@@ -1,4 +1,4 @@
-import { H3Event, H3EventContext } from "h3";
+import { H3Event, type H3EventContext } from "h3";
 import type { User } from "@supabase/supabase-js";
 import { serverSupabaseUser } from "#supabase/server";
 

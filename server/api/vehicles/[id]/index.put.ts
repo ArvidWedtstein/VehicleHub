@@ -1,6 +1,6 @@
 import { serverSupabaseClient } from "#supabase/server";
+import type { Database } from "~/types/supabase";
 import z from "zod";
-import { Database } from "~/types/supabase";
 
 const vehicleSchema = z.object({
   id: z.number().optional(),

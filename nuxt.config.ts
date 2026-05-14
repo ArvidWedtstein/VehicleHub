@@ -72,7 +72,11 @@ export default defineNuxtConfig({
     },
     types: "~/types/supabase",
   },
+  typescript: {
+    strict: true,
+  },
   icon: {
+    collections: ["mdi"],
     serverBundle: {
       collections: ["mdi"],
     },
