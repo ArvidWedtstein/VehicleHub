@@ -47,7 +47,7 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
       {
         label: "Profile",
         icon: "mdi:account",
-        to: `/profiles/${user.value.user_metadata.id}`,
+        to: `/profiles/${user.value.id}`,
       },
       {
         label: "Logout",
