@@ -9,10 +9,10 @@ const paramsSchema = z.object({
 const serviceSchema = z.object({
   id: z.number().optional(),
   vehicle_id: z.number(),
-  date: z.string(),
+  date: z.iso.datetime(),
   type: z.string().min(1).default(""),
   provider: z.string().optional(),
-  mileage: z.number().optional(),
+  mileage: z.number().positive().optional(),
   currency: z.string().length(3).toUpperCase().default("NOK"),
   notes: z.string().optional(),
 });

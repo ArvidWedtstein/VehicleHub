@@ -1,28 +1,7 @@
 <script setup lang="ts">
-import type { VehicleSchema } from "../useVehicleForm";
+import { FUELTYPE_OPTIONS, type VehicleSchema } from "../useVehicleForm";
 
 const vehicle = defineModel<Partial<VehicleSchema>>({ required: true });
-
-const fuelTypeOptions = [
-  "Gasoline",
-  "Diesel",
-  "Kerosene",
-  "Gas",
-  "Electric",
-  "Hybrid",
-  "Hydrogen",
-  "Other",
-  "Biodiesel",
-  "Biogasoline",
-  "LPG-gas",
-  "CNG-gas",
-  "Metanol",
-  "Etanol",
-  "LPG-A",
-  "LPG-B",
-  "CNG 20",
-  "CNG 25",
-];
 
 const fuelCapacityUnitOptions = [
   { value: "liter", label: "Liter" },
@@ -52,7 +31,7 @@ const milageUnitOptions = [
       <UInputMenu
         v-model="vehicle.fuel_type"
         class="w-full"
-        :items="fuelTypeOptions"
+        :items="FUELTYPE_OPTIONS"
       />
     </UFormField>
 

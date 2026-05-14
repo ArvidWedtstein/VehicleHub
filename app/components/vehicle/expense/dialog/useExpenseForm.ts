@@ -19,12 +19,6 @@ const expenseSchema = z.object({
 
 export type ExpenseSchema = z.output<typeof expenseSchema>;
 
-// Check to ensure no mismatch between DB and form
-type _check =
-  z.output<typeof expenseSchema> extends Tables<"VehicleExpenses">
-    ? true
-    : never;
-
 export const useExpenseForm = () => {
   const expense = ref<Partial<ExpenseSchema>>(expenseSchema.parse({}));
 

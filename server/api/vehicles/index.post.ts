@@ -6,8 +6,9 @@ const vehicleSchema = z.object({
   id: z.number().optional(),
   licenseplate_number: z.string().optional(),
   vehicle_identification_number: z.string().optional(),
-  type: z.string().min(1).nonoptional().default("Car"),
+  type: z.string().min(1).nonoptional().default("car"),
   body_type: z.string().optional(),
+  owner_user_id: z.uuid().optional(),
   make: z
     .string()
     .optional()

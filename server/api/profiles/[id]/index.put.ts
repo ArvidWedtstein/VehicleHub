@@ -4,10 +4,10 @@ import z from "zod";
 
 const profileSchema = z.object({
   id: z.coerce.number().int().positive().optional(),
-  created_at: z.string().optional(),
+  created_at: z.iso.datetime().optional(),
   name: z.string().optional(),
   role_id: z.coerce.number().optional(),
-  user_id: z.string().optional(),
+  user_id: z.uuid().optional(),
   profile_image_url: z
     .string()
     .min(1)
