@@ -1,27 +1,25 @@
 import { serverSupabaseClient } from "#supabase/server";
+import z from "zod";
 import { Database } from "~/types/supabase";
 
+const paramsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
+
 export default defineEventHandler(async (event) => {
+  const { id: profileId } = await getValidatedRouterParams(
+    event,
+    paramsSchema.parse,
+  );
   const client = await serverSupabaseClient<Database>(event);
 
-  const id = getRouterParam(event, "id");
-  if (!id)
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No profile id provided",
-    });
+  const { data, error, status, statusText } = await client
+    .from("Profiles")
+    .select("*")
+    .eq("id", profileId)
+    .single();
 
-  const query = client.from("Profiles").select("*");
+  if (error) throw createError({ statusCode: status, statusText, ...error });
 
-  if (Number.isInteger(parseInt(id))) {
-    query.eq("id", parseInt(id));
-  } else {
-    query.eq("user_id", id);
-  }
-
-  const { data, error } = await query.single();
-
-  if (error)
-    throw createError({ statusCode: 500, statusMessage: error.message });
   return data;
 });

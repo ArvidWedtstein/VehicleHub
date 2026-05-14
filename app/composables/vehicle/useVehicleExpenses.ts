@@ -98,7 +98,9 @@ export async function createVehicleExpense(
     `/api/vehicles/${vehicleId}/expenses`,
     {
       method: "post",
-      body: patch,
+      body: {
+        expense: patch,
+      },
     },
   );
   refreshNuxtData(`vehicle-${vehicleId}_expenses`);

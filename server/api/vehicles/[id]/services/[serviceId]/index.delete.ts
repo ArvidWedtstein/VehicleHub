@@ -1,43 +1,32 @@
 import { serverSupabaseClient } from "#supabase/server";
 import { Database } from "~/types/supabase";
+import { z } from "zod";
+
+const paramsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+  serviceId: z.coerce.number().int().positive(),
+});
 
 export default defineAuthenticatedEventHandler(async (event) => {
-  const vehicleId = getRouterParam(event, "id");
-  const serviceId = getRouterParam(event, "serviceId");
-
-  if (!vehicleId)
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No vehicle id provided",
-    });
-
-  if (!serviceId)
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No service id provided",
-    });
-
-  if (!Number.isInteger(parseInt(vehicleId)))
-    throw createError({
-      statusCode: 400,
-      statusMessage: "ID should be an integer",
-    });
-
-  if (!Number.isInteger(parseInt(serviceId)))
-    throw createError({
-      statusCode: 400,
-      statusMessage: "service ID should be an integer",
-    });
+  const { id: vehicleId, serviceId } = await getValidatedRouterParams(
+    event,
+    paramsSchema.parse,
+  );
 
   const client = await serverSupabaseClient<Database>(event);
 
-  const { data, error } = await client
+  const { data, error, status, statusText } = await client
     .from("VehicleServiceLogs")
     .delete()
-    .eq("vehicle_id", parseInt(vehicleId))
-    .eq("id", parseInt(serviceId));
+    .eq("vehicle_id", vehicleId)
+    .eq("id", serviceId);
 
   if (error)
-    throw createError({ statusCode: 500, statusMessage: error.message });
+    throw createError({
+      statusCode: status,
+      statusText,
+      ...error,
+    });
+
   return data;
 });

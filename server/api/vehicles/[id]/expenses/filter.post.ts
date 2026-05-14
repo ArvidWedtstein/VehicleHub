@@ -2,7 +2,7 @@ import { serverSupabaseClient } from "#supabase/server";
 import { Database } from "~/types/supabase";
 import { z } from "zod";
 
-const BodySchema = z.object({
+const bodySchema = z.object({
   filters: z.any().array().default([]), // TODO: find better solution
   pagination: z
     .object({
@@ -12,31 +12,27 @@ const BodySchema = z.object({
     .optional(),
 });
 
+const paramsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
+
 export default defineAuthenticatedEventHandler(async (event) => {
-  const params = await getValidatedRouterParams(
+  const { id: vehicleId } = await getValidatedRouterParams(
     event,
-    z.object({
-      id: z.coerce.number({
-        error: (val) => `Invalid Vehicle ID type provided ${val.message}`,
-      }),
-    }).parse,
+    paramsSchema.parse,
   );
-  const id = params.id;
 
-  const result = await readValidatedBody(event, BodySchema.safeParse);
-
-  if (!result.success) {
-    throw createError({ statusCode: 400, message: `${result.error}` });
-  }
-
-  const { filters, pagination } = result.data;
+  const { filters, pagination } = await readValidatedBody(
+    event,
+    bodySchema.parse,
+  );
 
   const client = await serverSupabaseClient<Database>(event);
 
   let query = client
     .from("VehicleExpenses")
     .select("*")
-    .eq("vehicle_id", id)
+    .eq("vehicle_id", vehicleId)
     .order("date", { ascending: false });
 
   if (filters && filters.length > 0) {

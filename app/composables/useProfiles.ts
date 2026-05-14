@@ -25,7 +25,9 @@ export async function updateProfile(
 ) {
   await $fetch(`/api/profiles/${id}`, {
     method: "put",
-    body: patch,
+    body: {
+      profile: patch,
+    },
   });
   refreshNuxtData("profiles");
 }

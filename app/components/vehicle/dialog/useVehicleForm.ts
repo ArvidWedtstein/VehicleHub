@@ -1,5 +1,5 @@
 import type { TablesUpdate } from "~/types/supabase";
-import * as z from "zod";
+import z from "zod";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const MIN_DIMENSIONS = { width: 200, height: 200 };

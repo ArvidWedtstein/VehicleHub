@@ -1,32 +1,28 @@
 import { serverSupabaseClient } from "#supabase/server";
 import { Database, Tables } from "~/types/supabase";
 import { gzipSync } from "zlib";
+import z from "zod";
+
+const ACCEPTED_TABLES: (keyof Pick<
+  Database["public"]["Tables"],
+  "VehicleExpenses" | "VehicleServiceLogs" | "VehicleShares"
+>)[] = ["VehicleExpenses", "VehicleServiceLogs", "VehicleShares"];
+
+const paramsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
+
+const bodySchema = z.object({
+  table: z.enum(ACCEPTED_TABLES),
+  columns: z.array(z.string()).min(1),
+});
 
 export default defineAuthenticatedEventHandler(async (event) => {
-  const vehicleId = getRouterParam(event, "id");
-
-  const body = await readBody(event);
-
-  if (!body) {
-    throw createError({ statusCode: 400, statusMessage: "Body required" });
-  }
-
-  type Table = keyof Pick<
-    Database["public"]["Tables"],
-    | "VehicleDocuments"
-    | "VehicleExpenses"
-    | "VehicleServiceLogs"
-    | "VehicleShares"
-  >;
-
-  const table = body.table as Table | undefined;
-  const columns = body.columns as keyof Tables<Table>;
-
-  if (!vehicleId)
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No vehicle id provided",
-    });
+  const { id: vehicleId } = await getValidatedRouterParams(
+    event,
+    paramsSchema.parse,
+  );
+  const { table, columns } = await readValidatedBody(event, bodySchema.parse);
 
   if (!table) {
     throw createError({
@@ -35,25 +31,17 @@ export default defineAuthenticatedEventHandler(async (event) => {
     });
   }
 
-  const allowedTables: Table[] = ["VehicleExpenses", "VehicleServiceLogs"];
-  if (!allowedTables.includes(table)) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Invalid export table provided",
-    });
-  }
-
   const client = await serverSupabaseClient<Database>(event);
 
-  const { data, error } = await client
+  const { data, error, status, statusText } = await client
     .from(table)
-    .select(columns)
-    .eq("vehicle_id", parseInt(vehicleId));
+    .select(...columns)
+    .eq("vehicle_id", vehicleId);
 
-  if (error)
-    throw createError({ statusCode: 500, statusMessage: error.message });
+  if (error) throw createError({ statusCode: status, statusText, ...error });
 
-  const csv = jsonToCsv(data);
+  // TODO: fix
+  const csv = jsonToCsv(data as unknown as Record<string, unknown>[]);
 
   setHeader(event, "Content-Type", "text/csv");
   setHeader(

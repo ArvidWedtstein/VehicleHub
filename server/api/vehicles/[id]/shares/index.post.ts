@@ -1,29 +1,38 @@
 import { serverSupabaseClient } from "#supabase/server";
+import z from "zod";
 import { Database, TablesInsert } from "~/types/supabase";
 
+const paramsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
+
+const shareSchema = z.object({
+  id: z.coerce.number().int().positive().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
+  createdby_id: z.string().optional(),
+  readonly: z.boolean().optional().default(true),
+  user_id: z.string(),
+  vehicle_id: z.number().positive(),
+});
+
+const bodySchema = z.object({
+  shares: z.array(shareSchema),
+});
+
 export default defineAuthenticatedEventHandler(async (event) => {
-  const body =
-    await readBody<
-      (TablesInsert<"VehicleShares"> | TablesInsert<"VehicleShares">)[]
-    >(event);
-
-  const vehicleId = getRouterParam(event, "id");
-  if (!vehicleId)
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No vehicle id provided",
-    });
-
-  if (!body || (Array.isArray(body) && !body.length)) {
-    throw createError({ statusCode: 400, statusMessage: "Body required" });
-  }
+  const { id: vehicleId } = await getValidatedRouterParams(
+    event,
+    paramsSchema.parse,
+  );
+  const { shares } = await readValidatedBody(event, bodySchema.parse);
 
   const client = await serverSupabaseClient<Database>(event);
 
   const { data, error } = await client
     .from("VehicleShares")
-    .insert(Array.isArray(body) ? body : [body])
-    .eq("vehicle_id", parseInt(vehicleId))
+    .insert(shares)
+    .eq("vehicle_id", vehicleId)
     .select("*");
 
   if (error)

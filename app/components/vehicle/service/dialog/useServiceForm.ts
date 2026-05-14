@@ -1,6 +1,6 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
-import * as z from "zod";
+import z from "zod";
 import {
   deleteVehicleDocument,
   uploadVehicleDocument,

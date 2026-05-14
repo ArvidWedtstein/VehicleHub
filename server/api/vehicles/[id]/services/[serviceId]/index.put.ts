@@ -28,21 +28,16 @@ const bodySchema = z.object({
 });
 
 export default defineAuthenticatedEventHandler(async (event) => {
-  const params = paramsSchema.safeParse(event.context.params);
-  if (!params.success) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: params.error.issues[0]?.message ?? "Invalid params",
-    });
-  }
-
-  const { id: vehicleId, serviceId } = params.data;
+  const { id: vehicleId, serviceId } = await getValidatedRouterParams(
+    event,
+    paramsSchema.parse,
+  );
 
   const body = await readValidatedBody(event, bodySchema.parse);
 
   const client = await serverSupabaseClient<Database>(event);
 
-  const { data, error } = await client
+  const { data, error, status, statusText } = await client
     .from("VehicleServiceLogs")
     .update(body.service)
     .eq("id", serviceId)
@@ -51,10 +46,18 @@ export default defineAuthenticatedEventHandler(async (event) => {
     .single();
 
   if (error)
-    throw createError({ statusCode: 500, statusMessage: error.message });
+    throw createError({
+      statusCode: status,
+      statusText: statusText,
+      ...error,
+    });
 
   if (body.removedItemIds.length > 0) {
-    const { error: deleteError } = await client
+    const {
+      error: deleteError,
+      status: deleteStatus,
+      statusText: deleteStatusText,
+    } = await client
       .from("VehicleServiceLogsItems")
       .delete()
       .eq("service_log_id", serviceId)
@@ -65,23 +68,30 @@ export default defineAuthenticatedEventHandler(async (event) => {
 
     if (deleteError)
       throw createError({
-        statusCode: 500,
-        statusMessage: deleteError.message,
+        statusCode: deleteStatus,
+        statusText: deleteStatusText,
+        ...deleteError,
       });
   }
 
   if (body.items && body.items.length > 0) {
-    const { error: itemsError } = await client
-      .from("VehicleServiceLogsItems")
-      .upsert(
-        body.items.map((item) => ({
-          ...item,
-          service_log_id: serviceId,
-        })),
-      );
+    const {
+      error: itemsError,
+      status: itemsStatus,
+      statusText: itemsStatusText,
+    } = await client.from("VehicleServiceLogsItems").upsert(
+      body.items.map((item) => ({
+        ...item,
+        service_log_id: serviceId,
+      })),
+    );
 
     if (itemsError)
-      throw createError({ statusCode: 500, statusMessage: itemsError.message });
+      throw createError({
+        statusCode: itemsStatus,
+        statusText: itemsStatusText,
+        ...itemsError,
+      });
   }
 
   return data;
