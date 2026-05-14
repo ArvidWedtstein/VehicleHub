@@ -60,7 +60,7 @@ const handleFilePreview = (file: File) => {
     class="w-full mt-3"
     v-model="files"
     multiple
-    accept="image/*"
+    accept="*"
     label="Click to upload or drag & drop"
     description="Max 5MB"
     :maxSize="5242880"

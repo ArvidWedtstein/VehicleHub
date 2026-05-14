@@ -2,47 +2,45 @@ import type { Database, Tables } from "~/types/supabase";
 import type { FilterSchema, FilterField } from "./filterSchema";
 
 export const useFilterBuilder = <
-  Table extends keyof Database["public"]["Tables"]
+  Table extends keyof Database["public"]["Tables"],
 >(
-  schema: FilterSchema<Table>
+  schema: FilterSchema<Table>,
 ) => {
-  type Row = Tables<Table>;
+  type Row = Database["public"]["Tables"][Table]["Row"];
 
-  const getDefaultValue = (field: FilterField<Row>) => {
+  type C = FilterSchema<Table>[number]["column"];
+
+  type State = {
+    [K in C]: Row[K] | Row[K][] | null;
+  };
+
+  const getDefaultValue = (field: FilterField<Table>): State[C] => {
+    if (field.default !== undefined) return field.default as State[C];
+
     switch (field.type) {
       case "select":
       case "multi-select":
-        return [];
-      case "boolean":
-        return false;
       case "range":
-        return [0, 0];
+        return [] as State[C];
+      case "boolean":
+        return false as State[C];
       case "date-range":
-        return [null, null];
+        return [null, null] as State[C];
       default:
-        return null;
+        return null as State[C];
     }
   };
 
-  const filterState = reactive<
-    Record<string, number | number[] | string | boolean | null>
-  >(
-    Object.fromEntries(
-      schema.map((f) => [
-        f.column as string,
-        Array.isArray(f.default)
-          ? [...f.default]
-          : f.default ?? getDefaultValue(f),
-      ])
-    )
+  const filterState = reactive(
+    Object.fromEntries(schema.map((f) => [f.column, getDefaultValue(f)])),
   );
 
   const buildFilters = computed<FilterOption<Row>[]>(() => {
     const filters: FilterOption<Row>[] = [];
 
     for (const field of schema) {
-      const value = filterState[field.column as string];
-      if (value === null || value === "" || value === undefined) continue;
+      const value = filterState[field.column as keyof typeof filterState];
+      if (value == null || value === "") continue;
 
       if (field.transform) {
         const result = field.transform(value);
@@ -52,51 +50,42 @@ export const useFilterBuilder = <
 
       switch (field.type) {
         case "range":
-        case "date-range":
-          if (Array.isArray(value)) {
-            const [min, max] = value;
+        case "date-range": {
+          const [min, max] = value as any[];
 
-            if (min == 0 && max === 0) break;
+          if (min != null)
+            filters.push({
+              column: field.column,
+              operator: "gte",
+              value: min,
+            });
 
-            if (min != null)
-              filters.push({
-                column: field.column,
-                operator: "gte",
-                value: min as Row[keyof Row],
-              });
-            if (max != null)
-              filters.push({
-                column: field.column,
-                operator: "lte",
-                value: max as Row[keyof Row],
-              });
-          }
+          if (max != null)
+            filters.push({
+              column: field.column,
+              operator: "lte",
+              value: max,
+            });
+
           break;
+        }
 
         case "multi-select":
           if (Array.isArray(value) && value.length > 0) {
             filters.push({
               column: field.column,
               operator: "in",
-              value: value as Row[keyof Row],
+              value,
             });
           }
           break;
 
-        case "boolean":
-        case "date":
-          filters.push({
-            column: field.column,
-            operator: field.operator ?? "eq",
-            value: value as Row[keyof Row],
-          });
-          break;
-
         case "text":
+        case "search":
           filters.push({
             column: field.column,
             operator: field.operator ?? "ilike",
-            value: value as Row[keyof Row],
+            value,
           });
           break;
 
@@ -104,7 +93,7 @@ export const useFilterBuilder = <
           filters.push({
             column: field.column,
             operator: field.operator ?? "eq",
-            value: value as Row[keyof Row],
+            value,
           });
       }
     }
@@ -114,10 +103,10 @@ export const useFilterBuilder = <
 
   const resetFilters = () => {
     for (const field of schema) {
-      const key = field.column as string;
-      filterState[key] = Array.isArray(field.default)
-        ? [...field.default]
-        : field.default ?? getDefaultValue(field);
+      if (field.column in filterState) {
+        filterState[field.column as keyof typeof filterState] =
+          getDefaultValue(field);
+      }
     }
   };
 

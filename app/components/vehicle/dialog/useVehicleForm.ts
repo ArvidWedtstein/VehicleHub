@@ -1,5 +1,5 @@
 import type { TablesUpdate } from "~/types/supabase";
-import * as z from "zod";
+import z from "zod";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const MIN_DIMENSIONS = { width: 200, height: 200 };
@@ -9,6 +9,27 @@ const ACCEPTED_IMAGE_TYPES = [
   "image/jpg",
   "image/png",
   "image/webp",
+];
+
+export const FUELTYPE_OPTIONS = [
+  "Gasoline",
+  "Diesel",
+  "Kerosene",
+  "Gas",
+  "Electric",
+  "Hybrid",
+  "Hydrogen",
+  "Other",
+  "Biodiesel",
+  "Biogasoline",
+  "LPG-gas",
+  "CNG-gas",
+  "Metanol",
+  "Etanol",
+  "LPG-A",
+  "LPG-B",
+  "CNG 20",
+  "CNG 25",
 ];
 
 const dbToForm = <T extends z.ZodTypeAny>(schema: T) =>
@@ -42,23 +63,18 @@ const vehicleSchema = z.object({
   engine_displacement_unit: dbToForm(z.string()),
   drivetrain: z.string().toUpperCase().default("FWD"),
   engine_cylinders: dbToForm(z.number().min(0).max(100)),
-  weight: dbToForm(z.number()),
-  transmission_gears: dbToForm(z.number()),
+  weight: dbToForm(z.number().min(0)),
+  transmission_gears: dbToForm(z.number().min(0).max(100)),
   transmission_type: dbToForm(z.string()).default("Automatic"),
-  fuel_type: dbToForm(z.string()).default("Gasoline"),
+  fuel_type: dbToForm(z.enum(FUELTYPE_OPTIONS)).default("Gasoline"),
   fuel_capacity: dbToForm(z.number()).default(0),
   fuel_capacity_unit: dbToForm(z.string()).default("liter"),
   mileage_unit: dbToForm(z.string()).default("kilometer"),
+  owner_user_id: z.uuid(),
   thumbnail: z
-    .instanceof(File, {
-      message: "Please select an image file.",
-    })
-    .refine((file) => file.size <= MAX_FILE_SIZE, {
-      message: `The image is too large. Please choose an image smaller than 2 MB.`,
-    })
-    .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file.type), {
-      message: "Please upload a valid image file (JPEG, PNG, or WebP).",
-    })
+    .file()
+    .max(MAX_FILE_SIZE)
+    .mime(ACCEPTED_IMAGE_TYPES)
     .refine(
       (file) =>
         new Promise((resolve) => {
@@ -110,6 +126,8 @@ export const useVehicleForm = () => {
       ...omit(editVehicle.value, ["shares"]),
       thumbnail: undefined,
     });
+
+    // TODO: fix thumbnail
   };
 
   const isEdit = computed(() => !!vehicle.value.id);

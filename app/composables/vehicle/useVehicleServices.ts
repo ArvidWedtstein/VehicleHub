@@ -122,6 +122,7 @@ export async function updateVehicleService(
   id: string | number,
   patch: TablesUpdate<"VehicleServiceLogs">,
   itemsPatch?: Partial<TablesUpdate<"VehicleServiceLogsItems">>[],
+  removedItemIds?: Pick<TablesUpdate<"VehicleServiceLogsItems">, "id">[],
 ) {
   await $fetch<Tables<"VehicleServiceLogs">>(
     `/api/vehicles/${vehicleId}/services/${id}`,
@@ -130,6 +131,7 @@ export async function updateVehicleService(
       body: {
         service: patch,
         items: itemsPatch,
+        removedItemIds: removedItemIds,
       },
     },
   );

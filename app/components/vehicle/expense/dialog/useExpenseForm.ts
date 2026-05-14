@@ -12,18 +12,12 @@ const expenseSchema = z.object({
     .min(0, "Amount cannot be less than 0")
     .default(0),
   cost: z.number({ error: "Cost is required" }).default(0),
-  mileage: z.number().optional(),
+  mileage: z.number().min(0).optional(),
   currency: z.string().length(3).toUpperCase().default("NOK"),
   notes: z.string().optional(),
 });
 
 export type ExpenseSchema = z.output<typeof expenseSchema>;
-
-// Check to ensure no mismatch between DB and form
-type _check =
-  z.output<typeof expenseSchema> extends Tables<"VehicleExpenses">
-    ? true
-    : never;
 
 export const useExpenseForm = () => {
   const expense = ref<Partial<ExpenseSchema>>(expenseSchema.parse({}));

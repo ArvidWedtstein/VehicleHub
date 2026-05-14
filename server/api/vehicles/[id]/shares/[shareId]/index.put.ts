@@ -1,47 +1,43 @@
 import { serverSupabaseClient } from "#supabase/server";
-import { Database, TablesUpdate } from "~/types/supabase";
+import type { Database } from "~/types/supabase";
+import { z } from "zod";
+
+const paramsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+  shareId: z.coerce.number().int().positive(),
+});
+
+const shareSchema = z.object({
+  id: z.coerce.number().int().positive().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
+  createdby_id: z.string().optional(),
+  readonly: z.boolean().optional().default(true),
+  user_id: z.string().optional(),
+  vehicle_id: z.number().positive(),
+});
+
+const bodySchema = z.object({
+  share: shareSchema,
+});
 
 export default defineAuthenticatedEventHandler(async (event) => {
-  const { id: vehicleId, shareId } = event.context.params as {
-    id: string;
-    shareId: string;
-  };
-  const body = await readBody<TablesUpdate<"VehicleShares">>(event);
-
-  if (!vehicleId)
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No vehicle id provided",
-    });
-  if (!shareId)
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No share id provided",
-    });
-
-  if (!Number.isInteger(parseInt(vehicleId))) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "ID should be an integer",
-    });
-  }
-  if (!Number.isInteger(parseInt(shareId))) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Service ID should be an integer",
-    });
-  }
+  const { id: vehicleId, shareId } = await getValidatedRouterParams(
+    event,
+    paramsSchema.parse,
+  );
+  const { share } = await readValidatedBody(event, bodySchema.parse);
 
   const client = await serverSupabaseClient<Database>(event);
 
-  const { data, error } = await client
+  const { data, error, status, statusText } = await client
     .from("VehicleShares")
-    .update(body)
-    .eq("id", parseInt(shareId))
-    .eq("vehicle_id", parseInt(vehicleId))
+    .update(share)
+    .eq("id", shareId)
+    .eq("vehicle_id", vehicleId)
     .select();
 
-  if (error)
-    throw createError({ statusCode: 500, statusMessage: error.message });
+  if (error) throw createError({ statusCode: status, statusText, ...error });
+
   return data;
 });

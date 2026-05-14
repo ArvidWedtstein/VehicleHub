@@ -46,13 +46,12 @@ const { pending: modelsPending, data: models } = await useFetch(
 );
 
 const vehicleTypes: SelectMenuItem[] = [
-  { value: "Car", icon: "mdi:car" },
-  { value: "Boat", icon: "mdi:boat" },
-  { value: "Tractor", icon: "mdi:tractor" },
-  { value: "Motorcycle", icon: "mdi:motorcycle" },
-  { value: "Truck", icon: "mdi:truck" },
-  { value: "Bus", icon: "mdi:bus" },
-  { value: "Other" },
+  { value: "car", label: "Car", icon: "mdi:car" },
+  { value: "boat", label: "Boat", icon: "mdi:boat" },
+  { value: "tractor", label: "Tractor", icon: "mdi:tractor" },
+  { value: "motorcycle", label: "Motorcycle", icon: "mdi:motorcycle" },
+  { value: "truck", label: "Truck", icon: "mdi:truck" },
+  { value: "bus", label: "Bus", icon: "mdi:bus" },
 ];
 
 const vehicleColors: SelectMenuItem[] = [
@@ -125,7 +124,7 @@ const vehicleColors: SelectMenuItem[] = [
         labelKey="value"
         valueKey="value"
         :icon="
-          vehicle.type !== 'Other'
+          vehicle.type !== 'other'
             ? `mdi:${vehicle.type?.toLowerCase()}`
             : undefined
         "

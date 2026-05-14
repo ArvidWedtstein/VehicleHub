@@ -1,18 +1,16 @@
 import { serverSupabaseClient, serverSupabaseUser } from "#supabase/server";
 import type { Database } from "~/types/supabase";
+import z from "zod";
+
+const paramsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
 
 export default defineAuthenticatedEventHandler(async (event) => {
-  const supabase = await serverSupabaseClient<Database>(event);
-
-  const { id: vehicleId } = event.context.params as {
-    id: string;
-  };
-
-  if (!vehicleId)
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No vehicle id provided",
-    });
+  const { id: vehicleId } = await getValidatedRouterParams(
+    event,
+    paramsSchema.parse,
+  );
 
   // Read multipart form
   const form = await readMultipartFormData(event);
@@ -23,6 +21,8 @@ export default defineAuthenticatedEventHandler(async (event) => {
   if (!file)
     throw createError({ statusCode: 400, statusMessage: "Invalid file" });
 
+  const supabase = await serverSupabaseClient<Database>(event);
+
   const filePath = `${vehicleId}/${file.filename}`;
   const { data, error } = await supabase.storage
     .from("VehicleImages")
@@ -31,8 +31,7 @@ export default defineAuthenticatedEventHandler(async (event) => {
       upsert: true,
     });
 
-  if (error)
-    throw createError({ statusCode: 500, statusMessage: error.message });
+  if (error) throw createError({ ...error, statusCode: 500 });
 
   return data;
 });

@@ -16,7 +16,7 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
 <template>
   <div class="grid grid-cols-1 sm:grid-cols-4 gap-x-6 gap-y-4 flex-1">
     <UFormField class="sm:col-span-4" label="Date" name="date" required>
-      <UInput type="datetime-local" v-model="expense.date" class="w-full" />
+      <FormInputDateTime v-model="expense.date" class="w-full" />
     </UFormField>
 
     <UFormField label="Amount" name="amount" required class="sm:col-span-2">
@@ -29,7 +29,7 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
           class="grow"
         />
 
-        <USelect
+        <USelectMenu
           v-model="expense.unit"
           :items="[
             { value: 'liter', label: 'Liter' },

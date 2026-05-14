@@ -188,8 +188,7 @@ export const throttle = <T extends (...args: any[]) => any>(
 /**
  * Converts array type to single type
  */
-export type ArrayElement<ArrayType extends readonly unknown[]> =
-  ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
+export type ArrayElement<T extends readonly unknown[]> = T[number];
 
 export type ColumnsToReturn<T, C> = C extends "*"
   ? T

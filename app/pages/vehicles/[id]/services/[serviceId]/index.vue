@@ -41,6 +41,7 @@ const serviceInsights = ref<
 >(undefined);
 
 const getServiceInsights = async () => {
+  if (!vehicleId.value) return;
   if (!serviceId.value) return;
 
   const client = useSupabaseClient();

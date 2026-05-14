@@ -34,7 +34,9 @@ export const useVehicle = (
 export async function createVehicle(patch: Partial<TablesInsert<"Vehicles">>) {
   const vehicle = await $fetch<Tables<"Vehicles">>(`/api/vehicles`, {
     method: "post",
-    body: patch,
+    body: {
+      vehicle: patch,
+    },
   });
   refreshNuxtData("vehicles");
 
@@ -49,7 +51,9 @@ export async function updateVehicle(
     `/api/vehicles/${unref(id)}`,
     {
       method: "put",
-      body: patch,
+      body: {
+        vehicle: patch,
+      },
     },
   );
   refreshNuxtData("vehicles");
@@ -79,7 +83,9 @@ export async function upsertVehicleShares(
     `/api/vehicles/${vehicleId}/shares`,
     {
       method: "post",
-      body: patch,
+      body: {
+        shares: Array.isArray(patch) ? patch : [patch],
+      },
     },
   );
   refreshNuxtData(`vehicle-${vehicleId}`);

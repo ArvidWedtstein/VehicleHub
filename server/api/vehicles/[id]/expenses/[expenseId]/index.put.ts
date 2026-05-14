@@ -1,44 +1,50 @@
 import { serverSupabaseClient } from "#supabase/server";
-import { Database } from "~/types/supabase";
+import type { Database } from "~/types/supabase";
+import z from "zod";
+
+const expenseSchema = z.object({
+  id: z.number().optional(),
+  vehicle_id: z.number().optional(),
+  date: z.string(),
+  type: z.string().default("Fuel"),
+  unit: z.string().default("liter"),
+  amount: z
+    .number({ error: "Amount is required" })
+    .min(0, "Amount cannot be less than 0")
+    .default(0),
+  cost: z.number({ error: "Cost is required" }).default(0),
+  mileage: z.number().optional(),
+  currency: z.string().length(3).toUpperCase().default("NOK"),
+  notes: z.string().optional(),
+});
+
+const paramsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+  expenseId: z.coerce.number().int().positive(),
+});
+
+const bodySchema = z.object({
+  expense: expenseSchema,
+});
 
 export default defineAuthenticatedEventHandler(async (event) => {
-  const body = await readBody(event);
-  const id = getRouterParam(event, "id");
-  const expenseId = getRouterParam(event, "expenseId");
-  if (!id)
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No vehicle id provided",
-    });
-  if (!expenseId)
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No expense id provided",
-    });
+  const { id: vehicleId, expenseId } = await getValidatedRouterParams(
+    event,
+    paramsSchema.parse,
+  );
 
-  if (!Number.isInteger(id)) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "ID should be an integer",
-    });
-  }
-  if (!Number.isInteger(expenseId)) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Expense ID should be an integer",
-    });
-  }
+  const { expense } = await readValidatedBody(event, bodySchema.parse);
 
   const client = await serverSupabaseClient<Database>(event);
 
-  const { data, error } = await client
+  const { data, error, status, statusText } = await client
     .from("VehicleExpenses")
-    .update(body)
-    .eq("id", parseInt(expenseId))
-    .eq("vehicle_id", parseInt(id))
+    .update(expense)
+    .eq("id", expenseId)
+    .eq("vehicle_id", vehicleId)
     .select();
 
-  if (error)
-    throw createError({ statusCode: 500, statusMessage: error.message });
+  if (error) throw createError({ statusCode: status, statusText, ...error });
+
   return data;
 });

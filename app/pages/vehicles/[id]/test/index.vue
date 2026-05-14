@@ -31,16 +31,14 @@ const { schema, filterState, buildFilters, resetFilters } =
 const {
   data: expenses,
   pending: loading,
-  clear,
-  execute,
-} = await useVehicleExpenses(vehicleId, buildFilters);
+  refresh,
+} = useVehicleExpenses(vehicleId, buildFilters);
 
 console.log("expenses", expenses.value);
 
 const applyFilters = async () => {
   console.log("filters", buildFilters.value);
-  clear();
-  await execute();
+  await refresh();
 
   console.log("expenses", expenses.value);
 };

@@ -1,30 +1,25 @@
 import { serverSupabaseClient } from "#supabase/server";
-import { Database } from "~/types/supabase";
+import type { Database } from "~/types/supabase";
+import z from "zod";
+
+const paramsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
 
 export default defineAuthenticatedEventHandler(async (event) => {
+  const { id: vehicleId } = await getValidatedRouterParams(
+    event,
+    paramsSchema.parse,
+  );
   const client = await serverSupabaseClient<Database>(event);
 
-  const id = getRouterParam(event, "id");
-  if (!id)
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No vehicle id provided",
-    });
-
-  if (!Number.isInteger(parseInt(id))) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Vehicle ID should be an integer",
-    });
-  }
-
-  const { data, error } = await client
+  const { data, error, status, statusText } = await client
     .from("changelog_with_profile")
     .select("*")
     .order("created_at", { ascending: false })
-    .eq("vehicle_id", parseInt(id));
+    .eq("vehicle_id", vehicleId);
 
-  if (error)
-    throw createError({ statusCode: 500, statusMessage: error.message });
+  if (error) throw createError({ statusCode: status, statusText, ...error });
+
   return data;
 });
