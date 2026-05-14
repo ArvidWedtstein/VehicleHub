@@ -164,7 +164,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <UPage class="flex-1 overflow-hidden">
+  <UPage class="flex-1 p-2 overflow-hidden">
     <div class="flex justify-between mb-3">
       <UButton icon="mdi:plus" label="Add" @click="handleCreateService" />
 
@@ -225,53 +225,63 @@ onMounted(() => {
 
     <UScrollArea
       ref="scrollArea"
-      class="w-full min-h-0 flex-1 h-[calc(100dvh-calc(var(--ui-header-height)*2))]"
-      :items="groupedServices"
+      class="w-full min-h-0 flex-1 h-[calc(100dvh-var(--ui-header-height)-9rem)]"
+      :items="services"
       :virtualize="{
-        estimateSize: (index) => {
-          const services = groupedServices[index] || [];
-          return 92 * services.length + 48; // 92px per item + 48px for the separator
-        },
+        estimateSize: 92,
         skipMeasurement: true,
       }"
-      v-slot="{ item: services, index }"
+      v-slot="{ item, index }"
     >
-      <USeparator
+      <!-- <USeparator
         :label="services[0]?.monthYear || ''"
         orientation="horizontal"
         :key="index"
         size="lg"
-      />
-      <UPageList>
-        <UPageCard
-          v-for="(item, idx) in services"
-          :key="idx"
-          variant="ghost"
-          :title="item.type || ''"
-          :to="{
-            name: 'vehicles-id-services-serviceId',
-            params: { id: item.vehicle_id, serviceId: item.id },
-          }"
-          :ui="{ body: 'flex items-center justify-between w-full' }"
-        >
-          <template #body>
-            <UUser
-              :avatar="{
-                icon: getServiceIcon(item.type),
-              }"
-              :name="item.type || 'Unknown Expense'"
-              :description="
-                formatDate(item.date || '', {
-                  dateStyle: 'medium',
-                })
-              "
-              size="xl"
-            />
+      /> -->
 
-            <UIcon name="mdi:chevron-right" class="size-8" />
-          </template>
-        </UPageCard>
-      </UPageList>
+      <div
+        v-if="status === 'pending' || status === 'idle'"
+        class="flex items-center gap-4 p-4 sm:p-6"
+      >
+        <USkeleton class="size-12 rounded-full" />
+
+        <div class="grid gap-2">
+          <USkeleton class="h-4 w62.5" />
+          <USkeleton class="h-4 w-50" />
+        </div>
+      </div>
+
+      <!-- <UPageList> -->
+      <UPageCard
+        v-else
+        :key="index"
+        variant="ghost"
+        :title="item.type || ''"
+        :to="{
+          name: 'vehicles-id-services-serviceId',
+          params: { id: item.vehicle_id, serviceId: item.id },
+        }"
+        :ui="{ body: 'flex items-center justify-between w-full' }"
+      >
+        <template #body>
+          <UUser
+            :avatar="{
+              icon: getServiceIcon(item.type),
+            }"
+            :name="item.type || 'Unknown Expense'"
+            :description="
+              formatDate(item.date || '', {
+                dateStyle: 'medium',
+              })
+            "
+            size="xl"
+          />
+
+          <UIcon name="mdi:chevron-right" class="size-8" />
+        </template>
+      </UPageCard>
+      <!-- </UPageList> -->
     </UScrollArea>
   </UPage>
 </template>

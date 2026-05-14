@@ -113,7 +113,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <UPage class="flex-1">
+  <UPage class="flex-1 p-2 overflow-hidden">
     <div class="flex items-center justify-between gap-2 mb-3">
       <UButton label="Add" icon="mdi:plus" @click="handleCreateExpense" />
 
