@@ -20,7 +20,7 @@ useSeoMeta({
 const filters = ref<FilterOption<Tables<"Vehicles">>[]>([]);
 const search = shallowRef("");
 
-const { pending } = useVehicles(filters);
+const { pending, status } = useVehicles(filters);
 
 const handleSearch = () => {
   if (!search.value) {
@@ -51,7 +51,7 @@ const handleSearch = () => {
           size="md"
           variant="outline"
           placeholder="Search..."
-          :loading="pending"
+          :loading="status === 'pending'"
           v-model.lazy="search"
           @change="handleSearch"
         />
