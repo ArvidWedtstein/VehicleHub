@@ -1,5 +1,4 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
-import { parseAbsoluteToLocal, toCalendarDate } from "@internationalized/date";
 
 import z from "zod";
 import {
@@ -8,23 +7,23 @@ import {
 } from "~/composables/vehicle/useVehicleDocuments";
 
 const serviceItemSchema = z.object({
-  id: z.number().optional(),
-  service_log_id: z.number().optional(),
+  id: z.number().positive().optional(),
+  service_log_id: z.number().positive().optional(),
   description: z.string().optional(),
   quantity: z
     .number({ error: "Quantity is required" })
     .min(0, "Amount cannot be less than 0")
     .default(1),
-  cost: z.number({ error: "Cost is required" }).default(0),
+  cost: z.number({ error: "Cost is required" }).positive().default(0),
 });
 
 const serviceSchema = z.object({
-  id: z.number().optional(),
-  vehicle_id: z.number().optional(),
+  id: z.number().positive().optional(),
+  vehicle_id: z.number().positive().optional(),
   date: z.string().default(convertToDatetimeLocal()),
-  type: z.string().min(1).default(""),
+  type: z.string().nonempty().default(""),
   provider: z.string().optional(),
-  mileage: z.number().optional(),
+  mileage: z.number().positive().optional(),
   currency: z.string().length(3).toUpperCase().default("NOK"),
   notes: z.string().optional(),
 });
