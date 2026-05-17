@@ -44,7 +44,7 @@ export default defineNuxtConfig({
     "/vehicles/:id/**": { appLayout: "vehicle" },
   },
   imports: {
-    dirs: ["~/composables", "~/composables/vehicle/**"],
+    dirs: ["~/composables", "~/composables/vehicle/**", "~/shared/schemas**"],
   },
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },

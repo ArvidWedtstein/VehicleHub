@@ -69,7 +69,14 @@ const mobileTabs = computed<NavigationMenuItem[]>(() => {
 
 const activeTab = computed({
   get() {
-    return (route.name as string) || "vehicles-id";
+    const activeTab = (route.name as string) || "vehicles-id";
+    console.log(activeTab);
+
+    const activeTabItem = tabs.find((tab) =>
+      activeTab.startsWith(tab.value?.toString() || ""),
+    );
+
+    return activeTabItem?.value || activeTab;
   },
   set(tab) {
     router.push({

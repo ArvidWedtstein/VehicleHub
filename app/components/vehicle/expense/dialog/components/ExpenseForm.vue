@@ -16,10 +16,7 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
 <template>
   <div class="grid grid-cols-1 sm:grid-cols-4 gap-x-6 gap-y-4 flex-1">
     <UFormField class="sm:col-span-4" label="Date" name="date" required>
-      <FormInputDateTime
-        v-model="expense.date"
-        class="w-full hidden lg:block"
-      />
+      <FormInputDateTime v-model="expense.date" class="w-full hidden lg:flex" />
       <UInput
         type="datetime-local"
         v-model="expense.date"

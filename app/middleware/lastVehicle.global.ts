@@ -14,7 +14,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
     // TODO: find a solution for this. Only do this first time
     if (to.path === "/" && from.path !== redirectPath && lastVehicleId.value) {
       console.log(
-        "Redirecting to last vehicle's expenses page:",
+        "Redirecting to last vehicle's page:",
         from.path,
         lastVehicleId.value,
       );

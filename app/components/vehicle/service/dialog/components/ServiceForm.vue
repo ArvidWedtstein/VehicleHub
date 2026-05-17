@@ -35,8 +35,14 @@ const serviceTypeOptions = [
 
 <template>
   <div class="grid grid-cols-1 sm:grid-cols-6 gap-x-6 gap-y-4 flex-1">
-    <UFormField class="col-span-full" label="Date" name="date" required>
-      <UInput type="datetime-local" v-model="service.date" class="w-full" />
+    <UFormField class="sm:col-span-full" label="Date" name="date" required>
+      <FormInputDateTime v-model="service.date" class="w-full hidden lg:flex" />
+      <UInput
+        type="datetime-local"
+        v-model="service.date"
+        class="w-full lg:hidden"
+      />
+      {{ service.date }}
     </UFormField>
 
     <UFormField class="sm:col-span-4" label="Type" name="type" required>

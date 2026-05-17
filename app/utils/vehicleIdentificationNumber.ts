@@ -2765,6 +2765,12 @@ type VinResponseModel = {
   VehicleType: string;
   SuggestedVIN: string;
 };
+
+/**
+ * TODO: move to server
+ * @param vin
+ * @returns
+ */
 export const decodeVINAsync = async (
   vin: string,
 ): Promise<VINData | undefined> => {
