@@ -133,7 +133,7 @@ const vehicleColors: SelectMenuItem[] = [
       <UInputMenu
         v-model="vehicle.model"
         class="w-full"
-        autocomplete
+        mode="autocomplete"
         autocapitalize="words"
         :items="models"
       />
@@ -154,7 +154,7 @@ const vehicleColors: SelectMenuItem[] = [
       <UInputMenu
         v-model="vehicle.color"
         type="text"
-        autocomplete
+        mode="autocomplete"
         :items="vehicleColors"
         class="w-full"
         labelKey="value"

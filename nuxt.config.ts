@@ -51,7 +51,12 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
-      include: ["@vue/devtools-core", "@vue/devtools-kit", "zod"],
+      include: [
+        "@vue/devtools-core",
+        "@vue/devtools-kit",
+        "zod",
+        "@internationalized/date",
+      ],
     },
   },
   css: ["~/assets/app.css"],
