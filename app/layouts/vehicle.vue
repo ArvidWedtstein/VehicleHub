@@ -8,14 +8,6 @@ const { isMobile } = useBreakpoints();
 
 const vehicleId = useRouteParam("id", "number");
 
-const { setLastVehicle } = useLastVehicle();
-
-watchEffect(() => {
-  if (vehicleId.value) {
-    setLastVehicle(vehicleId.value);
-  }
-});
-
 const tabs: TabsItem[] = [
   {
     label: "Expenses",
