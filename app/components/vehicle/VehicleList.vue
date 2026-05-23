@@ -53,8 +53,10 @@ const createVehicle = () => {
       <template #header>
         <UAvatar
           v-if="vehicle?.thumbnail"
-          :src="`https://akhxphgocxpyoofvdqwi.supabase.co/storage/v1/object/public/${vehicle.thumbnail}?Quality=20`"
+          :src="`https://akhxphgocxpyoofvdqwi.supabase.co/storage/v1/object/public/${vehicle.thumbnail}?Quality=20&format=webp`"
           size="md"
+          loading="lazy"
+          fetchpriority="low"
         />
       </template>
     </UPageCard>
