@@ -26,23 +26,8 @@ const handleVIN = async () => {
   vehicle.value.fuel_type ??= decodedVIN.fuelType;
 };
 
-const { pending: modelsPending, data: models } = await useFetch(
-  () =>
-    `https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${vehicle.value.make?.toLowerCase()}`,
-  {
-    key: () => `models-${vehicle.value.make?.toLowerCase()}`,
-    query: {
-      format: "json",
-    },
-    default: () => [] as string[],
-    immediate: false,
-    transform: (data: {
-      Count: number;
-      Results: Partial<{ Model_Name: string }>[];
-    }) => {
-      return data.Results.map((p) => p.Model_Name || "");
-    },
-  },
+const { pending: modelsPending, data: models } = useVehicleManufacturerModels(
+  vehicle.value.make,
 );
 
 const vehicleTypes: SelectMenuItem[] = [
@@ -148,7 +133,7 @@ const vehicleColors: SelectMenuItem[] = [
       <UInputMenu
         v-model="vehicle.model"
         class="w-full"
-        autocomplete
+        mode="autocomplete"
         autocapitalize="words"
         :items="models"
       />
@@ -169,7 +154,7 @@ const vehicleColors: SelectMenuItem[] = [
       <UInputMenu
         v-model="vehicle.color"
         type="text"
-        autocomplete
+        mode="autocomplete"
         :items="vehicleColors"
         class="w-full"
         labelKey="value"

@@ -540,7 +540,6 @@ export type Database = {
       }
       vehicleservicelogs_with_items: {
         Row: {
-          cost: number | null
           created_at: string | null
           createdby_id: string | null
           createdby_name: string | null

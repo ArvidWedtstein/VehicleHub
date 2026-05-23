@@ -8,3 +8,16 @@ export const useVehicleManufacturers = () => {
     },
   );
 };
+
+export const useVehicleManufacturerModels = (manufacturer?: string) => {
+  return useFetch<string[]>(
+    `/api/vehicleManufacturers/${manufacturer}/models`,
+    {
+      method: "get",
+      key: () => `models-${manufacturer?.toLowerCase()}`,
+      default: () => [] as string[],
+      immediate: false,
+      lazy: true,
+    },
+  );
+};

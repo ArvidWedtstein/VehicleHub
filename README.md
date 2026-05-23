@@ -199,7 +199,7 @@ Nothing to acknowledge yet :D
 [workflow-url]: https://github.com/ArvidWedtstein/VehicleHub/actions/workflows/update-types.yml
 [contributors-shield]: https://img.shields.io/github/contributors/ArvidWedtstein/VehicleHub.svg?style=for-the-badge
 [contributors-url]: https://github.com/ArvidWedtstein/VehicleHub/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/ArvidWedtstein/VehicleHub.svg?style=for-the-badge
+[forks-shield]: https://img.shields.io/github/forks/ArvidWedtstein/VehicleHub.svg?style=for-the-badge&label=Gafflar (Forks)
 [forks-url]: https://github.com/ArvidWedtstein/VehicleHub/network/members
 [stars-shield]: https://img.shields.io/github/stars/ArvidWedtstein/VehicleHub.svg?style=for-the-badge
 [stars-url]: https://github.com/ArvidWedtstein/VehicleHub/stargazers

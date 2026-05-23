@@ -39,31 +39,22 @@ const openChangelogDrawer = () => {
   changelogDrawerRef.value?.open();
 };
 
-const vehicleMenuItems: DropdownMenuItem[][] = [
-  [
-    {
-      label: "Edit",
-      icon: "mdi:pencil",
-      onClick: editVehicle,
-    },
-    {
-      label: "Share",
-      icon: "mdi:share-variant",
-      onClick: openShareVehicleDialog,
-    },
-    {
-      label: "Changelog",
-      icon: "mdi:history",
-      onClick: openChangelogDrawer,
-    },
-  ],
-  [
-    {
-      label: "Transfer ownership",
-      icon: "mdi:account-switch",
-      onClick: () => {},
-    },
-  ],
+const vehicleMenuItems: DropdownMenuItem[] = [
+  {
+    label: "Edit",
+    icon: "mdi:pencil",
+    onClick: editVehicle,
+  },
+  {
+    label: "Share",
+    icon: "mdi:share-variant",
+    onClick: openShareVehicleDialog,
+  },
+  {
+    label: "Changelog",
+    icon: "mdi:history",
+    onClick: openChangelogDrawer,
+  },
 ];
 </script>
 
@@ -184,11 +175,20 @@ const vehicleMenuItems: DropdownMenuItem[][] = [
     </template>
 
     <template #default v-if="vehicle.thumbnail">
-      <img
-        class="object-cover rounded-md w-full max-h-64"
-        :src="`https://akhxphgocxpyoofvdqwi.supabase.co/storage/v1/object/public/${vehicle.thumbnail}`"
-        alt="Car"
-      />
+      <picture>
+        <source
+          :srcset="`https://akhxphgocxpyoofvdqwi.supabase.co/storage/v1/object/public/${vehicle.thumbnail}?Quality=20&width=400&height=200&resize=contain`"
+          media="(orientation: portrait)"
+        />
+        <img
+          class="object-cover rounded-md w-full max-h-64"
+          :src="`https://akhxphgocxpyoofvdqwi.supabase.co/storage/v1/object/public/${vehicle.thumbnail}?Quality=20&width=650&height=260&resize=contain`"
+          alt="Car"
+          fetchpriority="high"
+          height="260"
+          width="650"
+        />
+      </picture>
     </template>
   </LazyUPageCard>
 </template>

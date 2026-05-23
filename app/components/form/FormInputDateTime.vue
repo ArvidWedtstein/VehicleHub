@@ -146,8 +146,8 @@ const sharedProps = computed(() => ({
         :hourCycle="hourCycle"
         :minValue="minValue"
         :maxValue="maxValue"
-        variant="outline"
-        class="border-none ring-0 py-0"
+        variant="none"
+        class="py-0"
       />
 
       <UPopover :reference="inputDate?.inputsRef[3]?.$el">

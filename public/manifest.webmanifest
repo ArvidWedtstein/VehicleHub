@@ -31,7 +31,7 @@
       "name": "Vehicles",
       "short_name": "Vehicles",
       "url": "/vehicles/",
-      "icons": [{ "src": "/icons/icon-512.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/icon-512.png", "sizes": "512x512" }]
     }
   ],
   "client": {

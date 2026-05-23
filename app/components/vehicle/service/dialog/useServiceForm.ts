@@ -1,32 +1,33 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
-import { parseAbsoluteToLocal, toCalendarDate } from "@internationalized/date";
 
 import z from "zod";
 import {
   deleteVehicleDocument,
   uploadVehicleDocument,
 } from "~/composables/vehicle/useVehicleDocuments";
+import { nullish } from "#shared/schemas/utils";
 
 const serviceItemSchema = z.object({
-  id: z.number().optional(),
-  service_log_id: z.number().optional(),
+  id: z.number().positive().optional(),
+  service_log_id: z.number().positive().optional(),
   description: z.string().optional(),
   quantity: z
     .number({ error: "Quantity is required" })
     .min(0, "Amount cannot be less than 0")
     .default(1),
-  cost: z.number({ error: "Cost is required" }).default(0),
+  cost: z.number({ error: "Cost is required" }).positive().default(0),
 });
 
 const serviceSchema = z.object({
-  id: z.number().optional(),
-  vehicle_id: z.number().optional(),
+  id: z.number().positive().optional(),
+  vehicle_id: z.number().positive().optional(),
+  // date: z.iso.datetime().default(() => convertToDatetimeLocal()),
   date: z.string().default(convertToDatetimeLocal()),
-  type: z.string().min(1).default(""),
-  provider: z.string().optional(),
-  mileage: z.number().optional(),
+  type: z.string().nonempty().default(""),
+  provider: nullish(z.string()),
+  mileage: nullish(z.number().positive()),
   currency: z.string().length(3).toUpperCase().default("NOK"),
-  notes: z.string().optional(),
+  notes: nullish(z.string()),
 });
 
 export type ServiceSchema = z.output<typeof serviceSchema>;
@@ -34,8 +35,12 @@ export type ServiceSchema = z.output<typeof serviceSchema>;
 export type ServiceItemSchema = z.output<typeof serviceItemSchema>;
 
 export const useServiceForm = () => {
-  const service = ref<Partial<ServiceSchema & ServiceItemSchema>>(
-    serviceSchema.parse({}),
+  const service = ref<ServiceSchema>(
+    serviceSchema.parse({
+      notes: null,
+      mileage: null,
+      provider: null,
+    }),
   );
 
   const originalServiceFiles = shallowRef<Tables<"VehicleDocuments">[]>([]);
@@ -64,12 +69,19 @@ export const useServiceForm = () => {
         vehicleId,
         serviceId,
       );
+      console.log(
+        "edit",
+        editService.value,
+        convertToDatetimeLocal(editService.value?.date),
+      );
 
       service.value = serviceSchema.parse({
         ...editService.value,
-        vehicle_id: vehicleId,
         date: convertToDatetimeLocal(editService.value?.date),
       });
+
+      console.log("edit", service.value);
+
       // TODO: remove
       const files =
         editService.value?.files.map(
@@ -120,7 +132,7 @@ export const useServiceForm = () => {
 
   const save = async () => {
     if (!service.value.vehicle_id) {
-      throw new Error("Vehicle ID is required");
+      throw createError("Vehicle ID is required");
     }
 
     try {
@@ -133,7 +145,7 @@ export const useServiceForm = () => {
       // Edit mode
       if (isEdit.value && serviceId) {
         await updateVehicleService(
-          service.value.vehicle_id!,
+          service.value.vehicle_id,
           serviceId,
           {
             ...service.value,

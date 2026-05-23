@@ -8,14 +8,6 @@ const { isMobile } = useBreakpoints();
 
 const vehicleId = useRouteParam("id", "number");
 
-const { setLastVehicle } = useLastVehicle();
-
-watchEffect(() => {
-  if (vehicleId.value) {
-    setLastVehicle(vehicleId.value);
-  }
-});
-
 const tabs: TabsItem[] = [
   {
     label: "Expenses",
@@ -69,7 +61,14 @@ const mobileTabs = computed<NavigationMenuItem[]>(() => {
 
 const activeTab = computed({
   get() {
-    return (route.name as string) || "vehicles-id";
+    const activeTab = (route.name as string) || "vehicles-id";
+    console.log(activeTab);
+
+    const activeTabItem = tabs.find((tab) =>
+      activeTab.startsWith(tab.value?.toString() || ""),
+    );
+
+    return activeTabItem?.value || activeTab;
   },
   set(tab) {
     router.push({
