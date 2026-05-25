@@ -13,5 +13,9 @@ import { en_gb } from "@nuxt/ui/locale";
         <NuxtPage />
       </NuxtLayout>
     </UMain>
+
+    <USeparator type="dashed" class="h-px" />
+
+    <AppFooter />
   </UApp>
 </template>

@@ -28,7 +28,7 @@ export default defineAppConfig({
       drag: "mdi:drag",
       ellipsis: "mdi:dots-horizontal",
       error: "mdi:exclamation",
-      external: "mdi:arrow-top-right-thin",
+      external: "mdi:arrow-top-right",
       eye: "mdi:eye",
       eyeOff: "mdi:eye-off",
       file: "mdi:file",

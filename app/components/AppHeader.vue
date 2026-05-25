@@ -50,6 +50,10 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
         to: `/profiles/${user.value.id}`,
       },
       {
+        label: "Privacy Policy",
+        to: "/privacy",
+      },
+      {
         label: "Logout",
         icon: "mdi:logout",
         onSelect: handleSignOut,
@@ -57,6 +61,10 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
     ];
   } else {
     return [
+      {
+        label: "Privacy Policy",
+        to: "/privacy",
+      },
       {
         label: "Login",
         to: "/login",
