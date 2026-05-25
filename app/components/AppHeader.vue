@@ -72,12 +72,22 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
   } else {
     return [
       {
-        label: "Privacy Policy",
-        to: "/policy",
-      },
-      {
         label: "Login",
         to: "/login",
+      },
+      {
+        label: "Info",
+        icon: "mdi:information",
+        children: [
+          {
+            label: "Privacy Policy",
+            to: "/policy",
+          },
+          {
+            label: "Terms of Service",
+            to: "/tos",
+          },
+        ],
       },
     ];
   }

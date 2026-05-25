@@ -64,7 +64,7 @@ export default defineNuxtConfig({
   supabase: {
     redirect: false,
     redirectOptions: {
-      callback: "/callback",
+      callback: "/auth/callback",
       login: "/login",
       include: ["/vehicles(/*)"],
       saveRedirectToCookie: true,

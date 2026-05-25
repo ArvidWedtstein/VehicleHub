@@ -5,10 +5,6 @@ useHead({
   titleTemplate: "%s | Vehicle Hub",
 });
 
-definePageMeta({
-  auth: false,
-});
-
 useSeoMeta({
   title: "Vehicles",
   ogTitle: "Vehicles",

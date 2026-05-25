@@ -70,7 +70,9 @@ const vehicleSchema = z.object({
   fuel_capacity: dbToForm(z.number()).default(0),
   fuel_capacity_unit: dbToForm(z.string()).default("liter"),
   mileage_unit: dbToForm(z.string()).default("kilometer"),
-  owner_user_id: z.uuid(),
+  owner_user_id: dbToForm(z.uuid()).default(
+    () => useSupabaseUser().value?.id ?? "",
+  ),
   thumbnail: z
     .file()
     .max(MAX_FILE_SIZE)

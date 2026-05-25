@@ -3,7 +3,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   const user = useSupabaseUser();
   const STORAGE_KEY = "last_route";
 
-  const SKIP_ROUTES = ["/login", "/callback"];
+  const SKIP_ROUTES = ["/login"];
 
   const startTracking = () => {
     router.afterEach((to) => {
