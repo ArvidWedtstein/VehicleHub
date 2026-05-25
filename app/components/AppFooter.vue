@@ -13,10 +13,12 @@ const items: NavigationMenuItem[] = [
     target: "_blank",
   },
 ];
+
+const { isMobile } = useBreakpoints();
 </script>
 
 <template>
-  <UFooter>
+  <UFooter v-if="!isMobile">
     <template #left>
       <p class="text-muted text-sm">
         Copyright © {{ new Date().getFullYear() }}

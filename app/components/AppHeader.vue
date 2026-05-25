@@ -50,8 +50,18 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
         to: `/profiles/${user.value.id}`,
       },
       {
-        label: "Privacy Policy",
-        to: "/privacy",
+        label: "Info",
+        icon: "mdi:information",
+        children: [
+          {
+            label: "Privacy Policy",
+            to: "/policy",
+          },
+          {
+            label: "Terms of Service",
+            to: "/tos",
+          },
+        ],
       },
       {
         label: "Logout",
@@ -63,7 +73,7 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
     return [
       {
         label: "Privacy Policy",
-        to: "/privacy",
+        to: "/policy",
       },
       {
         label: "Login",
