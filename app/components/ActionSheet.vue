@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import type { ArrayOrNested, DrawerProps, DropdownMenuItem } from "@nuxt/ui";
 
-const ActionSheet = defineAsyncComponent(
-  async () => await import("~/components/ActionSheet.vue"),
-);
-
 type ActionSheetItem = Omit<DropdownMenuItem, "type">;
 
 interface ActionSheetProps extends Omit<
@@ -74,7 +70,7 @@ defineExpose({
         >
           <template v-for="item in group" :key="item.label">
             <template v-if="item.children?.length">
-              <ActionSheet
+              <LazyActionSheet
                 nested
                 :title="item.label"
                 :items="item.children"
@@ -91,7 +87,7 @@ defineExpose({
                     trailingIcon: 'ms-0',
                   }"
                 />
-              </ActionSheet>
+              </LazyActionSheet>
             </template>
 
             <UButton
