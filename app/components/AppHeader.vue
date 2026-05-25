@@ -72,10 +72,6 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
   } else {
     return [
       {
-        label: "Login",
-        to: "/login",
-      },
-      {
         label: "Info",
         icon: "mdi:information",
         children: [
@@ -88,6 +84,10 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
             to: "/tos",
           },
         ],
+      },
+      {
+        label: "Login",
+        to: "/login",
       },
     ];
   }
@@ -114,7 +114,8 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
           variant="ghost"
           :avatar="{
             src: user?.user_metadata.avatar_url,
-            alt: user?.user_metadata.name || 'User Avatar',
+            alt: user?.user_metadata.name,
+            icon: 'mdi:account',
             size: 'lg',
           }"
         />
