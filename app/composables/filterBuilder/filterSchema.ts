@@ -14,14 +14,17 @@ export type FilterFieldType =
 
 type Tables = Database["public"]["Tables"];
 
-export type FilterField<T extends keyof Tables> = {
+export type FilterField<
+  T extends keyof Tables,
+  TP extends FilterFieldType = FilterFieldType,
+> = {
   /** DB column this filter applies to */
   column: keyof Tables[T]["Row"];
   /** Human-friendly label */
   label: string;
   /** UI control type */
-  type: FilterFieldType;
-  /** Default operator (no user selection) */
+  type: TP;
+  /** Default TP (no user selection) */
   operator?: FilterOperator;
   /** Predefined select options (for dropdowns) */
   options?: {
@@ -41,6 +44,8 @@ export type FilterField<T extends keyof Tables> = {
   transform?: (
     value: unknown,
   ) => FilterOption<Tables[T]["Row"], any, any>[] | null;
+
+  inputType?: TP extends "range" ? "slider" | "input" : never;
 };
 
 /**

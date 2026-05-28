@@ -117,14 +117,6 @@ const vehicleMenuItems: DropdownMenuItem[] = [
           ></div>
 
           <span class="flex gap-1 items-center flex-nowrap text-nowrap">
-            <UIcon
-              :name="
-                vehicle.fuel_type === 'Electric'
-                  ? 'mdi:car-electric'
-                  : 'mdi:car'
-              "
-            />
-
             {{ vehicle.fuel_type }}
 
             ({{

@@ -29,7 +29,10 @@ const filterSchema: FilterSchema<"VehicleExpenses"> = [
   {
     column: "cost",
     label: "Cost",
-    type: "number",
+    type: "range",
+    range: { min: 0, max: 1000, step: 1 },
+    default: [0, 0],
+    inputType: "input",
   },
   { column: "date", label: "Date", type: "date-range" },
 ] as const;
@@ -50,8 +53,16 @@ const applyFilters = async () => {
     v-model:open="open"
     direction="bottom"
     title="Filter"
+    :description="
+      buildFilters.length
+        ? `${buildFilters.length} active filters`
+        : 'No filters applied'
+    "
     inset
     :handleOnly="true"
+    :ui="{
+      header: 'border-b',
+    }"
   >
     <UButton
       label="Filter"
@@ -66,12 +77,18 @@ const applyFilters = async () => {
 
     <template #footer>
       <div class="flex gap-2">
-        <UButton label="Apply" size="lg" @click="applyFilters" />
+        <UButton
+          label="Apply"
+          size="lg"
+          block
+          class="grow"
+          @click="applyFilters"
+        />
 
         <UButton
           label="Reset"
-          color="neutral"
-          variant="soft"
+          color="error"
+          variant="ghost"
           size="lg"
           @click="resetFilters"
         />
