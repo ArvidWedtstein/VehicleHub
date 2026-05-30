@@ -8,7 +8,9 @@ useHead({
 
 const vehicleId = useRouteParam("id", { type: "number", required: true });
 
-const filters = ref<FilterOption<Tables<"VehicleServiceLogs">>[]>([]);
+const filters = ref<FilterOption<Tables<"vehicleservicelogs_with_items">>[]>(
+  [],
+);
 
 const {
   data: services,
@@ -24,16 +26,17 @@ const overlay = useOverlay();
 const vehicleServiceDialog = overlay.create(ServiceDialog);
 
 const handleServicesExport = (type: string) => {
-  const columnsToExport: Array<keyof Tables<"VehicleServiceLogs">> = [
-    "type",
-    "vehicle_id",
-    "date",
-    "provider",
-    "cost",
-    "currency",
-    "mileage",
-    "notes",
-  ];
+  const columnsToExport: Array<keyof Tables<"vehicleservicelogs_with_items">> =
+    [
+      "type",
+      "vehicle_id",
+      "date",
+      "provider",
+      "total_cost",
+      "currency",
+      "mileage",
+      "notes",
+    ];
   const table = parseRowsToTable(services.value, columnsToExport);
 
   let blob: Blob | null = null;
@@ -53,18 +56,18 @@ const handleServicesExport = (type: string) => {
 };
 
 const sortControl = reactive<{
-  key: keyof Tables<"VehicleServiceLogs">;
+  key: keyof Tables<"vehicleservicelogs_with_items">;
   direction: "asc" | "desc";
   options: Array<{
     label?: string;
-    value: keyof Tables<"VehicleServiceLogs">;
+    value: keyof Tables<"vehicleservicelogs_with_items">;
   }>;
 }>({
   key: "date",
   direction: "desc",
   options: [
     { value: "date", label: "Date" },
-    { value: "cost", label: "Cost" },
+    { value: "total_cost", label: "Cost" },
   ],
 });
 
@@ -89,7 +92,7 @@ const groupedServices = computed(() => {
 });
 
 const getServiceIcon = (
-  serviceType?: Tables<"VehicleServiceLogs">["type"] | null,
+  serviceType?: Tables<"vehicleservicelogs_with_items">["type"] | null,
 ) => {
   if (!serviceType) return;
 
@@ -125,7 +128,7 @@ const getServiceIcon = (
   }
 };
 
-const setSortKey = (key: keyof Tables<"VehicleServiceLogs">) => {
+const setSortKey = (key: keyof Tables<"vehicleservicelogs_with_items">) => {
   sortControl.key = key;
 };
 
@@ -136,7 +139,9 @@ const handleCreateService = async () => {
 };
 
 const handleFilterApply = async (
-  buildFilters: Ref<Array<FilterOption<Tables<"VehicleServiceLogs">>>>,
+  buildFilters: Ref<
+    Array<FilterOption<Tables<"vehicleservicelogs_with_items">>>
+  >,
 ) => {
   filters.value = buildFilters.value;
   refresh();

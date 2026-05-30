@@ -7,7 +7,7 @@ const emit = defineEmits<{
   (e: "applyFilters", filters: typeof buildFilters): void;
 }>();
 
-const filterSchema: FilterSchema<"VehicleServiceLogs"> = [
+const filterSchema: FilterSchema<"vehicleservicelogs_with_items"> = [
   {
     column: "currency",
     label: "Currency",
@@ -24,7 +24,7 @@ const filterSchema: FilterSchema<"VehicleServiceLogs"> = [
     type: "number",
   },
   {
-    column: "cost",
+    column: "total_cost",
     label: "Cost",
     type: "number",
   },

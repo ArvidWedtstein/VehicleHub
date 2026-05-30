@@ -1,9 +1,8 @@
-<script
-  setup
-  lang="ts"
-  generic="Table extends keyof Database['public']['Tables']"
->
-import type { FilterSchema } from "~/composables/filterBuilder/filterSchema";
+<script setup lang="ts" generic="Table extends keyof TablesAndViews">
+import type {
+  TablesAndViews,
+  FilterSchema,
+} from "~/composables/filterBuilder/filterSchema";
 import type { Database } from "~/types/supabase";
 
 defineProps<{

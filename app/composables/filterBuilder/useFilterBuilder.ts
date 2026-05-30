@@ -1,12 +1,10 @@
 import type { Database, Tables } from "~/types/supabase";
-import type { FilterSchema, FilterField } from "./filterSchema";
+import type { TablesAndViews, FilterSchema, FilterField } from "./filterSchema";
 
-export const useFilterBuilder = <
-  Table extends keyof Database["public"]["Tables"],
->(
+export const useFilterBuilder = <Table extends keyof TablesAndViews>(
   schema: FilterSchema<Table>,
 ) => {
-  type Row = Database["public"]["Tables"][Table]["Row"];
+  type Row = TablesAndViews[Table]["Row"];
 
   type C = FilterSchema<Table>[number]["column"];
 
