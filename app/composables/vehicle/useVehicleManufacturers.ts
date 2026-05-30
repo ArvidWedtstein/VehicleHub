@@ -5,6 +5,9 @@ export const useVehicleManufacturers = () => {
     "/api/vehicleManufacturers",
     {
       key: "vehicleManufacturers",
+      lazy: true,
+      immediate: false,
+      default: () => [] as Tables<"VehicleManufacturers">[],
     },
   );
 };

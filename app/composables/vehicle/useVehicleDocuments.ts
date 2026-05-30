@@ -6,6 +6,7 @@ export function useVehicleDocuments(vehicleId?: string | number) {
     {
       key: `vehicle-${vehicleId}_documents`,
       immediate: !!vehicleId,
+      lazy: true,
     },
   );
 }

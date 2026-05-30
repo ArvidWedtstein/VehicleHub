@@ -13,6 +13,7 @@ export function useVehicleChangelog(
     `/api/vehicles/${id.value}/changelog`,
     {
       key: key.value,
+      lazy: true,
       watch: [id],
       default: () => [],
     },

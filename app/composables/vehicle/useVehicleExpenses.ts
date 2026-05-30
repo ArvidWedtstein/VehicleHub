@@ -5,11 +5,10 @@ export const useVehicleExpenses = (
   filters: MaybeRef<FilterOption<Tables<"VehicleExpenses">>[]> = [],
   pageSize = 10,
 ) => {
-  const resolvedVehicleId = computed(() => unref(vehicleId));
-  const resolvedFilters = computed(() => unref(filters));
-  const limit = computed(() => unref(pageSize));
+  const resolvedVehicleId = computed(() => toValue(vehicleId));
+  const resolvedFilters = computed(() => toValue(filters));
+  const limit = computed(() => toValue(pageSize));
 
-  const key = computed(() => `vehicle-${resolvedVehicleId.value}_expenses`);
   const offset = ref(0);
   const hasMore = ref(true);
 
@@ -21,11 +20,10 @@ export const useVehicleExpenses = (
     status,
     refresh,
   } = useFetch<Tables<"VehicleExpenses">[]>(
-    `/api/vehicles/${resolvedVehicleId.value}/expenses/filter`,
+    () => `/api/vehicles/${resolvedVehicleId.value}/expenses/filter`,
     {
-      key,
+      key: () => `vehicle-${resolvedVehicleId.value}_expenses`,
       method: "post",
-      watch: [offset, resolvedFilters, limit],
       body: computed(() => ({
         filters: resolvedFilters.value,
         pagination: {

@@ -1,18 +1,16 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
 export function useVehicleServices(
-  vehicleId: MaybeRef<string | number | undefined>,
-  filters: MaybeRef<
+  vehicleId: MaybeRefOrGetter<string | number | undefined>,
+  filters: MaybeRefOrGetter<
     FilterOption<Tables<"vehicleservicelogs_with_items">>[]
   > = [],
-  pageSize = 10,
+  pageSize: MaybeRefOrGetter<number> = 10,
 ) {
-  const resolvedVehicleId = computed(() => unref(vehicleId));
-  const resolvedFilters = computed(() => unref(filters));
+  const resolvedVehicleId = computed(() => toValue(vehicleId));
+  const resolvedFilters = computed(() => toValue(filters));
+  const limit = computed(() => toValue(pageSize));
 
-  const limit = computed(() => unref(pageSize));
-
-  const key = computed(() => `vehicle-${resolvedVehicleId.value}_services`);
   const offset = ref(0);
   const hasMore = ref(true);
 
@@ -24,11 +22,10 @@ export function useVehicleServices(
     status,
     refresh,
   } = useFetch<Tables<"vehicleservicelogs_with_items">[]>(
-    `/api/vehicles/${resolvedVehicleId.value}/services/filter`,
+    () => `/api/vehicles/${resolvedVehicleId.value}/services/filter`,
     {
       method: "post",
-      key,
-      watch: [offset, resolvedFilters, limit],
+      key: () => `vehicle-${resolvedVehicleId.value}_services`,
       body: computed(() => ({
         filters: resolvedFilters.value,
         pagination: {
@@ -45,15 +42,9 @@ export function useVehicleServices(
   watch(items, (newPage) => {
     if (!newPage) return;
 
-    if (offset.value === 0) {
-      data.value = newPage;
-    } else {
-      data.value = [...data.value, ...newPage];
-    }
+    data.value = offset.value === 0 ? newPage : [...data.value, ...newPage];
 
-    if (newPage.length < limit.value || limit.value === -1) {
-      hasMore.value = false;
-    }
+    hasMore.value = newPage.length >= limit.value && limit.value !== -1;
   });
 
   watch([resolvedVehicleId, resolvedFilters], () => {
@@ -64,8 +55,7 @@ export function useVehicleServices(
   });
 
   const loadMore = () => {
-    if (pending.value) return;
-    offset.value += limit.value;
+    if (!pending.value && hasMore.value) offset.value += limit.value;
   };
 
   return {
@@ -89,11 +79,11 @@ export const useVehicleService = (
       items: Tables<"VehicleServiceLogsItems">[];
       files: Tables<"VehicleDocuments">[];
     }
-  >(`/api/vehicles/${unref(vehicleId)}/services/${unref(id)}`, {
-    key: `vehicle-${unref(vehicleId)}_service-${unref(id)}`,
+  >(() => `/api/vehicles/${unref(vehicleId)}/services/${unref(id)}`, {
+    key: () => `vehicle-${unref(vehicleId)}_service-${unref(id)}`,
     method: "get",
+    lazy: true,
     immediate: !!unref(id) && !!unref(vehicleId),
-    watch: [() => vehicleId, () => id],
   });
 };
 
@@ -112,7 +102,7 @@ export async function createVehicleService(
       },
     },
   );
-  refreshNuxtData(`vehicle-${unref(vehicleId)}_services`);
+  await refreshNuxtData(`vehicle-${unref(vehicleId)}_services`);
 
   return service;
 }
@@ -124,7 +114,7 @@ export async function updateVehicleService(
   itemsPatch?: Partial<TablesUpdate<"VehicleServiceLogsItems">>[],
   removedItemIds?: Pick<TablesUpdate<"VehicleServiceLogsItems">, "id">[],
 ) {
-  await $fetch<Tables<"VehicleServiceLogs">>(
+  const updated = await $fetch<Tables<"VehicleServiceLogs">>(
     `/api/vehicles/${vehicleId}/services/${id}`,
     {
       method: "put",
@@ -135,21 +125,50 @@ export async function updateVehicleService(
       },
     },
   );
-  refreshNuxtData(`vehicle-${vehicleId}_services`);
-  refreshNuxtData(`vehicle-${vehicleId}_service-${id}`);
+
+  const single = useNuxtData<typeof updated>(
+    `vehicle-${vehicleId}_service-${id}`,
+  );
+  if (single.data.value) {
+    single.data.value = { ...single.data.value, ...updated };
+  }
+
+  const list = useNuxtData<Tables<"vehicleservicelogs_with_items">[]>(
+    `vehicle-${vehicleId}_services`,
+  );
+  if (list.data.value) {
+    list.data.value = list.data.value.map((s) =>
+      s.id === id ? { ...s, ...updated } : s,
+    );
+  }
+
+  return updated;
 }
 
 export async function deleteVehicleService(
   vehicleId: MaybeRef<string | number>,
   id: MaybeRef<string | number>,
 ) {
+  const resolvedVehicleId = computed(() => toValue(vehicleId));
+  const resolvedId = computed(() => toValue(id));
+
   await $fetch<Tables<"VehicleServiceLogs">>(
-    `/api/vehicles/${unref(vehicleId)}/services/${unref(id)}`,
+    `/api/vehicles/${resolvedVehicleId.value}/services/${resolvedId.value}`,
     {
       method: "delete",
     },
   );
 
-  refreshNuxtData(`vehicle-${unref(vehicleId)}_services`);
-  clearNuxtData(`vehicle-${unref(vehicleId)}_service-${unref(id)}`);
+  const list = useNuxtData<Tables<"vehicleservicelogs_with_items">[]>(
+    `vehicle-${resolvedVehicleId.value}_services`,
+  );
+  if (list.data.value) {
+    list.data.value = list.data.value.filter(
+      (service) => service.id !== resolvedId.value,
+    );
+  }
+
+  clearNuxtData(
+    `vehicle-${resolvedVehicleId.value}_service-${resolvedId.value}`,
+  );
 }

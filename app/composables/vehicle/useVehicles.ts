@@ -26,6 +26,7 @@ export const useVehicle = (
     }
   >(() => `/api/vehicles/${vehicleId.value}`, {
     key: `vehicle-${vehicleId.value}`,
+    lazy: true,
     immediate: !!vehicleId.value,
     watch: [vehicleId],
   });
