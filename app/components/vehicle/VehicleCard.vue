@@ -5,7 +5,7 @@ import type { DropdownMenuItem } from "@nuxt/ui";
 
 const changelogDrawerRef = useTemplateRef("changelogDrawerRef");
 
-const vehicleId = useRouteParam("id", "number");
+const vehicleId = useRouteParam("id", { type: "number", required: true });
 const { data: vehicle } = useVehicle(vehicleId.value);
 
 const { data: profiles } = useProfiles();

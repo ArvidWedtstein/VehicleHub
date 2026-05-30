@@ -9,7 +9,7 @@ definePageMeta({
   auth: true,
 });
 
-const vehicleId = useRouteParam("id", "number");
+const vehicleId = useRouteParam("id", { type: "number", required: true });
 const { data: documents } = useVehicleDocuments(vehicleId.value);
 
 const toast = useToast();

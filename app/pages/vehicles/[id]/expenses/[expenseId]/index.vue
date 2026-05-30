@@ -14,8 +14,11 @@ definePageMeta({
   layout: "vehicle",
 });
 
-const vehicleId = useRouteParam("id", "number");
-const expenseId = useRouteParam("expenseId", "number");
+const vehicleId = useRouteParam("id", { type: "number", required: true });
+const expenseId = useRouteParam("expenseId", {
+  type: "number",
+  required: true,
+});
 
 const {
   data: expense,

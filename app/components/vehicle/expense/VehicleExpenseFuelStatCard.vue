@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const vehicleId = useRouteParam("id", "number");
+const vehicleId = useRouteParam("id", { type: "number", required: true });
 const { data: expenses, pending: loading } = useVehicleExpenses(
   vehicleId,
   undefined,

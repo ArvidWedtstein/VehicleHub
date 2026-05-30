@@ -1,7 +1,7 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
 export function useVehicleServices(
-  vehicleId: MaybeRefOrGetter<string | number | undefined>,
+  vehicleId: MaybeRefOrGetter<Tables<"VehicleServiceLogs">["vehicle_id"]>,
   filters: MaybeRefOrGetter<
     FilterOption<Tables<"vehicleservicelogs_with_items">>[]
   > = [],
@@ -25,7 +25,7 @@ export function useVehicleServices(
     () => `/api/vehicles/${resolvedVehicleId.value}/services/filter`,
     {
       method: "post",
-      key: () => `vehicle-${resolvedVehicleId.value}_services`,
+      key: () => cacheKeys.services(resolvedVehicleId.value),
       body: computed(() => ({
         filters: resolvedFilters.value,
         pagination: {
@@ -70,30 +70,37 @@ export function useVehicleServices(
 }
 
 export const useVehicleService = (
-  vehicleId: MaybeRef<string | number | undefined>,
-  id?: MaybeRef<string | number | undefined>,
+  vehicleId: MaybeRefOrGetter<Tables<"VehicleServiceLogs">["vehicle_id"]>,
+  id: MaybeRefOrGetter<Tables<"VehicleServiceLogs">["id"]>,
 ) => {
-  return useFetch<
+  const resolvedVehicleId = computed(() => toValue(vehicleId));
+  const resolvedId = computed(() => toValue(id));
+
+  return useLazyFetch<
     Tables<"VehicleServiceLogs"> & {
       totalCost: number;
       items: Tables<"VehicleServiceLogsItems">[];
       files: Tables<"VehicleDocuments">[];
     }
-  >(() => `/api/vehicles/${unref(vehicleId)}/services/${unref(id)}`, {
-    key: () => `vehicle-${unref(vehicleId)}_service-${unref(id)}`,
-    method: "get",
-    lazy: true,
-    immediate: !!unref(id) && !!unref(vehicleId),
-  });
+  >(
+    () =>
+      `/api/vehicles/${resolvedVehicleId.value}/services/${resolvedId.value}`,
+    {
+      key: () => cacheKeys.service(resolvedVehicleId.value, resolvedId.value),
+      method: "get",
+      immediate: !!resolvedId.value && !!resolvedVehicleId.value,
+    },
+  );
 };
 
 export async function createVehicleService(
-  vehicleId: MaybeRef<string | number | undefined>,
+  vehicleId: MaybeRefOrGetter<Tables<"VehicleServiceLogs">["vehicle_id"]>,
   patch: Partial<TablesInsert<"VehicleServiceLogs">>,
   itemsPatch?: Partial<TablesInsert<"VehicleServiceLogsItems">>[],
 ) {
+  const resolvedVehicleId = computed(() => toValue(vehicleId));
   const service = await $fetch<Tables<"VehicleServiceLogs">>(
-    `/api/vehicles/${unref(vehicleId)}/services`,
+    `/api/vehicles/${resolvedVehicleId.value}/services`,
     {
       method: "post",
       body: {
@@ -102,14 +109,14 @@ export async function createVehicleService(
       },
     },
   );
-  await refreshNuxtData(`vehicle-${unref(vehicleId)}_services`);
+  await refreshNuxtData(cacheKeys.services(resolvedVehicleId.value));
 
   return service;
 }
 
 export async function updateVehicleService(
-  vehicleId: string | number,
-  id: string | number,
+  vehicleId: Tables<"VehicleServiceLogs">["vehicle_id"],
+  id: Tables<"VehicleServiceLogs">["id"],
   patch: TablesUpdate<"VehicleServiceLogs">,
   itemsPatch?: Partial<TablesUpdate<"VehicleServiceLogsItems">>[],
   removedItemIds?: Pick<TablesUpdate<"VehicleServiceLogsItems">, "id">[],
@@ -126,28 +133,16 @@ export async function updateVehicleService(
     },
   );
 
-  const single = useNuxtData<typeof updated>(
-    `vehicle-${vehicleId}_service-${id}`,
-  );
-  if (single.data.value) {
-    single.data.value = { ...single.data.value, ...updated };
-  }
+  patchNuxtDataItem(cacheKeys.service(vehicleId, id), updated);
 
-  const list = useNuxtData<Tables<"vehicleservicelogs_with_items">[]>(
-    `vehicle-${vehicleId}_services`,
-  );
-  if (list.data.value) {
-    list.data.value = list.data.value.map((s) =>
-      s.id === id ? { ...s, ...updated } : s,
-    );
-  }
+  patchNuxtDataList(cacheKeys.services(vehicleId), id, updated);
 
   return updated;
 }
 
 export async function deleteVehicleService(
-  vehicleId: MaybeRef<string | number>,
-  id: MaybeRef<string | number>,
+  vehicleId: MaybeRefOrGetter<Tables<"VehicleServiceLogs">["vehicle_id"]>,
+  id: MaybeRefOrGetter<Tables<"VehicleServiceLogs">["id"]>,
 ) {
   const resolvedVehicleId = computed(() => toValue(vehicleId));
   const resolvedId = computed(() => toValue(id));
@@ -159,16 +154,10 @@ export async function deleteVehicleService(
     },
   );
 
-  const list = useNuxtData<Tables<"vehicleservicelogs_with_items">[]>(
-    `vehicle-${resolvedVehicleId.value}_services`,
+  removeFromNuxtDataList(
+    cacheKeys.services(resolvedVehicleId.value),
+    resolvedId.value,
   );
-  if (list.data.value) {
-    list.data.value = list.data.value.filter(
-      (service) => service.id !== resolvedId.value,
-    );
-  }
 
-  clearNuxtData(
-    `vehicle-${resolvedVehicleId.value}_service-${resolvedId.value}`,
-  );
+  clearNuxtData(cacheKeys.service(resolvedVehicleId.value, resolvedId.value));
 }

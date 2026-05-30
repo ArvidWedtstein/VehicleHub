@@ -2,7 +2,7 @@ UPageCard
 <script setup lang="ts">
 import BarChart from "~/components/charts/BarChart.vue";
 
-const vehicleId = useRouteParam("id", "number");
+const vehicleId = useRouteParam("id", { type: "number", required: true });
 const { data: services, pending: loading } = useVehicleServices(
   vehicleId,
   undefined,
@@ -91,7 +91,7 @@ const serviceData = computed(() => {
     const items = servicesGroupedBySelectedPeriod[groupKey] || [];
 
     const totalCost = items.reduce(
-      (costAcc, currentItem) => costAcc + (currentItem.cost || 0),
+      (costAcc, currentItem) => costAcc + (currentItem?.cost || 0), // TODO: fix
       0,
     );
 

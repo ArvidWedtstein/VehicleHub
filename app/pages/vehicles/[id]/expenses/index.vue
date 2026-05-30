@@ -7,7 +7,7 @@ useHead({
 });
 
 const overlay = useOverlay();
-const vehicleId = useRouteParam("id", "number");
+const vehicleId = useRouteParam("id", { type: "number", required: true });
 
 const vehicleExpenseDialog = overlay.create(VehicleExpenseDialog);
 const filters = ref<Array<FilterOption<Tables<"VehicleExpenses">>>>([]);

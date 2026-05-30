@@ -6,7 +6,7 @@ useHead({
   title: "Services",
 });
 
-const vehicleId = useRouteParam("id", "number");
+const vehicleId = useRouteParam("id", { type: "number", required: true });
 
 const filters = ref<FilterOption<Tables<"VehicleServiceLogs">>[]>([]);
 
