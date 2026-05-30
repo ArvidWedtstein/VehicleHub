@@ -142,7 +142,10 @@ export async function updateVehicleService(
     onRequest() {
       previousList = listCache.data.value || [];
 
-      patchNuxtDataItem(cacheKeys.service(vehicleId, id), patch);
+      patchNuxtDataItem(cacheKeys.service(vehicleId, id), {
+        ...patch,
+        items: itemsPatch,
+      });
       patchNuxtDataList(cacheKeys.services(vehicleId), id, patch);
     },
     onResponseError() {
@@ -151,7 +154,11 @@ export async function updateVehicleService(
       refreshNuxtData(cacheKeys.service(vehicleId, id));
     },
     onResponse({ response }) {
-      patchNuxtDataList(cacheKeys.services(vehicleId), id, response._data);
+      patchNuxtDataList(
+        cacheKeys.services(vehicleId),
+        id,
+        omit(response._data, ["items", "files"]),
+      );
     },
   });
 
