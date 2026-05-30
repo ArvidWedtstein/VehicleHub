@@ -93,16 +93,21 @@ export const useVehicleExpense = (
         cacheKeys.expense(resolvedVehicleId.value, resolvedExpenseId.value),
       method: "get",
       immediate: !!resolvedVehicleId.value && !!resolvedExpenseId.value,
-      default: () =>
-        listCache.data.value?.find((e) => e.id === resolvedExpenseId.value),
+      // default: () =>
+      //   listCache.data.value?.find((e) => e.id === resolvedExpenseId.value),
     },
   );
 };
 
 export async function createVehicleExpense(
   vehicleId: Tables<"VehicleExpenses">["vehicle_id"],
-  patch: Partial<TablesInsert<"VehicleExpenses">>,
+  patch: TablesInsert<"VehicleExpenses">,
 ) {
+  const listCache = useNuxtData<Tables<"VehicleExpenses">[]>(
+    cacheKeys.expenses(vehicleId),
+  );
+  let previousList: Tables<"VehicleExpenses">[] = [];
+
   const expense = await $fetch<Tables<"VehicleExpenses">>(
     `/api/vehicles/${vehicleId}/expenses`,
     {
@@ -110,10 +115,19 @@ export async function createVehicleExpense(
       body: {
         expense: patch,
       },
+      onRequest() {
+        previousList = listCache.data.value || [];
+
+        patchNuxtDataList(cacheKeys.expenses(vehicleId), -1, patch);
+      },
+      onResponseError() {
+        listCache.data.value = previousList;
+      },
+      async onResponse() {
+        await refreshNuxtData(cacheKeys.expenses(vehicleId));
+      },
     },
   );
-
-  await refreshNuxtData(cacheKeys.expenses(vehicleId));
 
   return expense;
 }
@@ -123,15 +137,35 @@ export async function updateVehicleExpense(
   id: Tables<"VehicleExpenses">["id"],
   patch: Partial<TablesUpdate<"VehicleExpenses">>,
 ) {
+  const listCache = useNuxtData<Tables<"VehicleExpenses">[]>(
+    cacheKeys.expenses(vehicleId),
+  );
+  let previousList: Tables<"VehicleExpenses">[] = [];
+
   const updated = await $fetch<Tables<"VehicleExpenses">>(
     `/api/vehicles/${vehicleId}/expenses/${id}`,
     {
       method: "put",
-      body: patch,
+      body: {
+        expense: patch,
+      },
+      onRequest() {
+        previousList = listCache.data.value || [];
+        patchNuxtDataItem(cacheKeys.expense(vehicleId, id), patch);
+        patchNuxtDataList(cacheKeys.expenses(vehicleId), id, patch);
+      },
+      onResponseError() {
+        listCache.data.value = previousList;
+
+        console.log("Failed to update expense, reverting optimistic update");
+        refreshNuxtData(cacheKeys.expense(vehicleId, id));
+      },
+      onResponse({ response }) {
+        patchNuxtDataItem(cacheKeys.expense(vehicleId, id), response._data);
+        patchNuxtDataList(cacheKeys.expenses(vehicleId), id, response._data);
+      },
     },
   );
-
-  patchNuxtDataList(cacheKeys.expenses(vehicleId), id, updated);
 
   return updated;
 }

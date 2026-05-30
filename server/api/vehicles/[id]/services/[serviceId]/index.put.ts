@@ -96,8 +96,14 @@ export default defineAuthenticatedEventHandler(async (event) => {
   assertNoError(items.error, items.status, items.statusText);
   assertNoError(files.error, files.status, files.statusText);
 
+  const totalCost = items?.data.reduce(
+    (sum, item) => sum + (item.cost || 0) * (item.quantity || 0),
+    0,
+  );
+
   return {
     ...data,
+    totalCost: totalCost || 0,
     items: items.data,
     files: files.data,
   };

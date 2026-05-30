@@ -42,9 +42,12 @@ export async function createVehicle(patch: Partial<TablesInsert<"Vehicles">>) {
 
 export async function updateVehicle(
   id: MaybeRefOrGetter<Tables<"Vehicles">["id"]>,
-  patch: Partial<TablesUpdate<"Vehicles">>,
+  patch: TablesUpdate<"Vehicles">,
 ) {
   const resolvedId = toValue(id);
+
+  const listCache = useNuxtData<Tables<"Vehicles">[]>(cacheKeys.vehicles());
+  let previousList: Tables<"Vehicles">[] = [];
 
   const updated = await $fetch<Tables<"Vehicles">>(
     `/api/vehicles/${resolvedId}`,
@@ -53,11 +56,22 @@ export async function updateVehicle(
       body: {
         vehicle: patch,
       },
+      onRequest() {
+        previousList = listCache.data.value || [];
+
+        patchNuxtDataItem(cacheKeys.vehicle(resolvedId), patch);
+        patchNuxtDataList(cacheKeys.vehicles(), resolvedId, patch);
+      },
+      onResponseError() {
+        listCache.data.value = previousList;
+
+        refreshNuxtData(cacheKeys.vehicle(resolvedId));
+      },
+      onResponse({ response }) {
+        patchNuxtDataList(cacheKeys.vehicles(), resolvedId, response._data);
+      },
     },
   );
-
-  patchNuxtDataList(cacheKeys.vehicles(), resolvedId, updated);
-  patchNuxtDataItem(cacheKeys.vehicle(resolvedId), updated);
 
   return updated;
 }

@@ -121,21 +121,46 @@ export async function updateVehicleService(
   itemsPatch?: Partial<TablesUpdate<"VehicleServiceLogsItems">>[],
   removedItemIds?: Pick<TablesUpdate<"VehicleServiceLogsItems">, "id">[],
 ) {
-  const updated = await $fetch<Tables<"VehicleServiceLogs">>(
-    `/api/vehicles/${vehicleId}/services/${id}`,
-    {
-      method: "put",
-      body: {
-        service: patch,
-        items: itemsPatch,
-        removedItemIds: removedItemIds,
-      },
-    },
+  const listCache = useNuxtData<Tables<"VehicleServiceLogs">[]>(
+    cacheKeys.services(vehicleId),
   );
+  let previousList: Tables<"VehicleServiceLogs">[] = [];
+
+  const updated = await $fetch<
+    Tables<"VehicleServiceLogs"> & {
+      totalCost: number;
+      items: Tables<"VehicleServiceLogsItems">[];
+      files: Tables<"VehicleDocuments">[];
+    }
+  >(`/api/vehicles/${vehicleId}/services/${id}`, {
+    method: "put",
+    body: {
+      service: patch,
+      items: itemsPatch,
+      removedItemIds: removedItemIds,
+    },
+    onRequest() {
+      previousList = listCache.data.value || [];
+
+      patchNuxtDataItem(cacheKeys.service(vehicleId, id), patch);
+      patchNuxtDataList(cacheKeys.services(vehicleId), id, patch);
+    },
+    onResponseError() {
+      listCache.data.value = previousList;
+
+      refreshNuxtData(cacheKeys.service(vehicleId, id));
+    },
+    onResponse({ response }) {
+      patchNuxtDataList(cacheKeys.services(vehicleId), id, response._data);
+    },
+  });
 
   patchNuxtDataItem(cacheKeys.service(vehicleId, id), updated);
-
-  patchNuxtDataList(cacheKeys.services(vehicleId), id, updated);
+  patchNuxtDataList(
+    cacheKeys.services(vehicleId),
+    id,
+    omit(updated, ["items", "files"]),
+  );
 
   return updated;
 }

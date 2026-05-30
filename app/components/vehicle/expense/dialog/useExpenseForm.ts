@@ -3,7 +3,7 @@ import * as z from "zod";
 
 const expenseSchema = z.object({
   id: z.number().optional(),
-  vehicle_id: z.number().optional(),
+  vehicle_id: z.number(),
   date: z.string().default(convertToDatetimeLocal()),
   type: z.string().default("Fuel"),
   unit: z.string().default("liter"),
@@ -20,7 +20,9 @@ const expenseSchema = z.object({
 export type ExpenseSchema = z.output<typeof expenseSchema>;
 
 export const useExpenseForm = () => {
-  const expense = ref<Partial<ExpenseSchema>>(expenseSchema.parse({}));
+  const expense = ref<Partial<ExpenseSchema>>(
+    expenseSchema.parse({ vehicle_id: 0 }),
+  );
 
   const vehicle = ref<Partial<Tables<"Vehicles">>>();
 

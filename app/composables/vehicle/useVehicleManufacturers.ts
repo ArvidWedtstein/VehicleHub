@@ -4,7 +4,7 @@ export const useVehicleManufacturers = () => {
   return useFetch<Tables<"VehicleManufacturers">[]>(
     "/api/vehicleManufacturers",
     {
-      key: "vehicleManufacturers",
+      key: cacheKeys.manufacturers(),
       lazy: true,
       immediate: false,
       default: () => [] as Tables<"VehicleManufacturers">[],
@@ -17,7 +17,7 @@ export const useVehicleManufacturerModels = (manufacturer?: string) => {
     `/api/vehicleManufacturers/${manufacturer}/models`,
     {
       method: "get",
-      key: () => `models-${manufacturer?.toLowerCase()}`,
+      key: cacheKeys.manufacturerModels(manufacturer || ""),
       default: () => [] as string[],
       immediate: false,
       lazy: true,

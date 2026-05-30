@@ -10,6 +10,10 @@ export const cacheKeys = {
   documents: (vehicleId: number) => `vehicle-${vehicleId}_documents`,
   document: (vehicleId: number, id: number) =>
     `vehicle-${vehicleId}_document-${id}`,
+
+  manufacturers: () => `vehicleManufacturers`,
+  manufacturerModels: (manufacturer: string) =>
+    `vehicleManufacturer-${manufacturer.toLowerCase()}?models`,
 } as const;
 
 export function patchNuxtDataItem<T extends { id: number }>(
