@@ -1,6 +1,5 @@
 import { serverSupabaseClient } from "#supabase/server";
 import type { Database } from "~/types/supabase";
-import { gzipSync } from "zlib";
 import z from "zod";
 const ACCEPTED_TABLES: (keyof Pick<
   Database["public"]["Tables"],

@@ -5,7 +5,7 @@ export function useVehicles(
 ) {
   const resolvedFilters = computed(() => unref(filters));
 
-  return useFetch<Tables<"Vehicles">[]>("/api/vehicles/filter", {
+  return useLazyFetch<Tables<"Vehicles">[]>("/api/vehicles/filter", {
     method: "post",
     body: computed(() => ({
       filters: resolvedFilters.value,
@@ -18,13 +18,12 @@ export function useVehicles(
 export const useVehicle = (id: MaybeRefOrGetter<Tables<"Vehicles">["id"]>) => {
   const vehicleId = computed(() => toValue(id));
 
-  return useFetch<
+  return useLazyFetch<
     Tables<"Vehicles"> & {
       shares: (Tables<"VehicleShares"> & { profile: Tables<"Profiles"> })[];
     }
   >(() => `/api/vehicles/${vehicleId.value}`, {
     key: () => cacheKeys.vehicle(vehicleId.value),
-    lazy: true,
     immediate: !!vehicleId.value,
   });
 };
