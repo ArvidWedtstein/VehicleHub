@@ -11,4 +11,4 @@ jobs:
     steps:
       - run: |
           curl -H "apikey: ${{ secrets.SUPABASE_SECRET_TOKEN }}" \
-          https://akhxphgocxpyoofvdqwi.supabase.co/rest/v1/
+          https://akhxphgocxpyoofvdqwi.supabase.co/rest/v1/VehicleManufacturers?select=id
