@@ -10,5 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -H "apikey: ${{ secrets.SUPABASE_SECRET_TOKEN }}" \
-          https://akhxphgocxpyoofvdqwi.supabase.co/rest/v1/VehicleManufacturers?select=id
+          curl 'https://akhxphgocxpyoofvdqwi.supabase.co/rest/v1/VehicleManufacturers?select=id' \
+          -H "apikey: ${{ secrets.SUPABASE_SECRET_TOKEN }}" \
+          -H "Range: 0-9"
+          
