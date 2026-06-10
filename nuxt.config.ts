@@ -85,7 +85,7 @@ export default defineNuxtConfig({
   typescript: {
     strict: true,
     tsConfig: {
-      include: ["../tests/unit/**/*"],
+      include: ["../tests/unit/**/*", "../tests/e2e/**/*"],
     },
   },
   icon: {
