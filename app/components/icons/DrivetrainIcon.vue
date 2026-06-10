@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from "vue";
-
 type Props = {
   drivetrain?: "AWD" | "FWD" | "RWD" | "4WD";
 };
