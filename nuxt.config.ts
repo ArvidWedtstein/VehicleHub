@@ -64,7 +64,7 @@ export default defineNuxtConfig({
     "@nuxt/ui",
     "@nuxtjs/supabase",
     "@nuxt/icon",
-    "@nuxt/test-utils/module",
+    // "@nuxt/test-utils/module",
   ],
   supabase: {
     redirect: false,
@@ -84,9 +84,6 @@ export default defineNuxtConfig({
   },
   typescript: {
     strict: true,
-    tsConfig: {
-      include: ["../tests/unit/**/*", "../tests/e2e/**/*"],
-    },
   },
   icon: {
     collections: ["mdi"],
