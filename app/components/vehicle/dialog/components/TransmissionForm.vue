@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import DrivetrainIcon from "~/components/icons/DrivetrainIcon.vue";
-import type { VehicleSchema } from "../useVehicleForm";
 import type { SelectMenuItem } from "@nuxt/ui";
+import { DRIVETRAIN_OPTIONS, type VehicleSchema } from "../useVehicleForm";
 
 const vehicle = defineModel<Partial<VehicleSchema>>({ required: true });
 
@@ -11,13 +11,6 @@ const transmissionTypeOptions: SelectMenuItem[] = [
   { label: "CVT", description: "Continuously Variable Transmission" },
   { label: "DCT / DSG", description: "Dual Clutch Transmission" },
   { label: "Sequential Manual" },
-];
-
-const drivetrainOptions: ("FWD" | "RWD" | "AWD" | "4WD")[] = [
-  "FWD",
-  "RWD",
-  "AWD",
-  "4WD",
 ];
 </script>
 
@@ -52,25 +45,21 @@ const drivetrainOptions: ("FWD" | "RWD" | "AWD" | "4WD")[] = [
       class="md:col-span-2"
       :ui="{ container: 'flex gap-2' }"
     >
-      <!-- <URadioGroup
-      variant="table"
-      v-model="vehicle.drivetrain"
-      :items="driveTrainOptions"
-      valueKey="label"
-    /> -->
-
-      <FormCheckboxTile
+      <URadioGroup
+        variant="table"
         v-model="vehicle.drivetrain"
-        v-for="(drivetrain, idx) in drivetrainOptions"
-        :key="idx"
-        :value="drivetrain"
-        type="radio"
-        name="drivetrain"
+        :items="DRIVETRAIN_OPTIONS.map((dt) => ({ label: dt, value: dt }))"
+        indicator="hidden"
+        orientation="horizontal"
+        :ui="{
+          wrapper: 'space-y-1',
+          description: 'flex items-center justify-center',
+        }"
       >
-        <template #icon>
-          <DrivetrainIcon class="w-6 fill-current" :drivetrain="drivetrain" />
+        <template #description="{ item }">
+          <DrivetrainIcon class="w-6 fill-current" :drivetrain="item.value" />
         </template>
-      </FormCheckboxTile>
+      </URadioGroup>
     </UFormField>
   </div>
 </template>

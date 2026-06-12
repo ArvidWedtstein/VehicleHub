@@ -48,6 +48,7 @@ export default defineNuxtConfig({
   },
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
+  test: true,
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
@@ -60,12 +61,7 @@ export default defineNuxtConfig({
     },
   },
   css: ["~/assets/app.css"],
-  modules: [
-    "@nuxt/ui",
-    "@nuxtjs/supabase",
-    "@nuxt/icon",
-    // "@nuxt/test-utils/module",
-  ],
+  modules: ["@nuxt/ui", "@nuxtjs/supabase", "@nuxt/icon"],
   supabase: {
     redirect: false,
     redirectOptions: {

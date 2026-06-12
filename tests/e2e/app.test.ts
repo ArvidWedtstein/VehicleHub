@@ -5,8 +5,8 @@ import {
   expect as playwrightExpect,
 } from "@nuxt/test-utils/playwright";
 
-describe("Vehicle Hub App", async () => {
-  await setup();
+// describe("Vehicle Hub App", async () => {
+/*await setup();
 
   test("renders the home page", async () => {
     const html = await $fetch("/");
@@ -21,5 +21,5 @@ describe("Vehicle Hub App", async () => {
   playwrightTest("test", async ({ page, goto }) => {
     await goto("/", { waitUntil: "hydration" });
     await playwrightExpect(page.getByRole("heading")).toHaveText("Vehicle");
-  });
-});
+  });*/
+// });

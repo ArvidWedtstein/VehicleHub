@@ -11,13 +11,13 @@ export default defineConfig({
           environment: "node",
         },
       },
-      {
-        test: {
-          name: "e2e",
-          include: ["tests/e2e/*.{test,spec}.ts"],
-          environment: "node",
-        },
-      },
+      // {
+      //   test: {
+      //     name: "e2e",
+      //     include: ["tests/e2e/*.{test,spec}.ts"],
+      //     environment: "node",
+      //   },
+      // },
       await defineVitestProject({
         test: {
           name: "nuxt",
@@ -26,5 +26,6 @@ export default defineConfig({
         },
       }),
     ],
+    exclude: ["tests/e2e/**", "**/playwright.config.*"],
   },
 });

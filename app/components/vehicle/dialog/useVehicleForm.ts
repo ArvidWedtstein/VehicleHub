@@ -32,6 +32,13 @@ export const FUELTYPE_OPTIONS = [
   "CNG 25",
 ];
 
+export const DRIVETRAIN_OPTIONS: ("FWD" | "RWD" | "AWD" | "4WD")[] = [
+  "FWD",
+  "RWD",
+  "AWD",
+  "4WD",
+];
+
 const dbToForm = <T extends z.ZodTypeAny>(schema: T) =>
   schema.nullish().transform((val) => val ?? undefined);
 
@@ -61,7 +68,7 @@ const vehicleSchema = z.object({
   color: dbToForm(z.string()),
   engine_displacement: dbToForm(z.number()),
   engine_displacement_unit: dbToForm(z.string()),
-  drivetrain: z.string().toUpperCase().default("FWD"),
+  drivetrain: dbToForm(z.enum(DRIVETRAIN_OPTIONS)).default("FWD"),
   engine_cylinders: dbToForm(z.number().min(0).max(100)),
   weight: dbToForm(z.number().min(0)),
   transmission_gears: dbToForm(z.number().min(0).max(100)),
