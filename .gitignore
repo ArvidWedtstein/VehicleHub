@@ -22,3 +22,16 @@ logs
 .env
 .env.*
 !.env.example
+
+# Tests
+.vitest-cache
+test-results
+playwright-report
+playwright/.cache
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea
+.DS_Store
