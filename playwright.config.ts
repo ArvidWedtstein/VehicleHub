@@ -10,4 +10,9 @@ export default defineConfig<ConfigOptions>({
       rootDir: fileURLToPath(new URL(".", import.meta.url)),
     },
   },
+  webServer: {
+    command: "npm run dev",
+    url: "http://localhost:3000",
+    reuseExistingServer: !process.env.CI,
+  },
 });

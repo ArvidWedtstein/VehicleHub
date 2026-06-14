@@ -61,7 +61,12 @@ export default defineNuxtConfig({
     },
   },
   css: ["~/assets/app.css"],
-  modules: ["@nuxt/ui", "@nuxtjs/supabase", "@nuxt/icon"],
+  modules: [
+    "@nuxt/ui",
+    "@nuxtjs/supabase",
+    "@nuxt/icon",
+    "@nuxt/test-utils/module",
+  ],
   supabase: {
     redirect: false,
     redirectOptions: {
