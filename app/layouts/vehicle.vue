@@ -6,7 +6,7 @@ const route = useRoute();
 
 const { isMobile } = useBreakpoints();
 
-const vehicleId = useRouteParam("id", "number");
+const vehicleId = useRouteParam("id", { type: "number", required: true });
 
 const tabs: TabsItem[] = [
   {

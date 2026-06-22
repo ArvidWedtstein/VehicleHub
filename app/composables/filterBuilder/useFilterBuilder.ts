@@ -1,12 +1,10 @@
 import type { Database, Tables } from "~/types/supabase";
-import type { FilterSchema, FilterField } from "./filterSchema";
+import type { TablesAndViews, FilterSchema, FilterField } from "./filterSchema";
 
-export const useFilterBuilder = <
-  Table extends keyof Database["public"]["Tables"],
->(
+export const useFilterBuilder = <Table extends keyof TablesAndViews>(
   schema: FilterSchema<Table>,
 ) => {
-  type Row = Database["public"]["Tables"][Table]["Row"];
+  type Row = TablesAndViews[Table]["Row"];
 
   type C = FilterSchema<Table>[number]["column"];
 
@@ -15,15 +13,16 @@ export const useFilterBuilder = <
   };
 
   const getDefaultValue = (field: FilterField<Table>): State[C] => {
-    if (field.default !== undefined) return field.default as State[C];
+    if (field.default !== undefined)
+      return structuredClone(field.default) as State[C];
 
     switch (field.type) {
       case "select":
       case "multi-select":
-      case "range":
         return [] as State[C];
       case "boolean":
         return false as State[C];
+      case "range":
       case "date-range":
         return [null, null] as State[C];
       default:
@@ -104,8 +103,16 @@ export const useFilterBuilder = <
   const resetFilters = () => {
     for (const field of schema) {
       if (field.column in filterState) {
+        console.log(
+          "reset ",
+          field,
+          filterState[field.column as keyof typeof filterState],
+          getDefaultValue(field),
+        );
         filterState[field.column as keyof typeof filterState] =
           getDefaultValue(field);
+      } else {
+        console.log("Not on ", field);
       }
     }
   };

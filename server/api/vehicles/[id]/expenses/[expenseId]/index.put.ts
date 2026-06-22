@@ -42,7 +42,8 @@ export default defineAuthenticatedEventHandler(async (event) => {
     .update(expense)
     .eq("id", expenseId)
     .eq("vehicle_id", vehicleId)
-    .select();
+    .select()
+    .single();
 
   if (error) throw createError({ statusCode: status, statusText, ...error });
 

@@ -12,8 +12,11 @@ definePageMeta({
   auth: true,
 });
 
-const vehicleId = useRouteParam("id", "number");
-const serviceId = useRouteParam("serviceId", "number");
+const vehicleId = useRouteParam("id", { type: "number", required: true });
+const serviceId = useRouteParam("serviceId", {
+  type: "number",
+  required: true,
+});
 
 const { data: service, pending: loading } = useVehicleService(
   vehicleId.value,

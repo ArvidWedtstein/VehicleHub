@@ -20,7 +20,7 @@ const serviceItemSchema = z.object({
 
 const serviceSchema = z.object({
   id: z.number().positive().optional(),
-  vehicle_id: z.number().positive().optional(),
+  vehicle_id: z.number().positive(),
   // date: z.iso.datetime().default(() => convertToDatetimeLocal()),
   date: z.string().default(convertToDatetimeLocal()),
   type: z.string().nonempty().default(""),
@@ -40,6 +40,7 @@ export const useServiceForm = () => {
       notes: null,
       mileage: null,
       provider: null,
+      vehicleId: null,
     }),
   );
 

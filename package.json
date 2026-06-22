@@ -5,6 +5,13 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
+    "testnuxt": "nuxt test",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:unit": "vitest --project unit",
+    "test:e2e:playwright": "playwright test",
+    "test:e2e": "vitest --project e2e",
+    "test:nuxt": "vitest --project nuxt",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
@@ -26,9 +33,15 @@
   },
   "devDependencies": {
     "@iconify-json/mdi": "^1.2.3",
+    "@nuxt/test-utils": "^4.0.3",
+    "@playwright/test": "^1.60.0",
+    "@vue/test-utils": "^2.4.11",
     "autoprefixer": "^10.4.21",
+    "happy-dom": "^20.10.2",
+    "playwright-core": "^1.60.0",
     "postcss": "^8.5.6",
     "typescript": "^5.9.2",
+    "vitest": "^4.1.8",
     "vue-tsc": "^3.0.7"
   }
 }

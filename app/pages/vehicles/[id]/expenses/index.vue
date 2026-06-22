@@ -7,9 +7,9 @@ useHead({
 });
 
 const overlay = useOverlay();
-const vehicleExpenseDialog = overlay.create(VehicleExpenseDialog);
-const vehicleId = useRouteParam("id", "number");
+const vehicleId = useRouteParam("id", { type: "number", required: true });
 
+const vehicleExpenseDialog = overlay.create(VehicleExpenseDialog);
 const filters = ref<Array<FilterOption<Tables<"VehicleExpenses">>>>([]);
 
 const {
@@ -115,7 +115,12 @@ onMounted(() => {
 <template>
   <UPage class="flex-1 p-2 overflow-hidden">
     <div class="flex items-center justify-between gap-2 mb-3">
-      <UButton label="Add" icon="mdi:plus" @click="handleCreateExpense" />
+      <UButton
+        label="Add"
+        icon="mdi:plus"
+        @click="handleCreateExpense"
+        data-testid="add-expense"
+      />
 
       <div class="flex items-center gap-2">
         <VehicleExpenseFilterDrawer @applyFilters="handleFilterApply" />

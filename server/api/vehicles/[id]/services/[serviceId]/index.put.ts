@@ -2,6 +2,15 @@ import { serverSupabaseClient } from "#supabase/server";
 import type { Database } from "~/types/supabase";
 import { z } from "zod";
 
+function assertNoError(
+  error: unknown,
+  status: number,
+  statusText: string,
+): asserts error is null {
+  if (error)
+    throw createError({ statusCode: status, statusText, ...(error as object) });
+}
+
 const serviceSchema = z.object({
   id: z.number().optional(),
   vehicle_id: z.number().optional(),
@@ -13,6 +22,15 @@ const serviceSchema = z.object({
   notes: z.string().optional(),
 });
 
+const itemSchema = z.object({
+  id: z.number().optional(),
+  created_at: z.string().optional(),
+  service_log_id: z.number().optional(), // will be overwritten anyway
+  description: z.string().min(1).default(""),
+  cost: z.number(),
+  quantity: z.number().default(1),
+});
+
 const paramsSchema = z.object({
   id: z.coerce.number().int().positive(),
   serviceId: z.coerce.number().int().positive(),
@@ -20,7 +38,7 @@ const paramsSchema = z.object({
 
 const bodySchema = z.object({
   service: serviceSchema,
-  items: z.array(z.record(z.string(), z.unknown())).optional().default([]),
+  items: z.array(itemSchema).optional().default([]),
   removedItemIds: z
     .array(z.object({ id: z.coerce.number() }))
     .optional()
@@ -45,54 +63,48 @@ export default defineAuthenticatedEventHandler(async (event) => {
     .select()
     .single();
 
-  if (error)
-    throw createError({
-      statusCode: status,
-      statusText: statusText,
-      ...error,
-    });
+  assertNoError(error, status, statusText);
 
-  if (body.removedItemIds.length > 0) {
-    const {
-      error: deleteError,
-      status: deleteStatus,
-      statusText: deleteStatusText,
-    } = await client
+  await Promise.all([
+    body.removedItemIds.length > 0
+      ? client
+          .from("VehicleServiceLogsItems")
+          .delete()
+          .eq("service_log_id", serviceId)
+          .in(
+            "id",
+            body.removedItemIds.map((row) => row.id),
+          )
+      : Promise.resolve(),
+    body.items.length > 0
+      ? client.from("VehicleServiceLogsItems").upsert(
+          body.items.map((item) => ({
+            ...item,
+            service_log_id: serviceId,
+          })),
+        )
+      : Promise.resolve(),
+  ]);
+
+  const [items, files] = await Promise.all([
+    client
       .from("VehicleServiceLogsItems")
-      .delete()
-      .eq("service_log_id", serviceId)
-      .in(
-        "id",
-        body.removedItemIds.map((row) => row.id),
-      );
+      .select()
+      .eq("service_log_id", serviceId),
+    client.from("VehicleDocuments").select().eq("service_log_id", serviceId),
+  ]);
+  assertNoError(items.error, items.status, items.statusText);
+  assertNoError(files.error, files.status, files.statusText);
 
-    if (deleteError)
-      throw createError({
-        statusCode: deleteStatus,
-        statusText: deleteStatusText,
-        ...deleteError,
-      });
-  }
+  const totalCost = items?.data.reduce(
+    (sum, item) => sum + (item.cost || 0) * (item.quantity || 0),
+    0,
+  );
 
-  if (body.items && body.items.length > 0) {
-    const {
-      error: itemsError,
-      status: itemsStatus,
-      statusText: itemsStatusText,
-    } = await client.from("VehicleServiceLogsItems").upsert(
-      body.items.map((item) => ({
-        ...item,
-        service_log_id: serviceId,
-      })),
-    );
-
-    if (itemsError)
-      throw createError({
-        statusCode: itemsStatus,
-        statusText: itemsStatusText,
-        ...itemsError,
-      });
-  }
-
-  return data;
+  return {
+    ...data,
+    totalCost: totalCost || 0,
+    items: items.data,
+    files: files.data,
+  };
 });

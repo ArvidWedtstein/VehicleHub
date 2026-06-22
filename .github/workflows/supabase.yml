@@ -10,7 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl 'https://akhxphgocxpyoofvdqwi.supabase.co/rest/v1/VehicleManufacturers?select=id' \
+          curl -X PATCH 'https://akhxphgocxpyoofvdqwi.supabase.co/rest/v1/VehicleManufacturers?id=eq.67' \
           -H "apikey: ${{ secrets.SUPABASE_SECRET_TOKEN }}" \
-          -H "Range: 0-9"
+          -H "Range: 0-1" \
+          -H "Prefer: return=minimal" \
+          -d '{ "sort-order": 1 }'
+      - run: |
+          curl -X PATCH 'https://akhxphgocxpyoofvdqwi.supabase.co/rest/v1/VehicleManufacturers?id=eq.67' \
+          -H "apikey: ${{ secrets.SUPABASE_SECRET_TOKEN }}" \
+          -H "Range: 0-1" \
+          -H "Prefer: return=minimal" \
+          -d '{ "sort-order": 0 }'
           

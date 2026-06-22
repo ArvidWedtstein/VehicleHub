@@ -5,7 +5,7 @@ import type { DropdownMenuItem } from "@nuxt/ui";
 
 const changelogDrawerRef = useTemplateRef("changelogDrawerRef");
 
-const vehicleId = useRouteParam("id", "number");
+const vehicleId = useRouteParam("id", { type: "number", required: true });
 const { data: vehicle } = useVehicle(vehicleId.value);
 
 const { data: profiles } = useProfiles();
@@ -117,14 +117,6 @@ const vehicleMenuItems: DropdownMenuItem[] = [
           ></div>
 
           <span class="flex gap-1 items-center flex-nowrap text-nowrap">
-            <UIcon
-              :name="
-                vehicle.fuel_type === 'Electric'
-                  ? 'mdi:car-electric'
-                  : 'mdi:car'
-              "
-            />
-
             {{ vehicle.fuel_type }}
 
             ({{

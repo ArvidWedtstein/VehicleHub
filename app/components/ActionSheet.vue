@@ -19,7 +19,7 @@ const emit = defineEmits<{ select: [] }>();
 const open = ref(false);
 
 const groups = computed<ActionSheetItem[][]>(() => {
-  if (props.items.length === 0) return [];
+  if (!props.items?.length) return [];
   return Array.isArray(props.items[0])
     ? (props.items as ActionSheetItem[][])
     : [props.items as ActionSheetItem[]];

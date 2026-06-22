@@ -42,7 +42,6 @@ const serviceTypeOptions = [
         v-model="service.date"
         class="w-full lg:hidden"
       />
-      {{ service.date }}
     </UFormField>
 
     <UFormField class="sm:col-span-4" label="Type" name="type" required>

@@ -1,5 +1,8 @@
 <script setup lang="ts">
-const profileUserId = useRouteParam("profileId", "string");
+const profileUserId = useRouteParam("profileId", {
+  type: "string",
+  required: true,
+});
 const { data: profile } = useProfile(profileUserId.value);
 
 const confirm = useConfirmDialog();

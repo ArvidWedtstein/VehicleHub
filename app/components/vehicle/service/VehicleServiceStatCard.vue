@@ -1,8 +1,5 @@
-UPageCard
 <script setup lang="ts">
-import BarChart from "~/components/charts/BarChart.vue";
-
-const vehicleId = useRouteParam("id", "number");
+const vehicleId = useRouteParam("id", { type: "number", required: true });
 const { data: services, pending: loading } = useVehicleServices(
   vehicleId,
   undefined,
@@ -91,7 +88,7 @@ const serviceData = computed(() => {
     const items = servicesGroupedBySelectedPeriod[groupKey] || [];
 
     const totalCost = items.reduce(
-      (costAcc, currentItem) => costAcc + (currentItem.cost || 0),
+      (costAcc, currentItem) => costAcc + (currentItem?.total_cost || 0),
       0,
     );
 
@@ -145,7 +142,7 @@ const serviceData = computed(() => {
         </div>
       </template>
 
-      <BarChart
+      <ChartsBarChart
         class="max-h-64 max-w-fit"
         :xAxis="[
           {
