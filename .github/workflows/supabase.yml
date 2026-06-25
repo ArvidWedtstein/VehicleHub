@@ -12,6 +12,8 @@ jobs:
       - run: |
           curl -X PATCH 'https://akhxphgocxpyoofvdqwi.supabase.co/rest/v1/VehicleManufacturers?id=eq.67' \
           -H "apikey: ${{ secrets.SUPABASE_SECRET_TOKEN }}" \
+          -H "apikey: SUPABASE_CLIENT_ANON_KEY" \
+          -H "Authorization: Bearer SUPABASE_CLIENT_ANON_KEY" \
           -H "Range: 0-1" \
           -H "Content-Type: application/json" \
           -H "Prefer: return=minimal" \
@@ -19,6 +21,7 @@ jobs:
       - run: |
           curl -X PATCH 'https://akhxphgocxpyoofvdqwi.supabase.co/rest/v1/VehicleManufacturers?id=eq.67' \
           -H "apikey: ${{ secrets.SUPABASE_SECRET_TOKEN }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_SECRET_TOKEN }}" \
           -H "Range: 0-1" \
           -H "Content-Type: application/json" \
           -H "Prefer: return=minimal" \
