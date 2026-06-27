@@ -79,7 +79,8 @@ const setSortKey = (key: keyof Tables<"VehicleExpenses">) => {
 };
 
 const handleCreateExpense = () => {
-  if (!vehicleId.value) return;
+  if (!vehicleId.value)
+    return console.log("No vehicleId found, cannot create expense");
 
   vehicleExpenseDialog.open({ vehicleId: vehicleId.value });
 };

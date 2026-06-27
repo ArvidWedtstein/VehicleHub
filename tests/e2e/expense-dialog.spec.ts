@@ -1,9 +1,8 @@
-// import { expect, test } from "@playwright/test";
-import { test, expect } from "../fixtures";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures/authenticated";
 
-test.describe("Expense Dialog", async () => {
-  test("creates an expense", async ({ page }) => {
-    // TODO: fix authentication for e2e tests
+test.describe("Expense Dialog", () => {
+  test("creates an expense", async ({ authenticatedPage: page }) => {
     await page.goto("/vehicles/1/expenses");
     await expect(page).toHaveTitle(/Expenses/);
 
@@ -12,9 +11,7 @@ test.describe("Expense Dialog", async () => {
 
     await addExpenseButton.click();
 
-    await expect(
-      page.getByRole("dialog", { name: "Add Expense" }),
-    ).toBeVisible();
+    await expect(page.getByTestId("vehicle-expense-form")).toBeVisible();
 
     await page.getByLabel("Amount").fill("100");
     await page.getByLabel("Cost").fill("1000");

@@ -15,12 +15,7 @@
       "path": "./.nuxt/tsconfig.node.json"
     }
   ],
-  "include": [
-    "test/**/*",
-    "vitest.config.ts",
-    "playwright.config.ts",
-    "tests/global-setup.ts"
-  ],
+  "include": ["tests/**/*", "vitest.config.ts", "playwright.config.ts"],
   "compilerOptions": {
     "strict": true
   }

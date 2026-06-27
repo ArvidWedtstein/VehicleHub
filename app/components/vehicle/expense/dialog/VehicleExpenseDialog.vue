@@ -50,7 +50,12 @@ const onFormSubmit = async () => {
     :ui="{ footer: 'justify-end' }"
   >
     <template #body>
-      <UForm :state="expense" :schema="expenseSchema" @submit="onFormSubmit">
+      <UForm
+        data-testid="vehicle-expense-form"
+        :state="expense"
+        :schema="expenseSchema"
+        @submit="onFormSubmit"
+      >
         <ExpenseForm
           v-if="expense"
           v-model="expense"
