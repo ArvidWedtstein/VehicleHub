@@ -6,9 +6,34 @@ on:
   workflow_dispatch:
 
 jobs:
-  ping:
+  toggle:
     runs-on: ubuntu-latest
+
     steps:
-      - run: |
-          curl -H "apikey: ${{ secrets.SUPABASE_SECRET_TOKEN }}" \
-          https://akhxphgocxpyoofvdqwi.supabase.co/rest/v1/
+      - name: Toggle sort_order
+        run: |
+          URL="https://akhxphgocxpyoofvdqwi.supabase.co/rest/v1/VehicleManufacturers"
+
+          CURRENT=$(curl --fail -sS \
+            "$URL?id=eq.67&select=sort_order" \
+            -H "apikey: ${{ secrets.SUPABASE_SECRET_TOKEN }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SECRET_TOKEN }}" \
+            | jq '.[0].sort_order')
+
+          if [ "$CURRENT" = "0" ]; then
+            NEXT=1
+          else
+            NEXT=0
+          fi
+
+          echo "Changing sort_order from $CURRENT to $NEXT"
+
+          curl --fail -sS -X PATCH \
+            "$URL?id=eq.67" \
+            -H "apikey: ${{ secrets.SUPABASE_SECRET_TOKEN }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SECRET_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "{\"sort_order\":$NEXT}"
+
+          echo "Done."
