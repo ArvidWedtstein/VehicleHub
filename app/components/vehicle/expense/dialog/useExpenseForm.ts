@@ -59,7 +59,7 @@ export const useExpenseForm = () => {
       if (!expense.value) throw new Error("No expense");
 
       const parsed = expenseFormSchema.parse(expense.value);
-      const vehicleId = parsed.vehicle_id;
+      const vehicleId = vehicle.value?.id;
       if (!vehicleId) {
         throw new Error("Vehicle ID is required");
       }
@@ -69,6 +69,7 @@ export const useExpenseForm = () => {
       const payload = {
         ...parsed,
         date: convertLocalToUTC(parsed.date),
+        vehicle_id: vehicleId,
       };
 
       if (isEdit.value && parsed.id) {

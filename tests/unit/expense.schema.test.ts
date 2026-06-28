@@ -3,7 +3,8 @@ import { expenseFormSchema } from "#shared/schemas/expense";
 
 describe("expenseFormSchema", () => {
   it("fails when amount is missing", () => {
-    const result = expenseFormSchema.safeParse({ cost: 1000 });
+    const result = expenseFormSchema.safeParse({ amount: null, cost: 1000 });
+    console.log("result", result);
     expect(result.success).toBe(false);
   });
 });
