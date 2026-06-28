@@ -585,6 +585,7 @@ export type Database = {
           type: string
         }[]
       }
+      has_vehicle_access: { Args: { p_vehicle_id: number }; Returns: boolean }
       jwt_custom_claims: { Args: { event: Json }; Returns: Json }
       terminate_user: { Args: { profile_user_id: string }; Returns: undefined }
     }
