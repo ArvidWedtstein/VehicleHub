@@ -25,13 +25,10 @@ test.describe("Expense Dialog", () => {
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
 
-    // Submit empty
     await dialog.getByRole("button", { name: "Create" }).click();
 
-    // Assert error messages
     await expect(dialog.getByText("Cost is required")).toBeVisible();
 
-    // Dialog should still be open — form didn't submit
     await expect(dialog).toBeVisible();
   });
 
