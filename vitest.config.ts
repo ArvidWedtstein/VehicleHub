@@ -1,6 +1,9 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 import { defineVitestProject } from "@nuxt/test-utils/config";
+import { dirname, resolve } from "path";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   test: {
@@ -11,6 +14,11 @@ export default defineConfig({
           name: "unit",
           include: ["tests/unit/*.{test,spec}.ts"],
           environment: "node",
+        },
+        resolve: {
+          alias: {
+            "#shared": resolve(__dirname, "shared"),
+          },
         },
       },
       // {
@@ -25,6 +33,11 @@ export default defineConfig({
           name: "nuxt",
           include: ["tests/nuxt/*.{test,spec}.ts"],
           environment: "nuxt",
+        },
+        resolve: {
+          alias: {
+            "#shared": resolve(__dirname, "shared"),
+          },
         },
       }),
     ],

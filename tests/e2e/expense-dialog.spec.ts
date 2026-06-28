@@ -1,8 +1,40 @@
 import { expect } from "@playwright/test";
 import { test } from "./fixtures/authenticated";
+import { supabaseAdmin } from "../auth";
 
 test.describe("Expense Dialog", () => {
   const testUsersVehicleId = 9;
+
+  const expenseCost = Date.now();
+
+  test.afterEach(async () => {
+    await supabaseAdmin
+      .from("VehicleExpenses")
+      .delete()
+      .eq("vehicle_id", testUsersVehicleId)
+      .eq("createdby_id", process.env.TEST_USER_ID)
+      .gte("cost", expenseCost);
+  });
+
+  test("shows errors on empty submit", async ({ authenticatedPage: page }) => {
+    await page.goto(`/vehicles/${testUsersVehicleId}/expenses`, {
+      waitUntil: "networkidle",
+    });
+    await page.getByTestId("add-expense").click();
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+
+    // Submit empty
+    await dialog.getByRole("button", { name: "Create" }).click();
+
+    // Assert error messages
+    await expect(dialog.getByText("Cost is required")).toBeVisible();
+
+    // Dialog should still be open — form didn't submit
+    await expect(dialog).toBeVisible();
+  });
+
   test("creates an expense", async ({ authenticatedPage: page }) => {
     await page.goto(`/vehicles/${testUsersVehicleId}/expenses`, {
       waitUntil: "networkidle",
@@ -20,7 +52,7 @@ test.describe("Expense Dialog", () => {
     await expect(dialog.getByTestId("vehicle-expense-form")).toBeVisible();
 
     await dialog.getByLabel("Amount").fill("100");
-    await dialog.getByLabel("Cost").fill("1000");
+    await dialog.getByLabel("Cost").fill(expenseCost.toString());
 
     await page.screenshot({ path: "test-results/after-form.png" });
 

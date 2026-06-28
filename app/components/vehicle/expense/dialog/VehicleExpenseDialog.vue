@@ -51,6 +51,7 @@ const onFormSubmit = async () => {
   >
     <template #body>
       <UForm
+        id="vehicle-expense-for"
         data-testid="vehicle-expense-form"
         :state="expense"
         :schema="expenseSchema"
@@ -75,10 +76,11 @@ const onFormSubmit = async () => {
       />
 
       <UButton
+        type="submit"
+        form="vehicle-expense-form"
         :label="isEdit ? 'Save' : 'Create'"
         color="primary"
         :icon="isEdit ? 'mdi:content-save' : 'mdi:plus'"
-        @click="onFormSubmit"
       />
     </template>
   </UModal>

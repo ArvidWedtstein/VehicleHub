@@ -6,13 +6,18 @@ function requireEnv(key: string): string {
   return value;
 }
 
-const supabaseAdmin = createClient(
+export const supabaseAdmin = createClient(
+  requireEnv("SUPABASE_URL"),
+  requireEnv("SUPABASE_SECRET_KEY"),
+);
+
+const supabase = createClient(
   requireEnv("SUPABASE_URL"),
   requireEnv("NUXT_PUBLIC_SUPABASE_KEY"),
 );
 
 export async function getTestSession() {
-  const { data, error } = await supabaseAdmin.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: requireEnv("TEST_USER_EMAIL"),
     password: requireEnv("TEST_USER_PASSWORD"),
   });
