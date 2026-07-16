@@ -47,7 +47,7 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
       </UFieldGroup>
     </UFormField>
 
-    <UFormField label="Cost" name="cost" class="sm:col-span-2">
+    <UFormField label="Cost" name="cost" required class="sm:col-span-2">
       <UFieldGroup class="w-full">
         <UInput
           type="number"

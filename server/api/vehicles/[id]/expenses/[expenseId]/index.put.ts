@@ -1,22 +1,7 @@
 import { serverSupabaseClient } from "#supabase/server";
 import type { Database } from "~/types/supabase";
 import z from "zod";
-
-const expenseSchema = z.object({
-  id: z.number().optional(),
-  vehicle_id: z.number().optional(),
-  date: z.string(),
-  type: z.string().default("Fuel"),
-  unit: z.string().default("liter"),
-  amount: z
-    .number({ error: "Amount is required" })
-    .min(0, "Amount cannot be less than 0")
-    .default(0),
-  cost: z.number({ error: "Cost is required" }).default(0),
-  mileage: z.number().optional(),
-  currency: z.string().length(3).toUpperCase().default("NOK"),
-  notes: z.string().optional(),
-});
+import { expenseFormSchema } from "~~/shared/schemas/expense";
 
 const paramsSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -24,7 +9,7 @@ const paramsSchema = z.object({
 });
 
 const bodySchema = z.object({
-  expense: expenseSchema,
+  expense: expenseFormSchema,
 });
 
 export default defineAuthenticatedEventHandler(async (event) => {

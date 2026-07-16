@@ -80,22 +80,8 @@ const MONTH_NAMES = [
   },
 ];
 
-export const convertToDatetimeLocal = (
-  inputDate: number | string | Date = new Date()
-): string => {
-  const date = new Date(inputDate);
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-};
-
 export const convertLocalToUTC = (
-  localDate: string | number | Date = new Date()
+  localDate: string | number | Date = new Date(),
 ) => {
   const utcDate = new Date(localDate);
   return utcDate.toISOString();
@@ -104,7 +90,7 @@ export const convertLocalToUTC = (
 export const addToDate = (
   date: Date | string,
   value: number = 0,
-  unit: "minutes" | "hour" | "day" | "week" | "month" | "year" = "day"
+  unit: "minutes" | "hour" | "day" | "week" | "month" | "year" = "day",
 ) => {
   const result = new Date(date);
 
@@ -142,7 +128,7 @@ export const getWeekNumber = (d: Date) => {
 
 export const formatDateToFormat = (
   date: Date | string,
-  format: string
+  format: string,
 ): string => {
   if (typeof date === "string") {
     date = new Date(date);
@@ -182,7 +168,7 @@ export const formatDateToFormat = (
 
   return format.replace(
     /dddd|ddd|dd|d|MMMM|MMM|MM|M|yyyy|yy|HH|H|hh|h|mm|m|ss|s|a|GGGG|GG|G|Qo|Q|WW|W|Y/g,
-    (match) => replacements[match] || match
+    (match) => replacements[match] || match,
   );
 };
 
@@ -199,7 +185,7 @@ export const adjustCalendarDate = (
   type: "start" | "end",
   period: "day" | "week" | "month" | "year" = "day",
   date: Date = new Date(),
-  startOn = 0
+  startOn = 0,
 ): Date => {
   const result = new Date(date);
 
@@ -236,16 +222,16 @@ export const adjustCalendarDate = (
 
 type DateRangeResult<
   T extends "months" | "days" | "years" | "weeks",
-  R extends "date" | "object"
+  R extends "date" | "object",
 > = R extends "date"
   ? Date[]
   : T extends "days"
-  ? { year: number; month: number; date: number }[]
-  : T extends "months"
-  ? { year: number; month: number }[]
-  : T extends "weeks"
-  ? { year: number; week: number }[]
-  : { year: number }[];
+    ? { year: number; month: number; date: number }[]
+    : T extends "months"
+      ? { year: number; month: number }[]
+      : T extends "weeks"
+        ? { year: number; week: number }[]
+        : { year: number }[];
 
 /**
  * Gets years, dates and months between two dates
@@ -257,12 +243,12 @@ type DateRangeResult<
  */
 export const getRangeBetweenDates = <
   T extends "months" | "days" | "years" | "weeks",
-  R extends "date" | "object" = "object"
+  R extends "date" | "object" = "object",
 >(
   startDate: Date,
   endDate: Date,
   unit: T,
-  returnAs: R = "object" as R
+  returnAs: R = "object" as R,
 ): DateRangeResult<T, R> => {
   const result: (
     | Date
@@ -281,7 +267,7 @@ export const getRangeBetweenDates = <
                 date: d.getDate(),
                 month: d.getMonth() + 1,
                 year: d.getFullYear(),
-              }
+              },
         );
       }
       break;
@@ -294,7 +280,7 @@ export const getRangeBetweenDates = <
             : {
                 week: getWeekNumber(d),
                 year: d.getFullYear(),
-              }
+              },
         );
       }
       break;
@@ -311,7 +297,7 @@ export const getRangeBetweenDates = <
             : {
                 month: m.getMonth(),
                 year: m.getFullYear(),
-              }
+              },
         );
       }
       break;

@@ -1,27 +1,12 @@
-import type { Tables, TablesUpdate } from "~/types/supabase";
+import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 import * as z from "zod";
+import { expenseFormSchema } from "#shared/schemas/expense";
 
-const expenseSchema = z.object({
-  id: z.number().optional(),
-  vehicle_id: z.number(),
-  date: z.string().default(convertToDatetimeLocal()),
-  type: z.string().default("Fuel"),
-  unit: z.string().default("liter"),
-  amount: z
-    .number({ error: "Amount is required" })
-    .min(0, "Amount cannot be less than 0")
-    .default(0),
-  cost: z.number({ error: "Cost is required" }).default(0),
-  mileage: z.number().min(0).optional(),
-  currency: z.string().length(3).toUpperCase().default("NOK"),
-  notes: z.string().optional(),
-});
-
-export type ExpenseSchema = z.output<typeof expenseSchema>;
+export type ExpenseSchema = z.output<typeof expenseFormSchema>;
 
 export const useExpenseForm = () => {
   const expense = ref<Partial<ExpenseSchema>>(
-    expenseSchema.parse({ vehicle_id: 0 }),
+    expenseFormSchema.parse({ vehicle_id: 0 }),
   );
 
   const vehicle = ref<Partial<Tables<"Vehicles">>>();
@@ -44,7 +29,7 @@ export const useExpenseForm = () => {
 
       if (error.value) throw error.value;
 
-      expense.value = expenseSchema.parse({
+      expense.value = expenseFormSchema.parse({
         ...editExpense.value,
         date: convertToDatetimeLocal(editExpense.value?.date),
       });
@@ -63,7 +48,7 @@ export const useExpenseForm = () => {
 
     const lastMileage = data[0]?.mileage;
 
-    expense.value = expenseSchema.parse({
+    expense.value = expenseFormSchema.parse({
       vehicle_id: vehicleId,
       mileage: lastMileage,
     });
@@ -73,8 +58,8 @@ export const useExpenseForm = () => {
     try {
       if (!expense.value) throw new Error("No expense");
 
-      const parsed = expenseSchema.parse(expense.value);
-      const vehicleId = parsed.vehicle_id;
+      const parsed = expenseFormSchema.parse(expense.value);
+      const vehicleId = vehicle.value?.id;
       if (!vehicleId) {
         throw new Error("Vehicle ID is required");
       }
@@ -84,6 +69,7 @@ export const useExpenseForm = () => {
       const payload = {
         ...parsed,
         date: convertLocalToUTC(parsed.date),
+        vehicle_id: vehicleId,
       };
 
       if (isEdit.value && parsed.id) {
@@ -102,7 +88,7 @@ export const useExpenseForm = () => {
     expense,
     isEdit,
     vehicle,
-    expenseSchema,
+    expenseSchema: expenseFormSchema,
     save,
     initialize,
   };

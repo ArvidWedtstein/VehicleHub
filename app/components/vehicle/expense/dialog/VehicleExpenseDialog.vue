@@ -50,7 +50,13 @@ const onFormSubmit = async () => {
     :ui="{ footer: 'justify-end' }"
   >
     <template #body>
-      <UForm :state="expense" :schema="expenseSchema" @submit="onFormSubmit">
+      <UForm
+        id="vehicle-expense-for"
+        data-testid="vehicle-expense-form"
+        :state="expense"
+        :schema="expenseSchema"
+        @submit="onFormSubmit"
+      >
         <ExpenseForm
           v-if="expense"
           v-model="expense"
@@ -70,10 +76,11 @@ const onFormSubmit = async () => {
       />
 
       <UButton
+        type="submit"
+        form="vehicle-expense-form"
         :label="isEdit ? 'Save' : 'Create'"
         color="primary"
         :icon="isEdit ? 'mdi:content-save' : 'mdi:plus'"
-        @click="onFormSubmit"
       />
     </template>
   </UModal>

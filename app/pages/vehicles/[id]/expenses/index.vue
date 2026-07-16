@@ -7,6 +7,7 @@ useHead({
 });
 
 const overlay = useOverlay();
+const toast = useToast();
 const vehicleId = useRouteParam("id", { type: "number", required: true });
 
 const vehicleExpenseDialog = overlay.create(VehicleExpenseDialog);
@@ -79,7 +80,13 @@ const setSortKey = (key: keyof Tables<"VehicleExpenses">) => {
 };
 
 const handleCreateExpense = () => {
-  if (!vehicleId.value) return;
+  toast.add({
+    title: "Opening expense dialog",
+    color: "info",
+  });
+  console.log("handleCreateExpense", vehicleId.value);
+  if (!vehicleId.value)
+    return console.log("No vehicleId found, cannot create expense");
 
   vehicleExpenseDialog.open({ vehicleId: vehicleId.value });
 };

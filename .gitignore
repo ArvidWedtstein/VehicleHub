@@ -26,6 +26,7 @@ logs
 # Tests
 .vitest-cache
 test-results
+test-results/.last-run.json
 playwright-report
 playwright/.cache
 

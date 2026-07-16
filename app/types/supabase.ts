@@ -565,10 +565,6 @@ export type Database = {
       }
     }
     Functions: {
-      check_permission: {
-        Args: { operation: string; tablename: string }
-        Returns: boolean
-      }
       get_last_mileage: {
         Args: { type?: string; vehicle_id: number }
         Returns: {
