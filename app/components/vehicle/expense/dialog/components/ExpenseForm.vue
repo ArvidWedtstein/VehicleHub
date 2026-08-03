@@ -32,6 +32,8 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
           :min="0"
           :max="fuel_capacity || 10000"
           class="grow"
+          inputmode="decimal"
+          step="0.01"
         />
 
         <USelectMenu
@@ -55,6 +57,8 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
           :min="0"
           :disabled="expense.type === 'Electric'"
           class="w-full"
+          inputmode="decimal"
+          step="0.01"
         />
 
         <USelect
