@@ -51,7 +51,7 @@ const onFormSubmit = async () => {
   >
     <template #body>
       <UForm
-        id="vehicle-expense-for"
+        id="vehicle-expense-form"
         data-testid="vehicle-expense-form"
         :state="expense"
         :schema="expenseSchema"
