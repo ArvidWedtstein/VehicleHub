@@ -28,12 +28,12 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
       <UFieldGroup class="w-full">
         <UInput
           type="number"
-          v-model="expense.amount"
+          v-model.number="expense.amount"
           :min="0"
           :max="fuel_capacity || 10000"
           class="grow"
           inputmode="decimal"
-          step="0.01"
+          step="any"
         />
 
         <USelectMenu
@@ -53,12 +53,11 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
       <UFieldGroup class="w-full">
         <UInput
           type="number"
-          v-model="expense.cost"
+          v-model.number="expense.cost"
           :min="0"
           :disabled="expense.type === 'Electric'"
           class="w-full"
-          inputmode="decimal"
-          step="0.01"
+          step="any"
         />
 
         <USelect
