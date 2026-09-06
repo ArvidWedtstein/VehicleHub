@@ -26,65 +26,73 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
 
     <UFormField label="Amount" name="amount" required class="sm:col-span-2">
       <UFieldGroup class="w-full">
-        <UInput
-          type="number"
-          v-model.number="expense.amount"
-          :min="0"
-          :max="fuel_capacity || 10000"
-          class="grow"
-          inputmode="decimal"
-          step="any"
-        />
-
         <USelectMenu
           v-model="expense.unit"
           :items="[
             { value: 'liter', label: 'Liter' },
-            { value: 'us_gallon', label: 'US Gallon' },
-            { value: 'imp_gallon', label: 'Imperial Gallon' },
+            { value: 'gallon', label: 'Gallon' },
           ]"
           valueKey="value"
           labelKey="label"
+          :tabIndex="-1"
+        />
+
+        <UInputNumber
+          v-model="expense.amount"
+          :min="0"
+          :max="fuel_capacity || 10000"
+          class="flex-1"
+          :step="0.01"
+          :formatOptions="{
+            style: 'unit',
+            unit: expense.unit || 'liter',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+          }"
         />
       </UFieldGroup>
     </UFormField>
 
     <UFormField label="Cost" name="cost" required class="sm:col-span-2">
       <UFieldGroup class="w-full">
-        <UInput
-          type="number"
-          v-model.number="expense.cost"
-          :min="0"
-          :disabled="expense.type === 'Electric'"
-          class="w-full"
-          step="any"
-        />
-
-        <USelect
+        <USelectMenu
           v-model="expense.currency"
           :disabled="expense.type === 'Electric'"
           :items="['NOK', 'EUR', 'GBP', 'USD', 'SEK', 'DDK']"
-          :tabindex="-1"
+          :tabIndex="-1"
+          class="w-20"
+        />
+
+        <UInputNumber
+          v-model="expense.cost"
+          placeholder="0.00"
+          :step="0.01"
+          :formatOptions="{
+            style: 'currency',
+            currency: expense.currency || 'NOK',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }"
+          :min="0"
+          :disabled="expense.type === 'Electric'"
+          class="flex-1"
         />
       </UFieldGroup>
     </UFormField>
 
     <UFormField class="sm:col-span-2" label="Odometer Reading" name="mileage">
-      <UInput
-        type="number"
+      <UInputNumber
         icon="mdi:gauge-empty"
         v-model="expense.mileage"
         class="w-full"
-      >
-        <template #trailing>
-          {{
-            formatNumber(0, {
-              style: "unit",
-              unit: mileage_unit || "kilometer",
-            }).replace("0", "")
-          }}
-        </template>
-      </UInput>
+        :formatOptions="{
+          style: 'unit',
+          unit: mileage_unit || 'kilometer',
+          unitDisplay: 'short',
+          useGrouping: false,
+          maximumFractionDigits: 1,
+        }"
+      />
     </UFormField>
 
     <UFormField class="sm:col-span-2" label="Notes" name="notes">
