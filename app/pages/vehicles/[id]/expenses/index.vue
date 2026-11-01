@@ -80,10 +80,10 @@ const setSortKey = (key: keyof Tables<"VehicleExpenses">) => {
 };
 
 const handleCreateExpense = () => {
-  toast.add({
+  /*toast.add({
     title: "Opening expense dialog",
     color: "info",
-  });
+  });*/
   console.log("handleCreateExpense", vehicleId.value);
   if (!vehicleId.value)
     return console.log("No vehicleId found, cannot create expense");
