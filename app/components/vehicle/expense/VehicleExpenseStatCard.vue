@@ -136,7 +136,7 @@ const uniqueUnits = computed(() => {
 </script>
 
 <template>
-  <div>
+  <div class="w-full overflow-auto">
     <template v-if="loading">
       <StatCardSkeletonLoader />
     </template>
@@ -146,6 +146,7 @@ const uniqueUnits = computed(() => {
       title="Expenses Overview"
       icon="mdi:chart-bar"
       variant="soft"
+      class="w-full"
     >
       <template #description>
         <div class="flex justify-baseline items-center gap-2">
