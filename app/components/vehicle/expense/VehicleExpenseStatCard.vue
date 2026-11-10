@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import BarChart from "~/components/charts/BarChart.vue";
-
 const vehicleId = useRouteParam("id", { type: "number", required: true });
 const { data: expenses, pending: loading } = useVehicleExpenses(
   vehicleId,
@@ -25,7 +23,7 @@ type ChartSettings<U extends readonly Option[], T extends readonly Option[]> = {
 const chartSettings = reactive<ChartSettings<Option[], Option[]>>({
   typesOptions: [
     { value: "totalCost", label: "Fuel Cost" },
-    { value: "averageFuelPrice", label: "Average Fuel Price" },
+    { value: "averageFuelPrice", label: "Avg Fuel Price" },
     { value: "totalAmount", label: "Total Amount" },
   ] as const,
   periodOptions: [
@@ -36,7 +34,7 @@ const chartSettings = reactive<ChartSettings<Option[], Option[]>>({
   selectedCurrency: "NOK",
   selectedType: "totalCost",
   selectedUnit: "liter",
-});
+} as const);
 
 const amountFormatOptions = computed<Intl.NumberFormatOptions>(() => {
   return {
@@ -114,10 +112,14 @@ const expensesData = computed(() => {
     const averageFuelPrice = sum(numbers) / numbers.length;
 
     return {
-      totalCost,
-      totalAmount,
-      averageFuelPrice,
-    } as Record<typeof chartSettings.selectedType, number>;
+      key: groupKey,
+      value:
+        chartSettings.selectedType === "totalCost"
+          ? totalCost
+          : chartSettings.selectedType === "totalAmount"
+            ? totalAmount
+            : averageFuelPrice,
+    };
   }, []);
 
   return axisValuesWithServicesData;
@@ -175,36 +177,39 @@ const uniqueUnits = computed(() => {
         </div>
       </template>
 
-      <BarChart
-        v-if="!loading"
-        class="max-h-64 max-w-fit"
-        :xAxis="[
+      <UChart
+        type="bar"
+        :data="expensesData"
+        index="key"
+        xLabel="Period"
+        :yLabel="
+          chartSettings.selectedType === 'totalCost'
+            ? 'Fuel Cost'
+            : chartSettings.selectedType === 'totalAmount'
+              ? 'Total Amount in ' + chartSettings.selectedUnit
+              : 'Average Fuel Price'
+        "
+        :categories="[
           {
-            data: xAxisValues.map((p) => p.label),
-            scaleType: 'band',
+            key: 'value',
+            label:
+              chartSettings.typesOptions.find(
+                (option) => option.value === chartSettings.selectedType,
+              )?.label || '',
           },
         ]"
-        :yAxis="[
-          {
-            valueFormatter: (value) => {
-              const formattedNumber = formatNumber(
-                parseInt((value || 0).toString()),
-                chartSettings.selectedType === 'totalAmount'
-                  ? amountFormatOptions
-                  : currencyFormatOptions,
-              );
-              return value === null ? '' : formattedNumber;
-            },
-          },
-        ]"
-        :dataset="expensesData"
-        :series="[
-          {
-            dataKey: chartSettings.selectedType,
-            color: '--color-primary',
-          },
-        ]"
-        :margin="{ top: 10, right: 20, bottom: 20 }"
+        :format="
+          (value) => {
+            const formattedNumber = formatNumber(
+              parseInt((value || 0).toString()),
+              chartSettings.selectedType === 'totalAmount'
+                ? amountFormatOptions
+                : currencyFormatOptions,
+            );
+
+            return formattedNumber;
+          }
+        "
       />
     </UPageCard>
   </div>
