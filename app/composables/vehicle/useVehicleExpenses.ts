@@ -79,22 +79,26 @@ export const useVehicleExpense = (
   vehicleId: MaybeRefOrGetter<Tables<"VehicleExpenses">["vehicle_id"]>,
   expenseId: MaybeRefOrGetter<Tables<"VehicleExpenses">["id"]>,
 ) => {
+  const nuxtApp = useNuxtApp();
   const resolvedVehicleId = computed(() => toValue(vehicleId));
   const resolvedExpenseId = computed(() => toValue(expenseId));
 
-  const listCache = useNuxtData<Tables<"VehicleExpenses">[]>(
-    cacheKeys.expenses(resolvedVehicleId.value),
-  );
-
   return useLazyFetch(
-    `/api/vehicles/${resolvedVehicleId.value}/expenses/${resolvedExpenseId.value}`,
+    () =>
+      `/api/vehicles/${resolvedVehicleId.value}/expenses/${resolvedExpenseId.value}`,
     {
       key: () =>
         cacheKeys.expense(resolvedVehicleId.value, resolvedExpenseId.value),
       method: "get",
       immediate: !!resolvedVehicleId.value && !!resolvedExpenseId.value,
-      // default: () =>
-      //   listCache.data.value?.find((e) => e.id === resolvedExpenseId.value),
+      default: () => {
+        const listKey = cacheKeys.expenses(resolvedVehicleId.value);
+        const cachedList = nuxtApp.payload.data[listKey] as
+          | Tables<"VehicleExpenses">[]
+          | undefined;
+
+        return cachedList?.find((e) => e.id === resolvedExpenseId.value);
+      },
     },
   );
 };

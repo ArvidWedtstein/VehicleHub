@@ -4,34 +4,39 @@ import { expenseFormSchema } from "#shared/schemas/expense";
 
 export type ExpenseSchema = z.output<typeof expenseFormSchema>;
 
-export const useExpenseForm = () => {
+export const useExpenseForm = (
+  vehicleId: Tables<"VehicleExpenses">["vehicle_id"],
+  expenseId?: TablesUpdate<"VehicleExpenses">["id"],
+) => {
   const expense = ref<Partial<ExpenseSchema>>(
     expenseFormSchema.parse({ vehicle_id: 0 }),
   );
 
-  const vehicle = ref<Partial<Tables<"Vehicles">>>();
+  const { data: vehicle, execute: loadVehicle } = useVehicle(vehicleId);
+  const editExpenseQuery = expenseId
+    ? useVehicleExpense(vehicleId, expenseId)
+    : null;
 
-  const isEdit = computed(() => !!expense.value?.id);
+  const isEdit = computed(() => !!expenseId);
 
-  const initialize = async (
-    vehicleId: Tables<"VehicleExpenses">["vehicle_id"],
-    expenseId?: TablesUpdate<"VehicleExpenses">["id"],
-  ) => {
-    const { data: vehicleData } = await useVehicle(vehicleId);
-    vehicle.value = vehicleData.value;
+  const initialize = async () => {
+    if (!vehicle.value) {
+      await loadVehicle();
+    }
 
     // Edit mode
-    if (expenseId) {
-      const { data: editExpense, error } = useVehicleExpense(
-        vehicleId,
-        expenseId,
-      );
+    if (expenseId && editExpenseQuery) {
+      if (!editExpenseQuery.data.value) {
+        await editExpenseQuery.execute();
+      }
 
-      if (error.value) throw error.value;
+      if (editExpenseQuery.error.value) {
+        throw editExpenseQuery.error.value;
+      }
 
       expense.value = expenseFormSchema.parse({
-        ...editExpense.value,
-        date: convertToDatetimeLocal(editExpense.value?.date),
+        ...editExpenseQuery.data.value,
+        date: convertToDatetimeLocal(editExpenseQuery.data.value?.date),
       });
 
       return;

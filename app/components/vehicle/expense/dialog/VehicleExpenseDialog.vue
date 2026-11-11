@@ -13,12 +13,12 @@ const emit = defineEmits<{
 }>();
 
 const { expenseSchema, expense, vehicle, isEdit, initialize, save } =
-  useExpenseForm();
+  useExpenseForm(vehicleId, expenseId);
 
 const toast = useToast();
 
 const onOpen = () => {
-  initialize(vehicleId, expenseId);
+  initialize();
 };
 
 const onFormSubmit = async () => {
