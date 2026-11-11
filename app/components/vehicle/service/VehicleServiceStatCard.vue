@@ -13,7 +13,7 @@ type Option = {
 type ChartSettings = {
   typesOptions: Option[];
   periodOptions: Option[];
-  selectedType: string;
+  selectedType: "cost" | "repairs";
   selectedCurrency: string;
   selectedPeriod: "month" | "year";
   currencyFormatOptions: Intl.NumberFormatOptions;
@@ -93,6 +93,7 @@ const serviceData = computed(() => {
     );
 
     return {
+      key: groupKey,
       cost: totalCost,
       repairs: items.length,
     };
@@ -103,7 +104,7 @@ const serviceData = computed(() => {
 </script>
 
 <template>
-  <div>
+  <div class="w-full overflow-auto">
     <StatCardSkeletonLoader v-if="loading" />
 
     <UPageCard
@@ -111,6 +112,7 @@ const serviceData = computed(() => {
       title="Services stats"
       icon="mdi:chart-bar"
       variant="soft"
+      class="w-full"
     >
       <template #description>
         <div class="flex justify-baseline items-center gap-2">
@@ -142,35 +144,31 @@ const serviceData = computed(() => {
         </div>
       </template>
 
-      <ChartsBarChart
-        class="max-h-64 max-w-fit"
-        :xAxis="[
+      <UChart
+        :data="serviceData"
+        index="key"
+        :categories="[
           {
-            data: xAxisValues.map((p) => p.label),
-            scaleType: 'band',
+            key: chartSettings.selectedType,
+            label: chartSettings.selectedType === 'cost' ? 'Cost' : 'Repairs',
           },
         ]"
-        :yAxis="[
-          {
-            valueFormatter: (value) => {
+        :format="
+          (value) => {
+            if (chartSettings.selectedType === 'cost') {
               const formattedNumber = formatNumber(
                 parseInt((value || 0).toString()),
                 chartSettings.selectedType === 'cost'
                   ? chartSettings.currencyFormatOptions
                   : undefined,
               );
-              return value === null ? '' : formattedNumber;
-            },
-          },
-        ]"
-        :dataset="serviceData"
-        :series="[
-          {
-            dataKey: chartSettings.selectedType === 'cost' ? 'cost' : 'repairs',
-            color: '--color-secondary',
-          },
-        ]"
-        :margin="{ top: 10, right: 10, bottom: 20 }"
+
+              return formattedNumber;
+            }
+
+            return value.toString();
+          }
+        "
       />
     </UPageCard>
   </div>
