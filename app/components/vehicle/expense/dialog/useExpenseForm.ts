@@ -1,4 +1,4 @@
-import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
+import type { Tables, TablesUpdate } from "~/types/supabase";
 import * as z from "zod";
 import { expenseFormSchema } from "#shared/schemas/expense";
 
@@ -12,6 +12,8 @@ export const useExpenseForm = (
     expenseFormSchema.parse({ vehicle_id: 0 }),
   );
 
+  const { getLocation, coordinates } = useGeolocation();
+
   const { data: vehicle, execute: loadVehicle } = useVehicle(vehicleId);
   const editExpenseQuery = expenseId
     ? useVehicleExpense(vehicleId, expenseId)
@@ -20,6 +22,8 @@ export const useExpenseForm = (
   const isEdit = computed(() => !!expenseId);
 
   const initialize = async () => {
+    getLocation();
+
     if (!vehicle.value) {
       await loadVehicle();
     }
@@ -69,12 +73,20 @@ export const useExpenseForm = (
         throw new Error("Vehicle ID is required");
       }
 
-      console.log("Saving expense:", parsed, convertLocalToUTC(parsed.date));
+      console.log(
+        "Saving expense:",
+        parsed,
+        convertLocalToUTC(parsed.date),
+        coordinates.value,
+      );
 
       const payload = {
         ...parsed,
         date: convertLocalToUTC(parsed.date),
         vehicle_id: vehicleId,
+        latitude: coordinates.value?.latitude,
+        longitude: coordinates.value?.longitude,
+        location_accuracy: coordinates.value?.accuracy,
       };
 
       if (isEdit.value && parsed.id) {

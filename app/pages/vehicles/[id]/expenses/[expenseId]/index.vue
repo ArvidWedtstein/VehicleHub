@@ -103,6 +103,27 @@ const formatCurrency = (cost?: number | null) =>
     maximumFractionDigits: 2,
     minimumFractionDigits: 0,
   });
+
+const getLocation = async () => {
+  if (!expense.value) return;
+
+  if (!expense.value.latitude || !expense.value.longitude) {
+    toast.add({
+      title: "No location data available for this expense",
+      color: "warning",
+    });
+    return;
+  }
+
+  const res = await $fetch("/api/nearby-places", {
+    method: "GET",
+    query: {
+      lat: expense.value.latitude,
+      lng: expense.value.longitude,
+    },
+  });
+  console.log("Nearby places:", res);
+};
 </script>
 
 <template>

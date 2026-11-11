@@ -213,6 +213,9 @@ export type Database = {
           currency: string | null
           date: string
           id: number
+          latitude: number | null
+          location_accuracy: number | null
+          longitude: number | null
           mileage: number | null
           notes: string | null
           price_per_unit: number | null
@@ -228,6 +231,9 @@ export type Database = {
           currency?: string | null
           date?: string
           id?: number
+          latitude?: number | null
+          location_accuracy?: number | null
+          longitude?: number | null
           mileage?: number | null
           notes?: string | null
           price_per_unit?: number | null
@@ -243,6 +249,9 @@ export type Database = {
           currency?: string | null
           date?: string
           id?: number
+          latitude?: number | null
+          location_accuracy?: number | null
+          longitude?: number | null
           mileage?: number | null
           notes?: string | null
           price_per_unit?: number | null

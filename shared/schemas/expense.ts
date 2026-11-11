@@ -19,4 +19,7 @@ export const expenseFormSchema = z.object({
 
 export const expenseInsertSchema = expenseFormSchema.extend({
   vehicle_id: z.number(),
-}) satisfies z.ZodType<TablesInsert<"VehicleExpenses">>;
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  location_accuracy: z.number().optional(),
+});

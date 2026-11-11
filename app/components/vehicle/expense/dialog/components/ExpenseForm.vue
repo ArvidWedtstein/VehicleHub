@@ -42,7 +42,7 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
           :min="0"
           :max="fuel_capacity || 10000"
           class="flex-1"
-          :step="0.01"
+          :step="0.1"
           :formatOptions="{
             style: 'unit',
             unit: expense.unit || 'liter',
