@@ -12,8 +12,15 @@ const emit = defineEmits<{
   close: [boolean];
 }>();
 
-const { expenseSchema, expense, vehicle, isEdit, initialize, save } =
-  useExpenseForm(vehicleId, expenseId);
+const {
+  expenseSchema,
+  expense,
+  vehicle,
+  isEdit,
+  geolocationLoading,
+  initialize,
+  save,
+} = useExpenseForm(vehicleId, expenseId);
 
 const toast = useToast();
 
@@ -63,6 +70,7 @@ const onFormSubmit = async () => {
           :key="expense?.id"
           :fuel_capacity="vehicle?.fuel_capacity"
           :mileage_unit="vehicle?.mileage_unit"
+          :geolocationLoading
         />
       </UForm>
     </template>

@@ -4,6 +4,8 @@ import type { ExpenseSchema } from "../useExpenseForm";
 type Props = {
   mileage_unit?: string | null;
   fuel_capacity?: number | null;
+
+  geolocationLoading?: boolean;
 };
 withDefaults(defineProps<Props>(), {
   mileage_unit: "kilometer",
@@ -95,7 +97,15 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
       />
     </UFormField>
 
-    <UFormField class="sm:col-span-2" label="Notes" name="notes">
+    <UFormField class="sm:col-span-2" label="Location" name="location">
+      <UInput
+        v-model="expense.location"
+        class="w-full"
+        icon="mdi:map-marker-outline"
+        :loading="geolocationLoading"
+      />
+    </UFormField>
+    <UFormField class="sm:col-span-full" label="Notes" name="notes">
       <UTextarea v-model="expense.notes" :rows="3" class="w-full" />
     </UFormField>
   </div>

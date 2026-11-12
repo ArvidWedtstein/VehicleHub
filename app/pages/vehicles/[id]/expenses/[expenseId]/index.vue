@@ -26,6 +26,14 @@ const {
   error,
 } = useVehicleExpense(vehicleId, expenseId);
 
+// TODO: get previous expense to calculate data
+/*
+const { data, error } = await client.rpc("get_last_mileage", {
+      vehicle_id: vehicleId,
+      type: "expenses",
+    });
+*/
+
 const { data: vehicle } = useVehicle(vehicleId);
 
 const { data: profiles } = useProfiles();
@@ -99,31 +107,9 @@ const formatCurrency = (cost?: number | null) =>
     style: "currency",
     currency: expense.value?.currency || "EUR",
     currencyDisplay: "narrowSymbol",
-    compactDisplay: "short",
     maximumFractionDigits: 2,
     minimumFractionDigits: 0,
   });
-
-const getLocation = async () => {
-  if (!expense.value) return;
-
-  if (!expense.value.latitude || !expense.value.longitude) {
-    toast.add({
-      title: "No location data available for this expense",
-      color: "warning",
-    });
-    return;
-  }
-
-  const res = await $fetch("/api/nearby-places", {
-    method: "GET",
-    query: {
-      lat: expense.value.latitude,
-      lng: expense.value.longitude,
-    },
-  });
-  console.log("Nearby places:", res);
-};
 </script>
 
 <template>
@@ -214,14 +200,66 @@ const getLocation = async () => {
         />
 
         <UPageCard
-          :title="`Per ${expense.unit || 'liter'}`"
-          :description="formatCurrency(expense.price_per_unit)"
+          title="Since last fill-up"
+          icon="mdi:road-variant"
           variant="subtle"
           :ui="{
             container: 'p-2 sm:p-4',
             title: 'text-xs font-normal text-muted',
             description: 'text-highlighted font-semibold',
           }"
+        >
+        </UPageCard>
+
+        <UPageCard
+          title="Consumption"
+          description="liters added ÷ distance since previous full fill-up × 100"
+          icon="mdi:drop"
+          variant="subtle"
+          :ui="{
+            container: 'p-2 sm:p-4',
+            title: 'text-xs font-normal text-muted',
+            description: 'text-highlighted font-semibold',
+          }"
+        />
+
+        <UPageCard
+          title="Cost per km"
+          icon="mdi:coin"
+          variant="subtle"
+          :ui="{
+            container: 'p-2 sm:p-4',
+            title: 'text-xs font-normal text-muted',
+            description: 'text-highlighted font-semibold',
+          }"
+        />
+
+        <UPageCard
+          :title="`Price per ${expense.unit || 'liter'}`"
+          :description="`${formatCurrency(expense.price_per_unit)}/L`"
+          variant="subtle"
+          :ui="{
+            container: 'p-2 sm:p-4',
+            title: 'text-xs font-normal text-muted',
+            description: 'text-highlighted font-semibold',
+          }"
+        />
+
+        <UPageCard
+          v-if="expense.location || expense.latitude || expense.longitude"
+          title="Location"
+          :description="
+            expense.location || `${expense.latitude}, ${expense.longitude}`
+          "
+          icon="mdi:map-marker"
+          variant="subtle"
+          :ui="{
+            container: 'p-2 sm:p-4',
+            title: 'text-xs font-normal text-muted',
+            description: 'text-highlighted font-semibold',
+          }"
+          :to="`https://www.openstreetmap.org/#map=19/${expense.latitude}/${expense.longitude}`"
+          target="_blank"
         />
       </UPageGrid>
 

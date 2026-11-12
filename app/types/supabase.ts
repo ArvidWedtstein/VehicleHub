@@ -214,6 +214,7 @@ export type Database = {
           date: string
           id: number
           latitude: number | null
+          location: string | null
           location_accuracy: number | null
           longitude: number | null
           mileage: number | null
@@ -232,6 +233,7 @@ export type Database = {
           date?: string
           id?: number
           latitude?: number | null
+          location?: string | null
           location_accuracy?: number | null
           longitude?: number | null
           mileage?: number | null
@@ -250,6 +252,7 @@ export type Database = {
           date?: string
           id?: number
           latitude?: number | null
+          location?: string | null
           location_accuracy?: number | null
           longitude?: number | null
           mileage?: number | null

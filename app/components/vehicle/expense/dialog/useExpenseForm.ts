@@ -1,7 +1,6 @@
 import type { Tables, TablesUpdate } from "~/types/supabase";
 import * as z from "zod";
 import { expenseFormSchema } from "#shared/schemas/expense";
-
 export type ExpenseSchema = z.output<typeof expenseFormSchema>;
 
 export const useExpenseForm = (
@@ -12,7 +11,11 @@ export const useExpenseForm = (
     expenseFormSchema.parse({ vehicle_id: 0 }),
   );
 
-  const { getLocation, coordinates } = useGeolocation();
+  const {
+    getLocation,
+    coordinates,
+    loading: geolocationLoading,
+  } = useGeolocation();
 
   const { data: vehicle, execute: loadVehicle } = useVehicle(vehicleId);
   const editExpenseQuery = expenseId
@@ -21,9 +24,30 @@ export const useExpenseForm = (
 
   const isEdit = computed(() => !!expenseId);
 
-  const initialize = async () => {
-    getLocation();
+  watch(
+    () => coordinates.value,
+    async (newCoords) => {
+      if (!newCoords || (!expense.value && !isEdit.value)) return;
 
+      try {
+        const res = await $fetch("/api/geo/location", {
+          method: "GET",
+          query: {
+            lat: newCoords.latitude,
+            lon: newCoords.longitude,
+          },
+        });
+
+        if (res && res.addresstype !== "amenity") return;
+
+        expense.value.location ??= res.name || res.display_name;
+      } catch (error) {
+        console.error("Error fetching location:", error);
+      }
+    },
+  );
+
+  const initialize = async () => {
     if (!vehicle.value) {
       await loadVehicle();
     }
@@ -47,7 +71,10 @@ export const useExpenseForm = (
     }
 
     // Create mode
+    getLocation();
+
     const client = useSupabaseClient();
+
     const { data, error } = await client.rpc("get_last_mileage", {
       vehicle_id: vehicleId,
       type: "expenses",
@@ -106,6 +133,7 @@ export const useExpenseForm = (
     isEdit,
     vehicle,
     expenseSchema: expenseFormSchema,
+    geolocationLoading,
     save,
     initialize,
   };

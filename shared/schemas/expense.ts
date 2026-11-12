@@ -15,6 +15,7 @@ export const expenseFormSchema = z.object({
   mileage: z.number().min(0).default(0),
   currency: z.string().length(3).toUpperCase().default("NOK"),
   notes: dbToForm(z.string().optional()),
+  location: dbToForm(z.string().optional()),
 });
 
 export const expenseInsertSchema = expenseFormSchema.extend({
@@ -22,4 +23,5 @@ export const expenseInsertSchema = expenseFormSchema.extend({
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   location_accuracy: z.number().optional(),
+  location: z.string().optional(),
 });

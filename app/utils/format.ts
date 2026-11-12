@@ -83,7 +83,7 @@ export const formatNumber = (
 ) => {
   if (!num && num !== 0) return "";
   const language = useLocale();
-
+  console.log("loc", language.value);
   try {
     const formatter = new Intl.NumberFormat(language.value, options);
 
