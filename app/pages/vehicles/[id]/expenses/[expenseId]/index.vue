@@ -34,6 +34,18 @@ const { data, error } = await client.rpc("get_last_mileage", {
     });
 */
 
+const previousExpenseMileage = ref<number | null>(null);
+await callOnce(async () => {
+  const client = useSupabaseClient();
+  const { data, error } = await client.rpc("get_last_mileage", {
+    vehicle_id: vehicleId.value,
+    type: "expenses",
+  });
+
+  console.log("data", data);
+  previousExpenseMileage.value = data?.[0]?.mileage ?? null;
+});
+
 const { data: vehicle } = useVehicle(vehicleId);
 
 const { data: profiles } = useProfiles();

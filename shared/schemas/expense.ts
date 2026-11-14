@@ -1,19 +1,16 @@
-import type { TablesInsert } from "~/types/supabase";
 import * as z from "zod";
 import { convertToDatetimeLocal } from "../utils/convert";
-
-const dbToForm = <T extends z.ZodTypeAny>(schema: T) =>
-  schema.nullish().transform((val) => val ?? undefined);
+import { dbToForm, currency } from "./utils";
 
 export const expenseFormSchema = z.object({
   id: z.number().optional(),
   date: z.string().default(convertToDatetimeLocal()),
-  type: z.string().default("Fuel"),
+  type: z.string().optional(),
   unit: z.string().default("liter"),
   amount: z.number().min(0).default(0),
   cost: z.number({ error: "Cost is required" }).min(0).default(0),
   mileage: z.number().min(0).default(0),
-  currency: z.string().length(3).toUpperCase().default("NOK"),
+  currency: currency.default("NOK"),
   notes: dbToForm(z.string().optional()),
   location: dbToForm(z.string().optional()),
 });

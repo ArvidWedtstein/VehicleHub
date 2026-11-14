@@ -22,6 +22,7 @@ export const useExpenseForm = (
     ? useVehicleExpense(vehicleId, expenseId)
     : null;
 
+  const isSubmitting = ref(false);
   const isEdit = computed(() => !!expenseId);
 
   watch(
@@ -87,12 +88,14 @@ export const useExpenseForm = (
     expense.value = expenseFormSchema.parse({
       vehicle_id: vehicleId,
       mileage: lastMileage,
+      type: vehicle.value?.fuel_type,
     });
   };
 
   const save = async () => {
     try {
       if (!expense.value) throw new Error("No expense");
+      isSubmitting.value = true;
 
       const parsed = expenseFormSchema.parse(expense.value);
       const vehicleId = vehicle.value?.id;
@@ -118,12 +121,15 @@ export const useExpenseForm = (
 
       if (isEdit.value && parsed.id) {
         await updateVehicleExpense(vehicleId, parsed.id, payload);
+        isSubmitting.value = false;
         return;
       }
 
       await createVehicleExpense(vehicleId, payload);
+      isSubmitting.value = false;
     } catch (err) {
       console.error(err);
+      isSubmitting.value = false;
       throw err;
     }
   };
@@ -131,6 +137,7 @@ export const useExpenseForm = (
   return {
     expense,
     isEdit,
+    isSubmitting,
     vehicle,
     expenseSchema: expenseFormSchema,
     geolocationLoading,

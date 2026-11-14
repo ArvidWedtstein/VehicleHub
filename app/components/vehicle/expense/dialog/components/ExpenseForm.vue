@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { today, getLocalTimeZone } from "@internationalized/date";
 import type { ExpenseSchema } from "../useExpenseForm";
 
 type Props = {
@@ -13,16 +14,23 @@ withDefaults(defineProps<Props>(), {
 });
 
 const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
+
+const maxToday = today(getLocalTimeZone());
 </script>
 
 <template>
   <div class="grid grid-cols-1 sm:grid-cols-4 gap-x-6 gap-y-4 flex-1">
     <UFormField class="sm:col-span-4" label="Date" name="date" required>
-      <FormInputDateTime v-model="expense.date" class="w-full hidden lg:flex" />
+      <FormInputDateTime
+        v-model="expense.date"
+        class="w-full hidden lg:flex"
+        :maxValue="maxToday"
+      />
       <UInput
         type="datetime-local"
         v-model="expense.date"
         class="w-full lg:hidden"
+        :maxValue="maxToday"
       />
     </UFormField>
 

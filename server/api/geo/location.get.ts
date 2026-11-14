@@ -9,6 +9,7 @@ interface NominatimResponse {
   class: string;
   type: string;
   display_name: string;
+  addresstype: string;
   address: Record<string, string>;
   namedetails?: Record<string, string>;
   extratags?: Record<string, string>;

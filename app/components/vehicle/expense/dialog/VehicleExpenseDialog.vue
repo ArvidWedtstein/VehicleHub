@@ -17,6 +17,7 @@ const {
   expense,
   vehicle,
   isEdit,
+  isSubmitting,
   geolocationLoading,
   initialize,
   save,
@@ -62,6 +63,7 @@ const onFormSubmit = async () => {
         data-testid="vehicle-expense-form"
         :state="expense"
         :schema="expenseSchema"
+        :disabled="isSubmitting"
         @submit="onFormSubmit"
       >
         <ExpenseForm
@@ -87,6 +89,7 @@ const onFormSubmit = async () => {
         type="submit"
         form="vehicle-expense-form"
         :label="isEdit ? 'Save' : 'Create'"
+        :loading="isSubmitting"
         color="primary"
         :icon="isEdit ? 'mdi:content-save' : 'mdi:plus'"
       />

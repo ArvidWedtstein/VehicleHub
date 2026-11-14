@@ -230,7 +230,7 @@ onMounted(() => {
         <template #body>
           <UUser
             :avatar="{
-              icon: item.type === 'Fuel' ? 'mdi:gas-station' : 'mdi:cash',
+              icon: 'mdi:gas-station',
             }"
             :name="item.type || 'Unknown Expense'"
             :description="

@@ -55,6 +55,30 @@ export type Database = {
           },
         ]
       }
+      exchange_rates: {
+        Row: {
+          created_at: string
+          currency: string
+          day: string
+          id: number
+          per_eur: number
+        }
+        Insert: {
+          created_at?: string
+          currency: string
+          day: string
+          id?: number
+          per_eur: number
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          day?: string
+          id?: number
+          per_eur?: number
+        }
+        Relationships: []
+      }
       Profiles: {
         Row: {
           created_at: string
@@ -577,6 +601,11 @@ export type Database = {
       }
     }
     Functions: {
+      eur_rate: { Args: { p_currency: string; p_day: string }; Returns: number }
+      fx_rate: {
+        Args: { p_day: string; p_from: string; p_to: string }
+        Returns: number
+      }
       get_last_mileage: {
         Args: { type?: string; vehicle_id: number }
         Returns: {
