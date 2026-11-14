@@ -82,6 +82,7 @@ export type Database = {
       Profiles: {
         Row: {
           created_at: string
+          currency: string | null
           id: number
           name: string | null
           profile_image_url: string | null
@@ -90,6 +91,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          currency?: string | null
           id?: number
           name?: string | null
           profile_image_url?: string | null
@@ -98,6 +100,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          currency?: string | null
           id?: number
           name?: string | null
           profile_image_url?: string | null
@@ -574,6 +577,39 @@ export type Database = {
           },
         ]
       }
+      vehicle_expenses_converted: {
+        Row: {
+          amount: number | null
+          cost: number | null
+          cost_reporting: number | null
+          created_at: string | null
+          createdby_id: string | null
+          currency: string | null
+          date: string | null
+          exchange_rate: number | null
+          id: number | null
+          latitude: number | null
+          location: string | null
+          location_accuracy: number | null
+          longitude: number | null
+          mileage: number | null
+          notes: string | null
+          price_per_unit: number | null
+          reporting_currency: string | null
+          type: string | null
+          unit: string | null
+          vehicle_id: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "VehicleExpenses_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "Vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicleservicelogs_with_items: {
         Row: {
           created_at: string | null
@@ -602,6 +638,62 @@ export type Database = {
     }
     Functions: {
       eur_rate: { Args: { p_currency: string; p_day: string }; Returns: number }
+      expense_insights: {
+        Args: { p_from?: string; p_to?: string; p_vehicle_id: number }
+        Returns: {
+          avg_days_between_fills: number
+          avg_fill_cost: number
+          avg_fill_litres: number
+          avg_km_between_fills: number
+          avg_l_per_100km: number
+          avg_price_per_l: number
+          best_l_per_100km: number
+          by_type: Json
+          consumption_samples: number
+          cost_per_km: number
+          fills: number
+          km_driven: number
+          latest_l_per_100km: number
+          latest_price_per_l: number
+          max_price_per_l: number
+          min_price_per_l: number
+          projected_annual_km: number
+          reporting_currency: string
+          rows_bad_mileage: number
+          rows_without_rate: number
+          total_cost: number
+          total_litres: number
+          worst_l_per_100km: number
+        }[]
+      }
+      expense_stats: {
+        Args: { expense_id: number }
+        Returns: {
+          avg_l_per_100km_before: number
+          avg_price_per_l_before: number
+          bad_mileage: boolean
+          cheapest_so_far: boolean
+          consumption_vs_avg_pct: number
+          cost_per_km: number
+          cost_reporting: number
+          created_at: string
+          days_since_prev: number
+          fill_number: number
+          has_rate: boolean
+          id: number
+          km_per_day: number
+          km_since_prev: number
+          l_per_100km: number
+          prev_created_at: string
+          prev_id: number
+          prev_mileage: number
+          prev_price_per_l: number
+          price_per_l: number
+          price_vs_avg_pct: number
+          price_vs_prev_pct: number
+          reporting_currency: string
+        }[]
+      }
       fx_rate: {
         Args: { p_day: string; p_from: string; p_to: string }
         Returns: number

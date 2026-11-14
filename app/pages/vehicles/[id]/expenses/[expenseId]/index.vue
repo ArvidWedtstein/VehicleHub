@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import VehicleExpenseDialog from "~/components/vehicle/expense/dialog/VehicleExpenseDialog.vue";
+import type { Database } from "~/types/supabase";
+import type { QueryData } from "@supabase/supabase-js";
 
 useHead({
   title: "Expense",
@@ -26,28 +28,9 @@ const {
   error,
 } = useVehicleExpense(vehicleId, expenseId);
 
-// TODO: get previous expense to calculate data
-/*
-const { data, error } = await client.rpc("get_last_mileage", {
-      vehicle_id: vehicleId,
-      type: "expenses",
-    });
-*/
-
-const previousExpenseMileage = ref<number | null>(null);
-await callOnce(async () => {
-  const client = useSupabaseClient();
-  const { data, error } = await client.rpc("get_last_mileage", {
-    vehicle_id: vehicleId.value,
-    type: "expenses",
-  });
-
-  console.log("data", data);
-  previousExpenseMileage.value = data?.[0]?.mileage ?? null;
-});
+const { data: stats } = useExpenseStats(expenseId);
 
 const { data: vehicle } = useVehicle(vehicleId);
-
 const { data: profiles } = useProfiles();
 
 const overlay = useOverlay();
@@ -98,30 +81,43 @@ const handleDeleteExpense = async () => {
   });
 };
 
-const formatDistance = (distance: number | null) =>
+const formatDistance = (distance: number | null, opts?: FormatNumberOptions) =>
   formatNumber(distance || 0, {
     style: "unit",
     unit: vehicle.value?.mileage_unit || "kilometer",
     compactDisplay: "short",
     useGrouping: true,
+    ...opts,
   });
 
-const formatAmount = (amount?: number | null) =>
+const formatAmount = (amount?: number | null, opts?: FormatNumberOptions) =>
   formatNumber(amount || 0, {
     style: "unit",
     unit: expense.value?.unit || "liter",
     unitDisplay: "short",
     compactDisplay: "short",
+    ...opts,
   });
 
-const formatCurrency = (cost?: number | null) =>
+const formatCurrency = (cost?: number | null, opts?: FormatNumberOptions) =>
   formatNumber(cost || 0, {
     style: "currency",
-    currency: expense.value?.currency || "EUR",
+    currency:
+      stats.value?.reporting_currency || expense.value?.currency || "EUR",
     currencyDisplay: "narrowSymbol",
     maximumFractionDigits: 2,
     minimumFractionDigits: 0,
+    ...opts,
   });
+
+const pct = (v: number | null) =>
+  v == null ? null : `${v > 0 ? "+" : ""}${v}%`;
+
+const cardClass = {
+  container: "p-2 sm:p-4",
+  title: "text-xs font-normal text-muted capitalize",
+  description: "text-highlighted font-semibold",
+};
 </script>
 
 <template>
@@ -180,81 +176,113 @@ const formatCurrency = (cost?: number | null) =>
           title="Mileage"
           :description="formatDistance(expense.mileage)"
           variant="subtle"
-          :ui="{
-            container: 'p-2 sm:p-4',
-            title: 'text-xs font-normal text-muted',
-            description: 'text-highlighted font-semibold',
-          }"
-        />
+          :ui="cardClass"
+        >
+          <small v-if="stats?.prev_mileage">
+            Previous {{ formatDistance(stats.prev_mileage) }}
+          </small>
+        </UPageCard>
 
         <UPageCard
           :title="
             pluralize(expense.amount || 0, expense.unit || 'Liter', 's', false)
           "
+          icon="mdi:water-circle"
           :description="formatAmount(expense.amount)"
           variant="subtle"
-          :ui="{
-            container: 'p-2 sm:p-4',
-            title: 'text-xs font-normal text-muted capitalize',
-            description: 'text-highlighted font-semibold',
-          }"
-        />
+          :ui="cardClass"
+        >
+          <template #default>
+            <UProgress
+              v-if="stats?.km_per_day"
+              v-model="stats.km_per_day"
+              :max="vehicle?.fuel_capacity || 100"
+              size="sm"
+              status
+              :ui="{ status: 'w-full justify-between' }"
+            >
+              <template #status="{ percent }">
+                <p>{{ percent }}% of tank</p>
+                <p>{{ formatAmount(vehicle?.fuel_capacity || 0) }}</p>
+              </template>
+            </UProgress>
+          </template>
+        </UPageCard>
+
+        <UPageCard
+          v-if="stats?.price_per_l"
+          :title="`Price per ${expense.unit || 'litre'}`"
+          :description="formatCurrency(stats.price_per_l, { per: 'L' })"
+          icon="mdi:tag-outline"
+          variant="subtle"
+          :ui="cardClass"
+        >
+          <template #footer>
+            <small
+              v-if="stats?.price_vs_avg_pct != null"
+              class="text-muted"
+              :class="{
+                'text-warning': stats.price_vs_avg_pct > 5,
+                'text-error': stats.price_vs_avg_pct > 10,
+              }"
+            >
+              {{ pct(stats.price_vs_avg_pct) }} above average
+            </small>
+
+            <UBadge
+              v-if="stats?.cheapest_so_far"
+              color="success"
+              variant="subtle"
+              label="Cheapest so far"
+            />
+          </template>
+        </UPageCard>
 
         <UPageCard
           title="Cost"
           :description="formatCurrency(expense.cost)"
           variant="subtle"
-          :ui="{
-            container: 'p-2 sm:p-4',
-            title: 'text-xs font-normal text-muted',
-            description: 'text-highlighted font-semibold',
-          }"
+          :ui="cardClass"
         />
 
         <UPageCard
+          v-if="stats?.km_since_prev"
           title="Since last fill-up"
+          :description="formatDistance(stats.km_since_prev)"
           icon="mdi:road-variant"
           variant="subtle"
-          :ui="{
-            container: 'p-2 sm:p-4',
-            title: 'text-xs font-normal text-muted',
-            description: 'text-highlighted font-semibold',
-          }"
+          :ui="cardClass"
         >
+          <span v-if="stats?.days_since_prev">{{
+            `${stats?.days_since_prev} days - ${formatDistance(stats.km_per_day, { per: "day" })}`
+          }}</span>
         </UPageCard>
 
         <UPageCard
+          v-if="stats?.l_per_100km"
           title="Consumption"
-          description="liters added ÷ distance since previous full fill-up × 100"
-          icon="mdi:drop"
+          :description="`${formatAmount(stats?.l_per_100km, { per: '100 km' })}`"
+          icon="mdi:drop-outline"
           variant="subtle"
-          :ui="{
-            container: 'p-2 sm:p-4',
-            title: 'text-xs font-normal text-muted',
-            description: 'text-highlighted font-semibold',
-          }"
-        />
+          :ui="cardClass"
+        >
+          <template #footer>
+            <span
+              v-if="stats?.consumption_vs_avg_pct != null"
+              class="text-muted"
+            >
+              ({{ pct(stats.consumption_vs_avg_pct) }} vs avg)
+            </span>
+          </template>
+        </UPageCard>
 
         <UPageCard
+          v-if="stats?.cost_per_km"
           title="Cost per km"
-          icon="mdi:coin"
+          :description="`${formatCurrency(stats.cost_per_km, { per: 'km' })}`"
+          icon="mdi:coin-outline"
           variant="subtle"
-          :ui="{
-            container: 'p-2 sm:p-4',
-            title: 'text-xs font-normal text-muted',
-            description: 'text-highlighted font-semibold',
-          }"
-        />
-
-        <UPageCard
-          :title="`Price per ${expense.unit || 'liter'}`"
-          :description="`${formatCurrency(expense.price_per_unit)}/L`"
-          variant="subtle"
-          :ui="{
-            container: 'p-2 sm:p-4',
-            title: 'text-xs font-normal text-muted',
-            description: 'text-highlighted font-semibold',
-          }"
+          :ui="cardClass"
         />
 
         <UPageCard
@@ -263,15 +291,28 @@ const formatCurrency = (cost?: number | null) =>
           :description="
             expense.location || `${expense.latitude}, ${expense.longitude}`
           "
-          icon="mdi:map-marker"
+          icon="mdi:map-marker-outline"
           variant="subtle"
-          :ui="{
-            container: 'p-2 sm:p-4',
-            title: 'text-xs font-normal text-muted',
-            description: 'text-highlighted font-semibold',
-          }"
+          :ui="cardClass"
           :to="`https://www.openstreetmap.org/#map=19/${expense.latitude}/${expense.longitude}`"
           target="_blank"
+        />
+
+        <UPageCard
+          v-if="expense?.notes"
+          title="Notes"
+          :description="expense.notes"
+          icon="mdi:note-outline"
+          variant="subtle"
+          :ui="cardClass"
+        />
+
+        <UAlert
+          v-if="stats?.bad_mileage"
+          color="warning"
+          variant="subtle"
+          class="mt-3"
+          title="Odometer is not higher than the previous reading"
         />
       </UPageGrid>
 
@@ -288,7 +329,6 @@ const formatCurrency = (cost?: number | null) =>
           icon="mdi:trash"
           color="error"
           variant="soft"
-          block
           @click="handleDeleteExpense"
         />
       </template>
