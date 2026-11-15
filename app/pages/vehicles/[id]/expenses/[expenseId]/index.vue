@@ -31,7 +31,6 @@ const {
 const { data: stats } = useExpenseStats(expenseId);
 
 const { data: vehicle } = useVehicle(vehicleId);
-const { data: profiles } = useProfiles();
 
 const overlay = useOverlay();
 const toast = useToast();
@@ -39,12 +38,7 @@ const confirm = useConfirmDialog();
 
 const vehicleExpenseDialog = overlay.create(VehicleExpenseDialog);
 
-/** TODO: remove & move to fetching of expense instead */
-const createdBy = computed(() => {
-  return profiles.value?.find(
-    ({ user_id }) => user_id === expense.value?.createdby_id,
-  );
-});
+const { data: createdBy } = useProfile(expense.value?.createdby_id);
 
 const handleEditExpense = () => {
   if (!vehicleId.value) return;
@@ -99,19 +93,23 @@ const formatAmount = (amount?: number | null, opts?: FormatNumberOptions) =>
     ...opts,
   });
 
-const formatCurrency = (cost?: number | null, opts?: FormatNumberOptions) =>
+const formatCurrency = (
+  cost?: number | null,
+  opts?: FormatNumberOptions,
+  currency?: string,
+) =>
   formatNumber(cost || 0, {
     style: "currency",
     currency:
-      stats.value?.reporting_currency || expense.value?.currency || "EUR",
+      currency ||
+      stats.value?.reporting_currency ||
+      expense.value?.currency ||
+      "EUR",
     currencyDisplay: "narrowSymbol",
     maximumFractionDigits: 2,
     minimumFractionDigits: 0,
     ...opts,
   });
-
-const pct = (v: number | null) =>
-  v == null ? null : `${v > 0 ? "+" : ""}${v}%`;
 
 const cardClass = {
   container: "p-2 sm:p-4 gap-y-2",
@@ -190,7 +188,7 @@ const cardClass = {
           class="w-auto"
         />
 
-        <p class="text-xl">{{ formatCurrency(expense.cost) }}</p>
+        <p class="text-xl">{{ formatCurrency(stats?.cost_reporting) }}</p>
       </template>
 
       <UPageGrid :ui="{ base: 'grid-cols-2 gap-4 lg:gap-8' }">
