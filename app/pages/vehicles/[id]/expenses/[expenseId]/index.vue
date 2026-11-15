@@ -114,7 +114,7 @@ const pct = (v: number | null) =>
   v == null ? null : `${v > 0 ? "+" : ""}${v}%`;
 
 const cardClass = {
-  container: "p-2 sm:p-4",
+  container: "p-2 sm:p-4 gap-y-2",
   title: "text-xs font-normal text-muted capitalize",
   description: "text-highlighted font-semibold",
 };
@@ -139,41 +139,64 @@ const cardClass = {
 
     <UCard
       v-else-if="expense"
-      :title="expense.type || ''"
       :ui="{
-        description: 'flex gap-2 items-center',
         footer: 'flex gap-2',
+        header: 'flex gap-2 justify-between items-center',
       }"
     >
-      <template #description>
-        <NuxtTime
-          :datetime="expense.date"
-          dateStyle="long"
-          :relative="addToDate(new Date(), -7, 'day') < new Date(expense.date)"
+      <template #header>
+        <div class="">
+          <div class="text-highlighted font-semibold">
+            {{ expense.type }}
+          </div>
+
+          <div class="mt-1 text-muted text-sm flex gap-2 items-center">
+            <NuxtTime
+              :datetime="expense.date"
+              dateStyle="long"
+              :relative="
+                addToDate(new Date(), -7, 'day') < new Date(expense.date)
+              "
+              class="shrink-0"
+            />
+
+            <div
+              class="size-1 bg-current rounded-full inline-block leading-none"
+            ></div>
+
+            <UUser
+              v-if="createdBy"
+              :avatar="{
+                src: createdBy.profile_image_url || '',
+                loading: 'lazy',
+              }"
+              :name="createdBy.name || ''"
+              :to="{
+                name: 'profiles-profileId',
+                params: { profileId: createdBy.id },
+              }"
+              size="xs"
+              class="shrink-0"
+            />
+          </div>
+        </div>
+
+        <UAlert
+          v-if="stats?.bad_mileage"
+          color="warning"
+          variant="subtle"
+          icon="mdi:exclamation"
+          title="Odometer is not higher than the previous reading"
+          class="w-auto"
         />
 
-        <div
-          class="size-1 bg-current rounded-full inline-block leading-none"
-        ></div>
-
-        <UUser
-          v-if="createdBy"
-          :avatar="{
-            src: createdBy.profile_image_url || '',
-            loading: 'lazy',
-          }"
-          :name="createdBy.name || ''"
-          :to="{
-            name: 'profiles-profileId',
-            params: { profileId: createdBy.id },
-          }"
-          size="xs"
-        />
+        <p class="text-xl">{{ formatCurrency(expense.cost) }}</p>
       </template>
 
       <UPageGrid :ui="{ base: 'grid-cols-2 gap-4 lg:gap-8' }">
         <UPageCard
           title="Mileage"
+          icon="mdi:car-speed-limiter"
           :description="formatDistance(expense.mileage)"
           variant="subtle"
           :ui="cardClass"
@@ -194,8 +217,8 @@ const cardClass = {
         >
           <template #default>
             <UProgress
-              v-if="stats?.km_per_day"
-              v-model="stats.km_per_day"
+              v-if="expense.amount"
+              v-model="expense.amount"
               :max="vehicle?.fuel_capacity || 100"
               size="sm"
               status
@@ -210,24 +233,37 @@ const cardClass = {
         </UPageCard>
 
         <UPageCard
-          v-if="stats?.price_per_l"
+          v-if="stats?.price_per_unit"
           :title="`Price per ${expense.unit || 'litre'}`"
-          :description="formatCurrency(stats.price_per_l, { per: 'L' })"
+          :description="formatCurrency(stats.price_per_unit, { per: 'L' })"
           icon="mdi:tag-outline"
           variant="subtle"
           :ui="cardClass"
         >
           <template #footer>
-            <small
+            <UTooltip
               v-if="stats?.price_vs_avg_pct != null"
-              class="text-muted"
-              :class="{
-                'text-warning': stats.price_vs_avg_pct > 5,
-                'text-error': stats.price_vs_avg_pct > 10,
-              }"
+              :text="`${formatCurrency(stats.avg_price_before, { per: 'L' })} before`"
             >
-              {{ pct(stats.price_vs_avg_pct) }} above average
-            </small>
+              <small
+                class="text-muted"
+                :class="{
+                  'text-warning': stats.price_vs_avg_pct > 5,
+                  'text-error': stats.price_vs_avg_pct > 10,
+                }"
+              >
+                <UIcon
+                  :name="
+                    stats.price_vs_avg_pct > 0
+                      ? 'mdi:trending-up'
+                      : 'mdi:trending-down'
+                  "
+                />
+                {{
+                  `${stats.price_vs_avg_pct}% ${stats.price_vs_avg_pct > 0 ? "above" : "below"} average`
+                }}
+              </small>
+            </UTooltip>
 
             <UBadge
               v-if="stats?.cheapest_so_far"
@@ -239,51 +275,70 @@ const cardClass = {
         </UPageCard>
 
         <UPageCard
-          title="Cost"
-          :description="formatCurrency(expense.cost)"
-          variant="subtle"
-          :ui="cardClass"
-        />
-
-        <UPageCard
-          v-if="stats?.km_since_prev"
+          v-if="stats?.distance_since_prev"
           title="Since last fill-up"
-          :description="formatDistance(stats.km_since_prev)"
+          :description="formatDistance(stats.distance_since_prev)"
           icon="mdi:road-variant"
           variant="subtle"
           :ui="cardClass"
         >
-          <span v-if="stats?.days_since_prev">{{
-            `${stats?.days_since_prev} days - ${formatDistance(stats.km_per_day, { per: "day" })}`
-          }}</span>
+          <div class="flex flex-row items-center gap-2">
+            <span v-if="stats?.days_since_prev">{{
+              `${stats?.days_since_prev} days`
+            }}</span>
+
+            <template v-if="stats.distance_per_day">
+              <span
+                class="size-1 bg-current rounded-full inline-block leading-none"
+              ></span>
+              <span>{{
+                formatDistance(stats.distance_per_day, { per: "day" })
+              }}</span>
+            </template>
+          </div>
         </UPageCard>
 
         <UPageCard
-          v-if="stats?.l_per_100km"
+          v-if="stats?.fuel_per_100"
           title="Consumption"
-          :description="`${formatAmount(stats?.l_per_100km, { per: '100 km' })}`"
+          :description="`${formatAmount(stats?.fuel_per_100, { per: formatDistance(100) })}`"
           icon="mdi:drop-outline"
           variant="subtle"
           :ui="cardClass"
         >
           <template #footer>
-            <span
+            <UTooltip
               v-if="stats?.consumption_vs_avg_pct != null"
-              class="text-muted"
+              :text="`${formatAmount(stats?.avg_fuel_per_100_before, { per: formatDistance(100) })} before`"
             >
-              ({{ pct(stats.consumption_vs_avg_pct) }} vs avg)
-            </span>
+              <small class="text-muted">
+                <UIcon
+                  :name="
+                    stats.consumption_vs_avg_pct > 0
+                      ? 'mdi:trending-up'
+                      : 'mdi:trending-down'
+                  "
+                />
+                {{
+                  `${stats.consumption_vs_avg_pct}% ${stats.consumption_vs_avg_pct > 0 ? "above" : "below"} average`
+                }}
+              </small>
+            </UTooltip>
           </template>
         </UPageCard>
 
         <UPageCard
-          v-if="stats?.cost_per_km"
-          title="Cost per km"
-          :description="`${formatCurrency(stats.cost_per_km, { per: 'km' })}`"
+          v-if="stats?.cost_per_distance"
+          :title="`Cost per ${formatDistance(0).replace('0', '')}`"
+          :description="`${formatCurrency(stats.cost_per_distance, { per: formatDistance(0).replace('0', '') })}`"
           icon="mdi:coin-outline"
           variant="subtle"
           :ui="cardClass"
-        />
+        >
+          <template #footer>
+            <small class="text-muted">Fuel Only</small>
+          </template>
+        </UPageCard>
 
         <UPageCard
           v-if="expense.location || expense.latitude || expense.longitude"
@@ -305,14 +360,7 @@ const cardClass = {
           icon="mdi:note-outline"
           variant="subtle"
           :ui="cardClass"
-        />
-
-        <UAlert
-          v-if="stats?.bad_mileage"
-          color="warning"
-          variant="subtle"
-          class="mt-3"
-          title="Odometer is not higher than the previous reading"
+          class="col-span-2"
         />
       </UPageGrid>
 

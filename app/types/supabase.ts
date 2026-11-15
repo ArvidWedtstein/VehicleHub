@@ -669,26 +669,29 @@ export type Database = {
       expense_stats: {
         Args: { expense_id: number }
         Returns: {
-          avg_l_per_100km_before: number
-          avg_price_per_l_before: number
+          avg_fuel_per_100_before: number
+          avg_price_before: number
           bad_mileage: boolean
           cheapest_so_far: boolean
           consumption_vs_avg_pct: number
-          cost_per_km: number
+          cost_per_distance: number
           cost_reporting: number
-          created_at: string
+          date: string
           days_since_prev: number
+          distance_per_day: number
+          distance_per_fuel: number
+          distance_since_prev: number
+          distance_unit: string
           fill_number: number
+          fuel_per_100: number
+          fuel_unit: string
           has_rate: boolean
           id: number
-          km_per_day: number
-          km_since_prev: number
-          l_per_100km: number
-          prev_created_at: string
+          prev_date: string
           prev_id: number
           prev_mileage: number
-          prev_price_per_l: number
-          price_per_l: number
+          prev_price_per_unit: number
+          price_per_unit: number
           price_vs_avg_pct: number
           price_vs_prev_pct: number
           reporting_currency: string
