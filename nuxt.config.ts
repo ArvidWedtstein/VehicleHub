@@ -97,4 +97,7 @@ export default defineNuxtConfig({
       collections: ["mdi"],
     },
   },
+  runtimeConfig: {
+    cronSecret: "",
+  },
 });

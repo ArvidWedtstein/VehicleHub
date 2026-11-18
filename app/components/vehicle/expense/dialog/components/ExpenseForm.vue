@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { today, getLocalTimeZone } from "@internationalized/date";
 import type { ExpenseSchema } from "../useExpenseForm";
 
 type Props = {
   mileage_unit?: string | null;
   fuel_capacity?: number | null;
+
+  geolocationLoading?: boolean;
 };
 withDefaults(defineProps<Props>(), {
   mileage_unit: "kilometer",
@@ -11,16 +14,23 @@ withDefaults(defineProps<Props>(), {
 });
 
 const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
+
+const maxToday = today(getLocalTimeZone());
 </script>
 
 <template>
   <div class="grid grid-cols-1 sm:grid-cols-4 gap-x-6 gap-y-4 flex-1">
     <UFormField class="sm:col-span-4" label="Date" name="date" required>
-      <FormInputDateTime v-model="expense.date" class="w-full hidden lg:flex" />
+      <FormInputDateTime
+        v-model="expense.date"
+        class="w-full hidden lg:flex"
+        :maxValue="maxToday"
+      />
       <UInput
         type="datetime-local"
         v-model="expense.date"
         class="w-full lg:hidden"
+        :maxValue="maxToday"
       />
     </UFormField>
 
@@ -42,7 +52,7 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
           :min="0"
           :max="fuel_capacity || 10000"
           class="flex-1"
-          :step="0.01"
+          :step="0.1"
           :formatOptions="{
             style: 'unit',
             unit: expense.unit || 'liter',
@@ -95,7 +105,15 @@ const expense = defineModel<Partial<ExpenseSchema>>({ required: true });
       />
     </UFormField>
 
-    <UFormField class="sm:col-span-2" label="Notes" name="notes">
+    <UFormField class="sm:col-span-2" label="Location" name="location">
+      <UInput
+        v-model="expense.location"
+        class="w-full"
+        icon="mdi:map-marker-outline"
+        :loading="geolocationLoading"
+      />
+    </UFormField>
+    <UFormField class="sm:col-span-full" label="Notes" name="notes">
       <UTextarea v-model="expense.notes" :rows="3" class="w-full" />
     </UFormField>
   </div>

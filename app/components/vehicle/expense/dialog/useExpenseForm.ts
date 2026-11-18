@@ -1,44 +1,81 @@
-import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
+import type { Tables, TablesUpdate } from "~/types/supabase";
 import * as z from "zod";
 import { expenseFormSchema } from "#shared/schemas/expense";
-
 export type ExpenseSchema = z.output<typeof expenseFormSchema>;
 
-export const useExpenseForm = () => {
+export const useExpenseForm = (
+  vehicleId: Tables<"VehicleExpenses">["vehicle_id"],
+  expenseId?: TablesUpdate<"VehicleExpenses">["id"],
+) => {
   const expense = ref<Partial<ExpenseSchema>>(
     expenseFormSchema.parse({ vehicle_id: 0 }),
   );
 
-  const vehicle = ref<Partial<Tables<"Vehicles">>>();
+  const {
+    getLocation,
+    coordinates,
+    loading: geolocationLoading,
+  } = useGeolocation();
 
-  const isEdit = computed(() => !!expense.value?.id);
+  const { data: vehicle, execute: loadVehicle } = useVehicle(vehicleId);
+  const editExpenseQuery = expenseId
+    ? useVehicleExpense(vehicleId, expenseId)
+    : null;
 
-  const initialize = async (
-    vehicleId: Tables<"VehicleExpenses">["vehicle_id"],
-    expenseId?: TablesUpdate<"VehicleExpenses">["id"],
-  ) => {
-    const { data: vehicleData } = await useVehicle(vehicleId);
-    vehicle.value = vehicleData.value;
+  const isSubmitting = ref(false);
+  const isEdit = computed(() => !!expenseId);
+
+  watch(
+    () => coordinates.value,
+    async (newCoords) => {
+      if (!newCoords || (!expense.value && !isEdit.value)) return;
+
+      try {
+        const res = await $fetch("/api/geo/location", {
+          method: "GET",
+          query: {
+            lat: newCoords.latitude,
+            lon: newCoords.longitude,
+          },
+        });
+
+        if (res && res.addresstype !== "amenity") return;
+
+        expense.value.location ??= res.name || res.display_name;
+      } catch (error) {
+        console.error("Error fetching location:", error);
+      }
+    },
+  );
+
+  const initialize = async () => {
+    if (!vehicle.value) {
+      await loadVehicle();
+    }
 
     // Edit mode
-    if (expenseId) {
-      const { data: editExpense, error } = useVehicleExpense(
-        vehicleId,
-        expenseId,
-      );
+    if (expenseId && editExpenseQuery) {
+      if (!editExpenseQuery.data.value) {
+        await editExpenseQuery.execute();
+      }
 
-      if (error.value) throw error.value;
+      if (editExpenseQuery.error.value) {
+        throw editExpenseQuery.error.value;
+      }
 
       expense.value = expenseFormSchema.parse({
-        ...editExpense.value,
-        date: convertToDatetimeLocal(editExpense.value?.date),
+        ...editExpenseQuery.data.value,
+        date: convertToDatetimeLocal(editExpenseQuery.data.value?.date),
       });
 
       return;
     }
 
     // Create mode
+    getLocation();
+
     const client = useSupabaseClient();
+
     const { data, error } = await client.rpc("get_last_mileage", {
       vehicle_id: vehicleId,
       type: "expenses",
@@ -51,12 +88,14 @@ export const useExpenseForm = () => {
     expense.value = expenseFormSchema.parse({
       vehicle_id: vehicleId,
       mileage: lastMileage,
+      type: vehicle.value?.fuel_type,
     });
   };
 
   const save = async () => {
     try {
       if (!expense.value) throw new Error("No expense");
+      isSubmitting.value = true;
 
       const parsed = expenseFormSchema.parse(expense.value);
       const vehicleId = vehicle.value?.id;
@@ -64,22 +103,33 @@ export const useExpenseForm = () => {
         throw new Error("Vehicle ID is required");
       }
 
-      console.log("Saving expense:", parsed, convertLocalToUTC(parsed.date));
+      console.log(
+        "Saving expense:",
+        parsed,
+        convertLocalToUTC(parsed.date),
+        coordinates.value,
+      );
 
       const payload = {
         ...parsed,
         date: convertLocalToUTC(parsed.date),
         vehicle_id: vehicleId,
+        latitude: coordinates.value?.latitude,
+        longitude: coordinates.value?.longitude,
+        location_accuracy: coordinates.value?.accuracy,
       };
 
       if (isEdit.value && parsed.id) {
         await updateVehicleExpense(vehicleId, parsed.id, payload);
+        isSubmitting.value = false;
         return;
       }
 
       await createVehicleExpense(vehicleId, payload);
+      isSubmitting.value = false;
     } catch (err) {
       console.error(err);
+      isSubmitting.value = false;
       throw err;
     }
   };
@@ -87,8 +137,10 @@ export const useExpenseForm = () => {
   return {
     expense,
     isEdit,
+    isSubmitting,
     vehicle,
     expenseSchema: expenseFormSchema,
+    geolocationLoading,
     save,
     initialize,
   };

@@ -15,6 +15,7 @@ const filterSchema: FilterSchema<"VehicleExpenses"> = [
     type: "multi-select",
     operator: "in",
     options: [
+      // TODO: fix options to reflect what currencies the user has their expenses in or what options we support
       { label: "Euro", value: "EUR" },
       { label: "Norwegian Krone", value: "NOK" },
     ],

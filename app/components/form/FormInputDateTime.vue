@@ -4,6 +4,7 @@ import {
   CalendarDateTime,
   parseDateTime,
   Time,
+  ZonedDateTime,
 } from "@internationalized/date";
 
 interface InputDateTimeProps {
@@ -22,7 +23,7 @@ interface InputDateTimeProps {
   disabled?: boolean;
   readonly?: boolean;
   minValue?: CalendarDateTime;
-  maxValue?: CalendarDateTime;
+  maxValue?: CalendarDateTime | ZonedDateTime | CalendarDate;
 }
 
 const props = withDefaults(defineProps<InputDateTimeProps>(), {
@@ -145,7 +146,7 @@ const sharedProps = computed(() => ({
         :granularity="granularity"
         :hourCycle="hourCycle"
         :minValue="minValue"
-        :maxValue="maxValue"
+        :maxValue="maxValue instanceof CalendarDateTime ? maxValue : undefined"
         variant="none"
         class="py-0"
       />

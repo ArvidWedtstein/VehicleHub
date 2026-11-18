@@ -71,6 +71,54 @@ export const formatListDisjunction = (items: string[]): string => {
   return `${items.slice(0, -1).join(", ")}, or ${items[items.length - 1]}`;
 };
 
+export type FormatNumberOptions = Intl.NumberFormatOptions & {
+  /** Appended as "/<per>" after the formatted value, e.g. per: "km" -> "1,18 kr/km" */
+  per?: string;
+};
+
+const EXTRA_UNITS: Record<string, string> = {
+  /// Volume
+  "cubic-millimeter": "mm³",
+  "cubic-centimeter": "cm³",
+  "cubic-meter": "m³",
+  "cubic-kilometer": "km³",
+  "cubic-inch": "in³",
+  "cubic-foot": "ft³",
+  "cubic-yard": "yd³",
+  "meter-per-square-second": "m/s²",
+  knot: "kn",
+  pint: "pt",
+  quart: "qt",
+  tablespoon: "tbsp",
+  teaspoon: "tsp",
+  barrel: "bbl",
+  karat: "kt",
+  // Power & Energy
+  milliampere: "mA",
+  ampere: "A",
+  watt: "W",
+  milliwatt: "mW",
+  gigawatt: "gW",
+  volt: "V",
+  kilovolt: "kV",
+  megavolt: "MV",
+  gigavolt: "GV",
+  teravolt: "TV",
+  ohm: "Ω",
+  milliohm: "mΩ",
+  kilohm: "kΩ",
+  megohm: "MΩ",
+  gigohm: "GΩ",
+  joule: "J",
+  hertz: "Hz",
+  kilohertz: "kHz",
+  megahertz: "MHz",
+  gigahertz: "GHz",
+  terahertz: "THz",
+  horsepower: "hp",
+  "liter-per-100-kilometer": "L/100 km",
+};
+
 /**
  * Formats numbers
  *
@@ -79,70 +127,24 @@ export const formatListDisjunction = (items: string[]): string => {
  */
 export const formatNumber = (
   num: number | bigint | undefined | null = 0,
-  options: Intl.NumberFormatOptions = { style: "decimal" },
+  options: FormatNumberOptions = { style: "decimal" },
 ) => {
-  if (!num && num !== 0) return "";
-  const language = useLocale();
+  if (num === null || num === undefined || Number.isNaN(num)) return "";
+
+  const { per, ...intlOptions } = options; // copy, so the caller's object isn't mutated
+  const locale = useLocale().value;
+  const suffix = per ? `/${per}` : "";
 
   try {
-    const formatter = new Intl.NumberFormat(language.value, options);
+    const formatter = new Intl.NumberFormat(locale, options);
 
-    return formatter.format(num);
-  } catch (error) {
-    if (!error) return "";
+    return formatter.format(num) + suffix;
+  } catch {
+    const { style, unit, ...rest } = intlOptions;
+    const label = unit ? (EXTRA_UNITS[unit] ?? unit) : "";
 
-    // Add all the extra units Intl doesn't support (yet)
-    const extraUnits = {
-      // Volume
-      "cubic-millimeter": "mm³",
-      "cubic-centimeter": "cm³",
-      "cubic-meter": "m³",
-      "cubic-kilometer": "km³",
-      "cubic-inch": "in³",
-      "cubic-foot": "ft³",
-      "cubic-yard": "yd³",
-      "meter-per-square-second": "m/s²",
-      knot: "kn",
-      pint: "pt",
-      quart: "qt",
-      tablespoon: "tbsp",
-      teaspoon: "tsp",
-      barrel: "bbl",
-      karat: "kt",
-      // Power & Energy
-      milliampere: "mA",
-      ampere: "A",
-      watt: "W",
-      milliwatt: "mW",
-      gigawatt: "gW",
-      volt: "V",
-      kilovolt: "kV",
-      megavolt: "MV",
-      gigavolt: "GV",
-      teravolt: "TV",
-      ohm: "Ω",
-      milliohm: "mΩ",
-      kilohm: "kΩ",
-      megohm: "MΩ",
-      gigohm: "GΩ",
-      joule: "J",
-      hertz: "Hz",
-      kilohertz: "kHz",
-      megahertz: "MHz",
-      gigahertz: "GHz",
-      terahertz: "THz",
-      horsepower: "hp",
-    };
-
-    const extraUnit = (options.unit || "") as keyof typeof extraUnits;
-
-    const unit = extraUnit in extraUnits ? extraUnits[extraUnit] : "N/A";
-
-    delete options.style;
-    delete options.unit;
-
-    const formatter = new Intl.NumberFormat(language.value, options);
-    return `${formatter.format(num)} ${unit}`;
+    const formatted = new Intl.NumberFormat(locale, rest).format(num);
+    return label ? `${formatted} ${label}` : formatted;
   }
 };
 

@@ -12,13 +12,21 @@ const emit = defineEmits<{
   close: [boolean];
 }>();
 
-const { expenseSchema, expense, vehicle, isEdit, initialize, save } =
-  useExpenseForm();
+const {
+  expenseSchema,
+  expense,
+  vehicle,
+  isEdit,
+  isSubmitting,
+  geolocationLoading,
+  initialize,
+  save,
+} = useExpenseForm(vehicleId, expenseId);
 
 const toast = useToast();
 
 const onOpen = () => {
-  initialize(vehicleId, expenseId);
+  initialize();
 };
 
 const onFormSubmit = async () => {
@@ -55,6 +63,7 @@ const onFormSubmit = async () => {
         data-testid="vehicle-expense-form"
         :state="expense"
         :schema="expenseSchema"
+        :disabled="isSubmitting"
         @submit="onFormSubmit"
       >
         <ExpenseForm
@@ -63,6 +72,7 @@ const onFormSubmit = async () => {
           :key="expense?.id"
           :fuel_capacity="vehicle?.fuel_capacity"
           :mileage_unit="vehicle?.mileage_unit"
+          :geolocationLoading
         />
       </UForm>
     </template>
@@ -79,6 +89,7 @@ const onFormSubmit = async () => {
         type="submit"
         form="vehicle-expense-form"
         :label="isEdit ? 'Save' : 'Create'"
+        :loading="isSubmitting"
         color="primary"
         :icon="isEdit ? 'mdi:content-save' : 'mdi:plus'"
       />
