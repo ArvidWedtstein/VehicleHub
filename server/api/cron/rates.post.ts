@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
     ? new Date(`${from}T00:00:00Z`)
     : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
 
-  const db = await serverSupabaseServiceRole(event);
+  const db = serverSupabaseServiceRole(event);
   let total = 0;
 
   for (let cursor = start; cursor <= now; ) {
