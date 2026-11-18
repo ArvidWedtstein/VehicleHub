@@ -99,5 +99,6 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     cronSecret: "",
+    supabaseKey: "",
   },
 });
