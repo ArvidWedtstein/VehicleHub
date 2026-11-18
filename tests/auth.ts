@@ -7,13 +7,13 @@ function requireEnv(key: string): string {
 }
 
 export const supabaseAdmin = createClient(
-  requireEnv("SUPABASE_URL"),
+  requireEnv("NUXT_PUBLIC_SUPABASE_URL"),
   requireEnv("SUPABASE_SECRET_KEY"),
 );
 
 const supabase = createClient(
-  requireEnv("SUPABASE_URL"),
-  requireEnv("NUXT_PUBLIC_SUPABASE_KEY"),
+  requireEnv("NUXT_PUBLIC_SUPABASE_URL"),
+  requireEnv("NUXT_SUPABASE_KEY"),
 );
 
 export async function getTestSession() {
