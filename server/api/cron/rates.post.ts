@@ -20,8 +20,15 @@ const iso = (d: Date) => d.toISOString().slice(0, 10);
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
-  if (getHeader(event, "x-cron-secret") !== config.cronSecret) {
-    throw createError({ statusCode: 401 });
+
+  if (
+    getHeader(event, "authorization")?.trim() !==
+    `Bearer ${config.cronSecret?.trim()}`
+  ) {
+    throw createError({
+      statusCode: 401,
+      message: "Cron Secret did not match",
+    });
   }
 
   const { from } = await getValidatedQuery(event, querySchema.parse);
