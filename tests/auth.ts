@@ -13,7 +13,7 @@ export const supabaseAdmin = createClient(
 
 const supabase = createClient(
   requireEnv("NUXT_PUBLIC_SUPABASE_URL"),
-  requireEnv("NUXT_SUPABASE_KEY"),
+  requireEnv("NUXT_PUBLIC_SUPABASE_KEY"),
 );
 
 export async function getTestSession() {
