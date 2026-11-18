@@ -23,6 +23,8 @@ const {
   refresh,
 } = useVehicleExpenses(vehicleId, filters);
 
+const { can } = usePermission();
+
 const exportOptions = [
   {
     extension: "txt",
@@ -80,6 +82,13 @@ const setSortKey = (key: keyof Tables<"VehicleExpenses">) => {
 };
 
 const handleCreateExpense = () => {
+  if (!can("VehicleExpenses.insert")) {
+    toast.add({
+      title: "Seems like you are lacking permissions.",
+      color: "error",
+    });
+    return;
+  }
   /*toast.add({
     title: "Opening expense dialog",
     color: "info",
@@ -123,6 +132,7 @@ onMounted(() => {
   <UPage class="flex-1 p-2 overflow-hidden">
     <div class="flex items-center justify-between gap-2 mb-3">
       <UButton
+        v-if="can('VehicleExpenses.insert')"
         label="Add"
         icon="mdi:plus"
         @click="handleCreateExpense"
