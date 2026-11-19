@@ -42,7 +42,6 @@ const { schema, filterState, buildFilters, resetFilters } =
   useFilterBuilder(filterSchema);
 
 const applyFilters = async () => {
-  console.log("filters", buildFilters.value);
   emit("applyFilters", buildFilters);
 
   open.value = false;

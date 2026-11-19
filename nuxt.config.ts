@@ -87,7 +87,6 @@ export default defineNuxtConfig({
       maxAge: 60 * 60 * 24 * 7, // 7 days
     },
     types: "~/types/supabase",
-    key: "",
   },
   typescript: {
     strict: true,

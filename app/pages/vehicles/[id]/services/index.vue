@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ButtonProps } from "@nuxt/ui";
 import ServiceDialog from "~/components/vehicle/service/dialog/ServiceDialog.vue";
 import type { Tables } from "~/types/supabase";
 
@@ -21,6 +22,8 @@ const {
   offset,
   hasMore,
 } = useVehicleServices(vehicleId, filters, 10);
+
+const { can } = usePermission();
 
 const overlay = useOverlay();
 const vehicleServiceDialog = overlay.create(ServiceDialog);
@@ -132,11 +135,8 @@ const setSortKey = (key: keyof Tables<"vehicleservicelogs_with_items">) => {
   sortControl.key = key;
 };
 
-const handleCreateService = async () => {
-  if (!vehicleId.value) return;
-
+const handleCreateService = async () =>
   vehicleServiceDialog.open({ vehicleId: vehicleId.value });
-};
 
 const handleFilterApply = async (
   buildFilters: Ref<
@@ -159,19 +159,49 @@ onMounted(() => {
     },
     {
       direction: "bottom",
-      distance: 200,
+      distance: 250,
       canLoadMore: () => {
         return status.value !== "pending" && !loading.value && hasMore.value;
       },
     },
   );
 });
+
+const emptyServicesActions = computed<ButtonProps[]>(() => {
+  const actions: ButtonProps[] = [
+    {
+      icon: "mdi:refresh",
+      label: "Refresh",
+      color: "neutral",
+      variant: "subtle",
+      loading: loading.value,
+      loadingAuto: true,
+      onClick: () => refresh(),
+    },
+  ];
+
+  if (can("VehicleServiceLogs.insert")) {
+    actions.unshift({
+      icon: "mdi:plus",
+      label: "Create new",
+      onClick: handleCreateService,
+    });
+  }
+
+  return actions;
+});
 </script>
 
 <template>
   <UPage class="flex-1 p-2 overflow-hidden">
     <div class="flex justify-between mb-3">
-      <UButton icon="mdi:plus" label="Add" @click="handleCreateService" />
+      <UButton
+        v-if="can('VehicleServiceLogs.insert')"
+        icon="mdi:plus"
+        label="Add"
+        @click="handleCreateService"
+        data-testid="add-service"
+      />
 
       <div class="flex items-center gap-2">
         <VehicleServiceFilterDrawer @applyFilters="handleFilterApply" />
@@ -210,22 +240,7 @@ onMounted(() => {
       v-if="!services.length"
       title="No services Found"
       description="It looks like you haven't added any services. Create one to get started."
-      :actions="[
-        {
-          icon: 'mdi:plus',
-          label: 'Create new',
-          onClick: handleCreateService,
-        },
-        {
-          icon: 'mdi:refresh',
-          label: 'Refresh',
-          color: 'neutral',
-          variant: 'subtle',
-          loading: loading,
-          loadingAuto: true,
-          onClick: () => refresh(),
-        },
-      ]"
+      :actions="emptyServicesActions"
     />
 
     <UScrollArea

@@ -25,10 +25,10 @@ const items: SplitterItem[] = [
 </script>
 
 <template>
-  <UPageGrid :ui="{ base: 'lg:grid-cols-2 gap-2' }">
-    <VehicleExpenseFuelStatCard class="md:col-span-2" />
+  <UPageGrid :ui="{ base: 'grid-cols-1 lg:grid-cols-2 gap-2' }">
+    <VehicleExpenseFuelStatCard class="lg:col-span-2" />
 
-    <USplitter id="stats" :items class="md:col-span-2">
+    <USplitter id="stats" :items class="lg:col-span-2">
       <template #expenses>
         <VehicleExpenseStatCard />
       </template>
