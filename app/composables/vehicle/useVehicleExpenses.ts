@@ -1,67 +1,83 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
+type Row = Tables<"VehicleExpenses">;
 export const useVehicleExpenses = (
-  vehicleId: MaybeRef<Tables<"VehicleExpenses">["vehicle_id"]>,
-  filters: MaybeRef<FilterOption<Tables<"VehicleExpenses">>[]> = [],
+  vehicleId: MaybeRefOrGetter<Row["vehicle_id"]>,
+  filters: MaybeRefOrGetter<FilterOption<Row>[]> = [],
   pageSize = 10,
 ) => {
   const resolvedVehicleId = computed(() => toValue(vehicleId));
   const resolvedFilters = computed(() => toValue(filters));
   const limit = computed(() => toValue(pageSize));
 
+  const key = computed(() =>
+    cacheKeys.expensesFiltered(resolvedVehicleId.value, resolvedFilters.value),
+  );
+
   const offset = ref(0);
-  const hasMore = ref(true);
 
-  const data = ref<Tables<"VehicleExpenses">[]>([]);
+  const hasMoreMap = useState<Record<string, boolean>>(
+    "expenses_hasMore",
+    () => ({}),
+  );
+  const hasMore = computed(() => hasMoreMap.value[key.value] ?? true);
 
-  const {
-    data: items,
-    pending,
-    status,
-    refresh,
-  } = useFetch<Tables<"VehicleExpenses">[]>(
-    () => `/api/vehicles/${resolvedVehicleId.value}/expenses/filter`,
-    {
-      key: () => cacheKeys.expenses(resolvedVehicleId.value),
-      method: "post",
-      body: computed(() => ({
-        filters: resolvedFilters.value,
-        pagination: {
-          limit: limit.value,
-          offset: offset.value,
+  let appendNext = false;
+
+  const { data, pending, status, refresh } = useAsyncData<Row[]>(
+    () => key.value,
+    async (): Promise<Row[]> => {
+      if (!resolvedVehicleId.value) return [];
+
+      const append = appendNext;
+      appendNext = false;
+
+      const currentKey = key.value;
+      const current = data.value ?? [];
+      const offset = append ? current.length : 0;
+
+      const page = await $fetch<Row[]>(
+        `/api/vehicles/${resolvedVehicleId.value}/expenses/filter`,
+        {
+          method: "post",
+          body: {
+            filters: resolvedFilters.value,
+            pagination: { limit: limit.value, offset: offset },
+          },
         },
-      })),
+      );
+
+      hasMoreMap.value = {
+        ...hasMoreMap.value,
+        [currentKey]: limit.value !== -1 && page.length >= limit.value,
+      };
+
+      if (!append) return page;
+
+      const seen = new Set(current.map((r) => r.id));
+      return [...current, ...page.filter((r) => !seen.has(r.id))];
+    },
+    {
       lazy: true,
-      immediate: !!resolvedVehicleId.value,
       default: () => [],
+      immediate: !!resolvedVehicleId.value,
+      getCachedData: (key, nuxtApp, ctx) => {
+        if (ctx.cause === "refresh:manual" || ctx.cause === "refresh:hook")
+          return undefined;
+        return nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
+      },
     },
   );
 
-  watch(items, (newPage) => {
-    if (!newPage) return;
-
-    // First page = replace
-    if (offset.value === 0) {
-      data.value = newPage;
-    } else {
-      data.value = [...data.value, ...newPage];
-    }
-
-    if (newPage.length < limit.value || limit.value === -1) {
-      hasMore.value = false;
-    }
-  });
-
-  watch([resolvedVehicleId, resolvedFilters], () => {
-    offset.value = 0;
-    data.value = [];
-    hasMore.value = true;
-    refresh();
-  });
-
   const loadMore = () => {
-    if (pending.value) return;
-    offset.value += limit.value;
+    if (pending.value || !hasMore.value) return;
+    appendNext = true;
+    return refresh();
+  };
+
+  const reset = () => {
+    appendNext = false;
+    return refresh();
   };
 
   return {
@@ -70,16 +86,16 @@ export const useVehicleExpenses = (
     status,
     loadMore,
     refresh,
+    reset,
     offset,
     hasMore,
   };
 };
 
 export const useVehicleExpense = (
-  vehicleId: MaybeRefOrGetter<Tables<"VehicleExpenses">["vehicle_id"]>,
-  expenseId: MaybeRefOrGetter<Tables<"VehicleExpenses">["id"]>,
+  vehicleId: MaybeRefOrGetter<Row["vehicle_id"]>,
+  expenseId: MaybeRefOrGetter<Row["id"]>,
 ) => {
-  const nuxtApp = useNuxtApp();
   const resolvedVehicleId = computed(() => toValue(vehicleId));
   const resolvedExpenseId = computed(() => toValue(expenseId));
 
@@ -92,104 +108,107 @@ export const useVehicleExpense = (
       method: "get",
       immediate: !!resolvedVehicleId.value && !!resolvedExpenseId.value,
       default: () => {
-        const listKey = cacheKeys.expenses(resolvedVehicleId.value);
-        const cachedList = nuxtApp.payload.data[listKey] as
-          | Tables<"VehicleExpenses">[]
-          | undefined;
-
-        return cachedList?.find((e) => e.id === resolvedExpenseId.value);
+        const payload = useNuxtApp().payload.data;
+        const prefix = cacheKeys.expensesPrefix(resolvedVehicleId.value);
+        for (const k of Object.keys(payload)) {
+          if (!k.startsWith(prefix)) continue;
+          const hit = (payload[k] as Row[] | undefined)?.find(
+            (e) => e.id === resolvedExpenseId.value,
+          );
+          if (hit) return hit;
+        }
+        return undefined as unknown as Row;
       },
     },
   );
 };
 
 export async function createVehicleExpense(
-  vehicleId: Tables<"VehicleExpenses">["vehicle_id"],
+  vehicleId: Row["vehicle_id"],
   patch: TablesInsert<"VehicleExpenses">,
 ) {
-  const listCache = useNuxtData<Tables<"VehicleExpenses">[]>(
-    cacheKeys.expenses(vehicleId),
-  );
-  let previousList: Tables<"VehicleExpenses">[] = [];
-
-  const expense = await $fetch<Tables<"VehicleExpenses">>(
-    `/api/vehicles/${vehicleId}/expenses`,
-    {
-      method: "post",
-      body: {
-        expense: patch,
-      },
-      onRequest() {
-        previousList = listCache.data.value || [];
-
-        patchNuxtDataList(cacheKeys.expenses(vehicleId), -1, patch);
-      },
-      onResponseError() {
-        listCache.data.value = previousList;
-      },
-      async onResponse() {
-        await refreshNuxtData(cacheKeys.expenses(vehicleId));
-      },
+  const expense = await $fetch<Row>(`/api/vehicles/${vehicleId}/expenses`, {
+    method: "post",
+    body: {
+      expense: patch,
     },
+  });
+
+  prependToNuxtDataListByPrefix<Row>(
+    cacheKeys.expensesPrefix(toValue(vehicleId)),
+    expense,
   );
 
   return expense;
 }
 
 export async function updateVehicleExpense(
-  vehicleId: Tables<"VehicleExpenses">["vehicle_id"],
-  id: Tables<"VehicleExpenses">["id"],
+  vehicleId: Row["vehicle_id"],
+  id: Row["id"],
   patch: Partial<TablesUpdate<"VehicleExpenses">>,
 ) {
-  const listCache = useNuxtData<Tables<"VehicleExpenses">[]>(
-    cacheKeys.expenses(vehicleId),
-  );
-  let previousList: Tables<"VehicleExpenses">[] = [];
+  const listPrefix = cacheKeys.expensesPrefix(vehicleId);
+  const detailCache = useNuxtData<Row>(cacheKeys.expense(vehicleId, id));
 
-  const updated = await $fetch<Tables<"VehicleExpenses">>(
-    `/api/vehicles/${vehicleId}/expenses/${id}`,
-    {
-      method: "put",
-      body: {
-        expense: patch,
-      },
-      onRequest() {
-        previousList = listCache.data.value || [];
-        patchNuxtDataItem(cacheKeys.expense(vehicleId, id), patch);
-        patchNuxtDataList(cacheKeys.expenses(vehicleId), id, patch);
-      },
-      onResponseError() {
-        listCache.data.value = previousList;
+  const listSnapshots = new Map<string, Row[]>();
+  for (const k of keysWithPrefix(listPrefix)) {
+    listSnapshots.set(k, useNuxtData<Row[]>(k).data.value ?? []);
+  }
+  const detailSnapshot = detailCache.data.value;
 
-        console.log("Failed to update expense, reverting optimistic update");
-        refreshNuxtData(cacheKeys.expense(vehicleId, id));
-      },
-      onResponse({ response }) {
-        patchNuxtDataItem(cacheKeys.expense(vehicleId, id), response._data);
-        patchNuxtDataList(cacheKeys.expenses(vehicleId), id, response._data);
-      },
-    },
-  );
+  // Optimistic
+  patchNuxtDataListByPrefix<Row>(listPrefix, id, patch);
+  if (detailCache.data.value) {
+    detailCache.data.value = { ...detailCache.data.value, ...patch };
+  }
 
-  return updated;
+  try {
+    const updated = await $fetch<Row>(
+      `/api/vehicles/${vehicleId}/expenses/${id}`,
+      { method: "put", body: { expense: patch } },
+    );
+
+    detailCache.data.value = updated;
+    patchNuxtDataListByPrefix<Row>(listPrefix, id, updated);
+    return updated;
+  } catch (e) {
+    for (const [k, list] of listSnapshots) {
+      useNuxtData<Row[]>(k).data.value = list;
+    }
+    detailCache.data.value = detailSnapshot;
+    throw e;
+  }
 }
 
 export async function deleteVehicleExpense(
-  vehicleId: MaybeRefOrGetter<Tables<"VehicleExpenses">["vehicle_id"]>,
-  id: MaybeRefOrGetter<Tables<"VehicleExpenses">["id"]>,
+  vehicleId: MaybeRefOrGetter<Row["vehicle_id"]>,
+  id: MaybeRefOrGetter<Row["id"]>,
 ) {
   const resolvedVehicleId = computed(() => toValue(vehicleId));
   const resolvedId = computed(() => toValue(id));
 
-  await $fetch<Tables<"VehicleExpenses">>(
-    `/api/vehicles/${resolvedVehicleId.value}/expenses/${resolvedId.value}`,
-    {
-      method: "delete",
-    },
-  );
+  const listPrefix = cacheKeys.expensesPrefix(resolvedVehicleId.value);
 
-  removeFromNuxtDataList(
-    cacheKeys.expenses(resolvedVehicleId.value),
-    resolvedId.value,
-  );
+  const listSnapshots = new Map<string, Row[]>();
+  for (const k of keysWithPrefix(listPrefix)) {
+    listSnapshots.set(k, useNuxtData<Row[]>(k).data.value ?? []);
+  }
+
+  // Optimistic: row disappears immediately
+  removeFromNuxtDataListByPrefix<Row>(listPrefix, resolvedId.value);
+
+  try {
+    await $fetch(
+      `/api/vehicles/${resolvedVehicleId.value}/expenses/${resolvedId.value}`,
+      {
+        method: "delete",
+      },
+    );
+    clearNuxtData(cacheKeys.expense(resolvedVehicleId.value, resolvedId.value));
+  } catch (e) {
+    for (const [k, list] of listSnapshots) {
+      useNuxtData<Row[]>(k).data.value = list;
+    }
+    throw e;
+  }
 }

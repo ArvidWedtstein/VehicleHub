@@ -32,7 +32,12 @@ export default defineAuthenticatedEventHandler(async (event) => {
 
   const client = await serverSupabaseClient<Database>(event);
 
-  const { data, error, status, statusText } = await client
+  const {
+    data: created,
+    error,
+    status,
+    statusText,
+  } = await client
     .from("VehicleServiceLogs")
     .insert(body.service)
     .eq("vehicle_id", vehicleId)
@@ -44,7 +49,7 @@ export default defineAuthenticatedEventHandler(async (event) => {
   if (body.items && body.items?.length > 0) {
     const itemsToInsert = body.items?.map((item) => ({
       ...item,
-      service_log_id: data.id,
+      service_log_id: created.id,
     }));
 
     const { error: itemsError } = await client
@@ -55,5 +60,13 @@ export default defineAuthenticatedEventHandler(async (event) => {
       throw createError({ statusCode: 500, statusMessage: itemsError.message });
   }
 
-  return data;
+  const { data: row, error: rowError } = await client
+    .from("vehicleservicelogs_with_items")
+    .select("*")
+    .eq("id", created.id)
+    .single();
+  if (rowError)
+    throw createError({ statusCode: 500, message: rowError.message });
+
+  return row;
 });

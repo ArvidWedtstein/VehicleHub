@@ -625,15 +625,7 @@ export type Database = {
           type: string | null
           vehicle_id: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "VehicleServiceLogs_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "Vehicles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Functions: {

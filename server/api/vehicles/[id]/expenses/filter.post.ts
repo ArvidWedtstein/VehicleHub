@@ -52,6 +52,7 @@ export default defineAuthenticatedEventHandler(
         statusCode: 500,
         statusMessage: error.message,
       });
+
     return data;
   },
   { permissions: ["VehicleExpenses.select"] },
