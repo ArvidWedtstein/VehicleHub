@@ -16,40 +16,44 @@ const paramsSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
-export default defineAuthenticatedEventHandler(async (event) => {
-  const { id: vehicleId } = await getValidatedRouterParams(
-    event,
-    paramsSchema.parse,
-  );
+export default defineAuthenticatedEventHandler(
+  async (event) => {
+    const { id: vehicleId } = await getValidatedRouterParams(
+      event,
+      paramsSchema.parse,
+    );
 
-  const { filters, pagination } = await readValidatedBody(
-    event,
-    bodySchema.parse,
-  );
+    const { filters, pagination } = await readValidatedBody(
+      event,
+      bodySchema.parse,
+    );
 
-  const client = await serverSupabaseClient<Database>(event);
+    const client = await serverSupabaseClient<Database>(event);
 
-  let query = client
-    .from("VehicleExpenses")
-    .select("*")
-    .eq("vehicle_id", vehicleId)
-    .order("date", { ascending: false });
+    let query = client
+      .from("VehicleExpenses")
+      .select("*")
+      .eq("vehicle_id", vehicleId)
+      .order("date", { ascending: false });
 
-  if (filters && filters.length > 0) {
-    query = applyFilters<"VehicleExpenses", typeof query>(query, filters);
-  }
+    if (filters && filters.length > 0) {
+      query = applyFilters<"VehicleExpenses", typeof query>(query, filters);
+    }
 
-  if (pagination && pagination?.limit !== -1) {
-    const { limit, offset } = pagination || {};
-    query = query.range(offset, offset + limit - 1);
-  }
+    if (pagination && pagination?.limit !== -1) {
+      const { limit, offset } = pagination || {};
+      query = query.range(offset, offset + limit - 1);
+    }
 
-  const { data, error } = await query;
+    const { data, error } = await query;
 
-  if (error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: error.message,
-    });
-  return data;
-});
+    if (error)
+      throw createError({
+        statusCode: 500,
+        statusMessage: error.message,
+      });
+
+    return data;
+  },
+  { permissions: ["VehicleExpenses.select"] },
+);

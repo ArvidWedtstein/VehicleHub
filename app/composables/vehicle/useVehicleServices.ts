@@ -1,61 +1,92 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
+type Row = Omit<
+  Tables<"vehicleservicelogs_with_items">,
+  "id" | "vehicle_id"
+> & {
+  id: NonNullable<Tables<"vehicleservicelogs_with_items">["id"]>;
+  vehicle_id: NonNullable<
+    Tables<"vehicleservicelogs_with_items">["vehicle_id"]
+  >;
+};
+
 export function useVehicleServices(
   vehicleId: MaybeRefOrGetter<Tables<"VehicleServiceLogs">["vehicle_id"]>,
-  filters: MaybeRefOrGetter<
-    FilterOption<Tables<"vehicleservicelogs_with_items">>[]
-  > = [],
+  filters: MaybeRefOrGetter<FilterOption<Row>[]> = [],
   pageSize: MaybeRefOrGetter<number> = 10,
 ) {
   const resolvedVehicleId = computed(() => toValue(vehicleId));
   const resolvedFilters = computed(() => toValue(filters));
   const limit = computed(() => toValue(pageSize));
 
+  const key = computed(() =>
+    cacheKeys.servicesFiltered(resolvedVehicleId.value, resolvedFilters.value),
+  );
+
   const offset = ref(0);
-  const hasMore = ref(true);
 
-  const data = ref<Tables<"vehicleservicelogs_with_items">[]>([]);
+  const hasMoreMap = useState<Record<string, boolean>>(
+    "services_hasMore",
+    () => ({}),
+  );
+  const hasMore = computed(() => hasMoreMap.value[key.value] ?? true);
 
-  const {
-    data: items,
-    pending,
-    status,
-    refresh,
-  } = useFetch<Tables<"vehicleservicelogs_with_items">[]>(
-    () => `/api/vehicles/${resolvedVehicleId.value}/services/filter`,
-    {
-      method: "post",
-      key: () => cacheKeys.services(resolvedVehicleId.value),
-      body: computed(() => ({
-        filters: resolvedFilters.value,
-        pagination: {
-          limit: limit.value,
-          offset: offset.value,
+  let appendNext = false;
+
+  const { data, pending, status, refresh } = useAsyncData<Row[]>(
+    () => key.value,
+    async (): Promise<Row[]> => {
+      if (!resolvedVehicleId.value) return [];
+
+      const append = appendNext;
+      appendNext = false;
+
+      const currentKey = key.value;
+      const current = data.value ?? [];
+      const offset = append ? current.length : 0;
+
+      const page = await $fetch<Row[]>(
+        `/api/vehicles/${resolvedVehicleId.value}/services/filter`,
+        {
+          method: "post",
+          body: {
+            filters: resolvedFilters.value,
+            pagination: { limit: limit.value, offset: offset },
+          },
         },
-      })),
+      );
+
+      hasMoreMap.value = {
+        ...hasMoreMap.value,
+        [currentKey]: limit.value !== -1 && page.length >= limit.value,
+      };
+
+      if (!append) return page;
+
+      const seen = new Set(current.map((r) => r.id));
+      return [...current, ...page.filter((r) => !seen.has(r.id))];
+    },
+    {
       lazy: true,
-      immediate: !!resolvedVehicleId.value,
       default: () => [],
+      immediate: !!resolvedVehicleId.value,
+      getCachedData: (key, nuxtApp, ctx) => {
+        if (ctx.cause === "refresh:manual" || ctx.cause === "refresh:hook")
+          return undefined;
+        return nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
+      },
     },
   );
 
-  watch(items, (newPage) => {
-    if (!newPage) return;
-
-    data.value = offset.value === 0 ? newPage : [...data.value, ...newPage];
-
-    hasMore.value = newPage.length >= limit.value && limit.value !== -1;
-  });
-
-  watch([resolvedVehicleId, resolvedFilters], () => {
-    offset.value = 0;
-    data.value = [];
-    hasMore.value = true;
-    refresh();
-  });
-
   const loadMore = () => {
-    if (!pending.value && hasMore.value) offset.value += limit.value;
+    if (pending.value || !hasMore.value) return;
+    appendNext = true;
+    return refresh();
+  };
+
+  const reset = () => {
+    appendNext = false;
+    return refresh();
   };
 
   return {
@@ -64,6 +95,7 @@ export function useVehicleServices(
     status,
     loadMore,
     refresh,
+    reset,
     offset,
     hasMore,
   };
@@ -99,7 +131,7 @@ export async function createVehicleService(
   itemsPatch?: Partial<TablesInsert<"VehicleServiceLogsItems">>[],
 ) {
   const resolvedVehicleId = computed(() => toValue(vehicleId));
-  const service = await $fetch<Tables<"VehicleServiceLogs">>(
+  const service = await $fetch<Row>(
     `/api/vehicles/${resolvedVehicleId.value}/services`,
     {
       method: "post",
@@ -109,10 +141,20 @@ export async function createVehicleService(
       },
     },
   );
-  await refreshNuxtData(cacheKeys.services(resolvedVehicleId.value));
+
+  prependToNuxtDataListByPrefix<Row>(
+    cacheKeys.servicesPrefix(toValue(vehicleId)),
+    service,
+  );
 
   return service;
 }
+
+type ServiceDetail = Tables<"VehicleServiceLogs"> & {
+  totalCost: number;
+  items: Tables<"VehicleServiceLogsItems">[];
+  files: Tables<"VehicleDocuments">[];
+};
 
 export async function updateVehicleService(
   vehicleId: Tables<"VehicleServiceLogs">["vehicle_id"],
@@ -121,55 +163,75 @@ export async function updateVehicleService(
   itemsPatch?: Partial<TablesUpdate<"VehicleServiceLogsItems">>[],
   removedItemIds?: Pick<TablesUpdate<"VehicleServiceLogsItems">, "id">[],
 ) {
-  const listCache = useNuxtData<Tables<"VehicleServiceLogs">[]>(
-    cacheKeys.services(vehicleId),
-  );
-  let previousList: Tables<"VehicleServiceLogs">[] = [];
+  const listPrefix = cacheKeys.servicesPrefix(vehicleId);
+  const detailKey = cacheKeys.service(vehicleId, id);
 
-  const updated = await $fetch<
-    Tables<"VehicleServiceLogs"> & {
-      totalCost: number;
-      items: Tables<"VehicleServiceLogsItems">[];
-      files: Tables<"VehicleDocuments">[];
-    }
-  >(`/api/vehicles/${vehicleId}/services/${id}`, {
-    method: "put",
-    body: {
-      service: patch,
-      items: itemsPatch,
-      removedItemIds: removedItemIds,
-    },
-    onRequest() {
-      previousList = listCache.data.value || [];
+  // Snapshot every cached list plus the detail (safe without cloning: helpers replace, never mutate)
+  const listSnapshots = new Map<string, Row[]>();
+  for (const k of keysWithPrefix(listPrefix)) {
+    listSnapshots.set(k, useNuxtData<Row[]>(k).data.value ?? []);
+  }
+  const detailCache = useNuxtData<ServiceDetail>(detailKey);
+  const detailSnapshot = detailCache.data.value;
 
-      patchNuxtDataItem(cacheKeys.service(vehicleId, id), {
-        ...patch,
-        items: itemsPatch,
-      });
-      patchNuxtDataList(cacheKeys.services(vehicleId), id, patch);
-    },
-    onResponseError() {
-      listCache.data.value = previousList;
-
-      refreshNuxtData(cacheKeys.service(vehicleId, id));
-    },
-    onResponse({ response }) {
-      patchNuxtDataList(
-        cacheKeys.services(vehicleId),
-        id,
-        omit(response._data, ["items", "files"]),
-      );
-    },
+  patchNuxtDataListByPrefix<Row>(listPrefix, id, patch, {
+    existingKeysOnly: true,
   });
+  if (detailCache.data.value) {
+    detailCache.data.value = {
+      ...detailCache.data.value,
+      ...patch,
+      // only touch items when the caller actually changed them
+      ...(itemsPatch
+        ? {
+            items: applyItemsPatch(
+              detailCache.data.value.items,
+              itemsPatch,
+              removedItemIds,
+            ),
+          }
+        : {}),
+    };
+  }
 
-  patchNuxtDataItem(cacheKeys.service(vehicleId, id), updated);
-  patchNuxtDataList(
-    cacheKeys.services(vehicleId),
-    id,
-    omit(updated, ["items", "files"]),
+  try {
+    const updated = await $fetch<ServiceDetail>(
+      `/api/vehicles/${vehicleId}/services/${id}`,
+      {
+        method: "put",
+        body: { service: patch, items: itemsPatch, removedItemIds },
+      },
+    );
+
+    detailCache.data.value = updated;
+    patchNuxtDataListByPrefix<Row>(listPrefix, id, updated, {
+      existingKeysOnly: true,
+    });
+    return updated;
+  } catch (e) {
+    for (const [k, list] of listSnapshots)
+      useNuxtData<Row[]>(k).data.value = list;
+    detailCache.data.value = detailSnapshot;
+    throw e;
+  }
+}
+
+function applyItemsPatch(
+  current: Tables<"VehicleServiceLogsItems">[],
+  patches: Partial<TablesUpdate<"VehicleServiceLogsItems">>[],
+  removed: Pick<TablesUpdate<"VehicleServiceLogsItems">, "id">[] = [],
+) {
+  const removedIds = new Set(removed.map((r) => r.id));
+  const byId = new Map(
+    patches.filter((p) => p.id != null).map((p) => [p.id, p]),
   );
-
-  return updated;
+  const kept = current
+    .filter((i) => !removedIds.has(i.id))
+    .map((i) => ({ ...i, ...byId.get(i.id) }));
+  const added = patches.filter(
+    (p) => p.id == null,
+  ) as Tables<"VehicleServiceLogsItems">[];
+  return [...kept, ...added];
 }
 
 export async function deleteVehicleService(

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ButtonProps } from "@nuxt/ui";
 import VehicleExpenseDialog from "~/components/vehicle/expense/dialog/VehicleExpenseDialog.vue";
 import type { Tables } from "~/types/supabase";
 
@@ -22,6 +23,8 @@ const {
   loadMore,
   refresh,
 } = useVehicleExpenses(vehicleId, filters);
+
+const { can } = usePermission();
 
 const exportOptions = [
   {
@@ -79,17 +82,8 @@ const setSortKey = (key: keyof Tables<"VehicleExpenses">) => {
   sortControl.key = key;
 };
 
-const handleCreateExpense = () => {
-  /*toast.add({
-    title: "Opening expense dialog",
-    color: "info",
-  });*/
-  console.log("handleCreateExpense", vehicleId.value);
-  if (!vehicleId.value)
-    return console.log("No vehicleId found, cannot create expense");
-
+const handleCreateExpense = () =>
   vehicleExpenseDialog.open({ vehicleId: vehicleId.value });
-};
 
 const handleFilterApply = async (
   buildFilters: Ref<Array<FilterOption<Tables<"VehicleExpenses">>>>,
@@ -110,12 +104,36 @@ onMounted(() => {
     },
     {
       direction: "bottom",
-      distance: 200,
+      distance: 250,
       canLoadMore: () => {
         return status.value !== "pending" && !loading.value && hasMore.value;
       },
     },
   );
+});
+
+const emptyExpensesActions = computed<ButtonProps[]>(() => {
+  const actions: ButtonProps[] = [
+    {
+      icon: "mdi:refresh",
+      label: "Refresh",
+      color: "neutral",
+      variant: "subtle",
+      loading: loading.value,
+      loadingAuto: true,
+      onClick: () => refresh(),
+    },
+  ];
+
+  if (can("VehicleExpenses.insert")) {
+    actions.unshift({
+      icon: "mdi:plus",
+      label: "Create new",
+      onClick: handleCreateExpense,
+    });
+  }
+
+  return actions;
 });
 </script>
 
@@ -123,6 +141,7 @@ onMounted(() => {
   <UPage class="flex-1 p-2 overflow-hidden">
     <div class="flex items-center justify-between gap-2 mb-3">
       <UButton
+        v-if="can('VehicleExpenses.insert')"
         label="Add"
         icon="mdi:plus"
         @click="handleCreateExpense"
@@ -166,22 +185,7 @@ onMounted(() => {
       v-if="!expenses.length"
       title="No Expenses Found"
       description="It looks like you haven't added any expenses. Create one to get started."
-      :actions="[
-        {
-          icon: 'mdi:plus',
-          label: 'Create new',
-          onClick: handleCreateExpense,
-        },
-        {
-          icon: 'mdi:refresh',
-          label: 'Refresh',
-          color: 'neutral',
-          variant: 'subtle',
-          loading: loading,
-          loadingAuto: true,
-          onClick: () => refresh(),
-        },
-      ]"
+      :actions="emptyExpensesActions"
     />
 
     <UScrollArea

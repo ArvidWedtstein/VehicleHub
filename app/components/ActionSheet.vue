@@ -80,6 +80,7 @@ defineExpose({
                   v-bind="{ ...omit(item, ['children']) }"
                   variant="soft"
                   :color="item.color || 'neutral'"
+                  activeColor="primary"
                   trailingIcon="mdi:chevron-right"
                   block
                   @click="($event) => handleClick($event, item)"
@@ -95,6 +96,7 @@ defineExpose({
               v-bind="{ ...omit(item, ['children']) }"
               variant="soft"
               :color="item.color || 'neutral'"
+              activeColor="primary"
               block
               @click="($event) => handleClick($event, item)"
             />

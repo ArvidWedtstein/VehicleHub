@@ -120,7 +120,7 @@ const vehicleMenuItems: DropdownMenuItem[] = [
             {{ vehicle.fuel_type }}
 
             ({{
-              formatNumber(vehicle.fuel_capacity, {
+              formatNumber(vehicle.fuel_capacity ?? 0, {
                 style: "unit",
                 unit: vehicle.fuel_capacity_unit || "liter",
                 unitDisplay: "short",

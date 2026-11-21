@@ -7,9 +7,9 @@ const overlay = useOverlay();
 
 const vehicleModal = overlay.create(VehicleDialog);
 
-const createVehicle = () => {
-  vehicleModal.open();
-};
+const createVehicle = () => vehicleModal.open();
+
+const { can } = usePermission();
 </script>
 
 <template>
@@ -62,6 +62,7 @@ const createVehicle = () => {
     </UPageCard>
 
     <UPageCard
+      v-if="can('Vehicles.insert')"
       variant="subtle"
       title="Add new Vehicle"
       icon="mdi:plus"

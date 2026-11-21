@@ -37,7 +37,7 @@ defineProps<{
 
           <div
             v-else-if="item.type === 'date-range'"
-            class="flex items-baseline-last gap-2"
+            class="flex items-baseline-last flex-wrap gap-2"
           >
             <UFormField
               label="From"
@@ -71,7 +71,10 @@ defineProps<{
               </UInputDate>
             </UFormField>
 
-            <UIcon name="mdi:minus" class="self-center" />
+            <UIcon
+              name="mdi:minus"
+              class="self-center hidden md:inline-block"
+            />
 
             <UFormField
               label="To"
@@ -112,7 +115,7 @@ defineProps<{
               item.inputType === 'input' &&
               Array.isArray(filterState[item.column as string])
             "
-            class="flex gap-2 w-full"
+            class="flex gap-2 flex-wrap w-full"
           >
             {{ filterState[item.column as string][0] }}
             <UInput
@@ -124,7 +127,10 @@ defineProps<{
               placeholder="Min"
               class="grow"
             />
-            <UIcon name="mdi:minus" class="self-center" />
+            <UIcon
+              name="mdi:minus"
+              class="self-center hidden md:inline-block"
+            />
             <UInput
               v-model="filterState[item.column as string][1]"
               type="number"
