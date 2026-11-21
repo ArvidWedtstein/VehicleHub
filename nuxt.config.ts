@@ -3,25 +3,31 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
   app: {
+    baseURL: "/",
     head: {
       htmlAttrs: {
         lang: "en",
       },
+      title: "Vehicle Hub",
       link: [
         {
           rel: "icon",
           type: "image/x-icon",
           href: "/favicon.ico",
         },
-        { rel: "manifest", href: "/manifest.webmanifest" },
         { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
       ],
-      title: "Vehicle Hub",
       meta: [
+        {
+          name: "viewport",
+          content:
+            "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no",
+        },
         {
           name: "description",
           content: "A vehicle management application.",
         },
+        { name: "format-detection", content: "telephone=no" },
         {
           name: "theme-color",
           content: "#ffffff",
@@ -71,6 +77,7 @@ export default defineNuxtConfig({
     "@nuxtjs/supabase",
     "@nuxt/icon",
     "@nuxt/test-utils/module",
+    "@vite-pwa/nuxt",
   ],
   supabase: {
     redirect: false,
@@ -99,5 +106,34 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     cronSecret: "",
+  },
+  pwa: {
+    registerType: "autoUpdate",
+    manifest: {
+      name: "Vehicle Hub",
+      short_name: "Vehicle Hub",
+      description: "A vehicle management application.",
+      start_url: "/",
+      scope: "/",
+      display: "standalone",
+      background_color: "#ffffff",
+      theme_color: "#ffffff",
+      icons: [
+        { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+        { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+        {
+          src: "/icons/icon-maskable-512.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "maskable",
+        },
+      ],
+    },
+    workbox: {
+      globPatterns: ["**/*.{js,css,html,png,svg,ico,woff2}"],
+      navigateFallback: undefined, // see note below
+    },
+    client: { installPrompt: true },
+    devOptions: { enabled: true, type: "module" },
   },
 });
