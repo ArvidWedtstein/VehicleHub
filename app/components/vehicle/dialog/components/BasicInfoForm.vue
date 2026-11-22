@@ -3,6 +3,9 @@ import type { SelectMenuItem } from "@nuxt/ui";
 import type { VehicleSchema } from "../useVehicleForm";
 
 const vehicle = defineModel<Partial<VehicleSchema>>({ required: true });
+const vehicleThumbnail = defineModel<File | FileUploadItem>("thumbnail", {
+  required: false,
+});
 
 const { data: vehicleManufacturers } = useVehicleManufacturers();
 
@@ -173,12 +176,12 @@ const vehicleColors: SelectMenuItem[] = [
 
     <UFormField
       label="Thumbnail"
-      name="thumbnail"
+      name="thumbnailFile"
       class="sm:col-span-2"
       description="JPG, GIF or PNG. 2MB Max."
     >
       <UFileUpload
-        v-model="vehicle.thumbnail"
+        v-model="vehicleThumbnail"
         accept="image/*"
         class="min-h-48"
       />
