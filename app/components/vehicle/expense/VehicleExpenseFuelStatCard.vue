@@ -2,8 +2,8 @@
 const vehicleId = useRouteParam("id", { type: "number", required: true });
 const { data: expenses, pending: loading } = useVehicleExpenses(
   vehicleId,
-  undefined,
-  -1,
+  [],
+  100000,
 );
 
 const selectedPeriod = ref("month");
@@ -102,6 +102,7 @@ const periodOptions = [
     <template #header>
       <div class="flex items-center gap-2">
         <span>Spent on Fuel this:</span>
+
         <UTabs
           v-model="selectedPeriod"
           :items="periodOptions"

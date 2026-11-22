@@ -9,7 +9,8 @@ const { vehicleId } = defineProps<{
 
 const emit = defineEmits<{ close: [boolean] }>();
 
-const { vehicleSchema, vehicle, isEdit, initialize, save } = useVehicleForm();
+const { vehicleSchema, vehicle, thumbnailModel, isEdit, initialize, save } =
+  useVehicleForm();
 
 const toast = useToast();
 const stepper = useTemplateRef("stepper");
@@ -89,6 +90,7 @@ const onFormSubmit = async () => {
             <VehicleDialogComponentsBasicInfoForm
               :key="vehicle.id"
               v-model="vehicle"
+              v-model:thumbnail="thumbnailModel"
             />
           </template>
           <template #engine>

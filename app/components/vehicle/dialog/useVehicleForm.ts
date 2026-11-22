@@ -1,5 +1,6 @@
 import type { TablesUpdate } from "~/types/supabase";
 import z from "zod";
+import { dbToForm } from "#shared/schemas/utils";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const MIN_DIMENSIONS = { width: 200, height: 200 };
@@ -39,25 +40,14 @@ export const DRIVETRAIN_OPTIONS: ("FWD" | "RWD" | "AWD" | "4WD")[] = [
   "4WD",
 ];
 
-const dbToForm = <T extends z.ZodTypeAny>(schema: T) =>
-  schema.nullish().transform((val) => val ?? undefined);
-
 const vehicleSchema = z.object({
   id: z.number().optional(),
   licenseplate_number: dbToForm(z.string()),
   vehicle_identification_number: dbToForm(z.string()),
   type: z.string().min(1).nonoptional().default("Car"),
   body_type: dbToForm(z.string().default("")),
-  make: z
-    .string()
-    .optional()
-    .transform((val) => val ?? undefined)
-    .default(""),
-  model: z
-    .string()
-    .optional()
-    .transform((val) => val ?? undefined)
-    .default(""),
+  make: dbToForm(z.string()).default(""),
+  model: dbToForm(z.string()).default(""),
   model_year: dbToForm(
     z
       .number()
@@ -80,7 +70,8 @@ const vehicleSchema = z.object({
   owner_user_id: dbToForm(z.uuid()).default(
     () => useSupabaseUser().value?.id ?? "",
   ),
-  thumbnail: z
+  thumbnail: dbToForm(z.string()),
+  thumbnailFile: z
     .file()
     .max(MAX_FILE_SIZE)
     .mime(ACCEPTED_IMAGE_TYPES)
@@ -114,13 +105,48 @@ export type VehicleSchema = z.output<typeof vehicleSchema>;
 export const useVehicleForm = () => {
   const vehicle = ref<Partial<VehicleSchema>>(
     vehicleSchema.parse({
-      thumbnail: undefined,
+      thumbnailFile: undefined,
     }),
   );
 
+  const resolveThumbnailUrl = (fullPath?: string) => {
+    if (!fullPath) return undefined;
+    // Supabase `fullPath` is "<bucket>/<path>"
+    const [bucket, ...rest] = fullPath.split("/");
+    return useSupabaseClient()
+      .storage.from(bucket!)
+      .getPublicUrl(rest.join("/")).data.publicUrl;
+  };
+
+  const thumbnailUrl = ref<string>();
+  const thumbnailModel = computed<File | FileUploadItem | null>({
+    get: () => {
+      if (vehicle.value.thumbnailFile) return vehicle.value.thumbnailFile;
+      if (thumbnailUrl.value) {
+        return {
+          name: vehicle.value.thumbnail?.split("/").pop() ?? "thumbnail",
+          type: "image/*",
+          avatar: { src: thumbnailUrl.value, alt: "Thumbnail" },
+        };
+      }
+      return null;
+    },
+    set: (val) => {
+      if (val instanceof File) {
+        vehicle.value.thumbnailFile = val;
+      } else if (!val) {
+        vehicle.value.thumbnailFile = undefined;
+        vehicle.value.thumbnail = undefined;
+        thumbnailUrl.value = undefined;
+      }
+    },
+  });
+
   const initialize = async (vehicle_id?: TablesUpdate<"Vehicles">["id"]) => {
     if (vehicle_id == null) {
-      vehicle.value = vehicleSchema.parse({ thumnail: undefined });
+      thumbnailUrl.value = undefined;
+
+      vehicle.value = vehicleSchema.parse({ thumbnailFile: undefined });
       return;
     }
 
@@ -133,10 +159,10 @@ export const useVehicleForm = () => {
 
     vehicle.value = vehicleSchema.parse({
       ...omit(editVehicle.value, ["shares"]),
-      thumbnail: undefined,
+      thumbnailFile: undefined,
     });
 
-    // TODO: fix thumbnail
+    thumbnailUrl.value = resolveThumbnailUrl(vehicle.value.thumbnail);
   };
 
   const isEdit = computed(() => !!vehicle.value.id);
@@ -148,18 +174,18 @@ export const useVehicleForm = () => {
       if (isEdit.value && vehicle.value.id) {
         await updateVehicle(
           vehicle.value.id,
-          omit(vehicle.value, ["thumbnail"]),
+          omit(vehicle.value, ["thumbnailFile", "thumbnail"]),
         );
       } else {
         const createdVehicle = await createVehicle(
-          omit(vehicle.value, ["thumbnail"]),
+          omit(vehicle.value, ["thumbnailFile", "thumbnail"]),
         );
         vehicleId = createdVehicle.id;
       }
 
-      if (vehicle.value.thumbnail && vehicleId) {
+      if (vehicle.value.thumbnailFile && vehicleId) {
         const formData = new FormData();
-        formData.append("file", vehicle.value.thumbnail);
+        formData.append("file", vehicle.value.thumbnailFile);
 
         const data = await $fetch(`/api/vehicles/${vehicleId}/images/upload`, {
           method: "POST",
@@ -168,7 +194,7 @@ export const useVehicleForm = () => {
         if (!data) return;
 
         await updateVehicle(vehicleId, {
-          ...vehicle.value,
+          ...omit(vehicle.value, ["thumbnailFile"]),
           thumbnail: data.fullPath,
         });
       }
@@ -181,6 +207,7 @@ export const useVehicleForm = () => {
   return {
     vehicleSchema,
     vehicle,
+    thumbnailModel,
     isEdit,
     save,
     initialize,

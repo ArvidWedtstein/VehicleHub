@@ -15,13 +15,13 @@ const items: SplitterItem[] = [
     slot: "expenses",
     minSize: 20,
     defaultSize: 50,
-    // class: "items-center justify-center",
+    class: "items-center justify-center",
   },
   {
     slot: "services",
     minSize: 20,
     defaultSize: 50,
-    // class: "items-center justify-center",
+    class: "items-center justify-center",
   },
 ];
 </script>
