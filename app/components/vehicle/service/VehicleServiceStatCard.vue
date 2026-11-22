@@ -104,7 +104,7 @@ const serviceData = computed(() => {
 </script>
 
 <template>
-  <div class="w-full overflow-auto">
+  <div class="w-full h-full overflow-auto">
     <StatCardSkeletonLoader v-if="loading" />
 
     <UPageCard
@@ -112,7 +112,7 @@ const serviceData = computed(() => {
       title="Services stats"
       icon="mdi:chart-bar"
       variant="soft"
-      class="w-full"
+      class="w-full min-h-full"
     >
       <template #description>
         <div class="flex justify-baseline items-center gap-2">

@@ -8,27 +8,35 @@ definePageMeta({
   auth: true,
 });
 
+const { isMobile } = useBreakpoints();
+
 const items: SplitterItem[] = [
   {
     slot: "expenses",
     minSize: 20,
     defaultSize: 50,
-    class: "items-center justify-center",
+    // class: "items-center justify-center",
   },
   {
     slot: "services",
     minSize: 20,
     defaultSize: 50,
-    class: "items-center justify-center",
+    // class: "items-center justify-center",
   },
 ];
 </script>
 
 <template>
-  <UPageGrid :ui="{ base: 'grid-cols-1 lg:grid-cols-2 gap-2' }">
-    <VehicleExpenseFuelStatCard class="lg:col-span-2" />
+  <UPageGrid :ui="{ base: 'grid-cols-1 gap-2 m-2' }">
+    <VehicleExpenseFuelStatCard class="col-span-full" />
 
-    <USplitter id="stats" :items class="lg:col-span-2">
+    <USplitter
+      v-if="!isMobile"
+      id="stats-desktop"
+      :items
+      class="col-span-full"
+      orientation="horizontal"
+    >
       <template #expenses>
         <VehicleExpenseStatCard />
       </template>
@@ -36,5 +44,10 @@ const items: SplitterItem[] = [
         <VehicleServiceStatCard />
       </template>
     </USplitter>
+
+    <template v-else>
+      <VehicleExpenseStatCard class="col-span-full" />
+      <VehicleServiceStatCard class="col-span-full" />
+    </template>
   </UPageGrid>
 </template>
