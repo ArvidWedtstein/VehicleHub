@@ -4,6 +4,7 @@ import { en_gb } from "@nuxt/ui/locale";
 
 <template>
   <UApp :locale="en_gb">
+    <NuxtPwaManifest />
     <NuxtLoadingIndicator />
 
     <AppHeader />
