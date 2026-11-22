@@ -1,2 +1,5 @@
+[build]
+  command = "NUXT_SUPABASE_SECRET_KEY='' npm run build"
+
 [build.environment]
   SECRETS_SCAN_OMIT_KEYS = "NUXT_PUBLIC_SUPABASE_KEY"
