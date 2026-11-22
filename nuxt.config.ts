@@ -53,7 +53,6 @@ export default defineNuxtConfig({
     dirs: ["~/composables", "~/composables/vehicle/**", "~/shared/schemas/**"],
   },
   nitro: {
-    preset: "netlify",
     imports: {
       dirs: ["~/shared/schemas/**"],
     },
@@ -101,9 +100,11 @@ export default defineNuxtConfig({
   },
   icon: {
     collections: ["mdi"],
-    serverBundle: {
-      collections: ["mdi"],
+    fetchTimeout: 5000,
+    clientBundle: {
+      scan: true,
     },
+    serverBundle: "local",
   },
   runtimeConfig: {
     cronSecret: "",

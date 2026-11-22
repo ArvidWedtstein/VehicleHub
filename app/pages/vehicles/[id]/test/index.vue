@@ -46,11 +46,9 @@ const applyFilters = async () => {
 
 <template>
   <div>
-    <NuxtLoadingIndicator />
-
     <FilterForm :schema="schema" :filterState="filterState" />
 
-    <button class="btn btn-primary" @click="applyFilters">Apply</button>
-    <button class="btn btn-soft" @click="resetFilters">reset</button>
+    <UButton label="Apply" @click="applyFilters" color="primary" />
+    <UButton label="Reset" color="error" variant="soft" @click="resetFilters" />
   </div>
 </template>

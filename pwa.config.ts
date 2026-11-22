@@ -23,7 +23,7 @@ export default definePwaConfig({
     ],
   },
   generateSW: {
-    globPatterns: ["**/*.{js,css,png,svg,ico,woff2}"],
+    globPatterns: ["**/*.{js,css,html,png,svg,ico,woff2}"],
   },
   workbox: {
     navigateFallback: undefined,
