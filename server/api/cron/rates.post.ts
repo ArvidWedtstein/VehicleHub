@@ -1,7 +1,7 @@
 import z from "zod";
 import { serverSupabaseServiceRole } from "#supabase/server";
 
-const SUPPORTED_CURRENCIES: string[] = [
+const SUPPORTED_CURRENCIES = [
   "EUR",
   "DKK",
   "NOK",
@@ -91,7 +91,9 @@ export default defineEventHandler(async (event) => {
       .filter(
         (r) =>
           r.base === "EUR" &&
-          SUPPORTED_CURRENCIES.includes(r.quote) &&
+          SUPPORTED_CURRENCIES.includes(
+            r.quote as (typeof SUPPORTED_CURRENCIES)[number],
+          ) &&
           r.date >= iso(cursor) &&
           r.date <= iso(chunkEnd),
       )
@@ -110,9 +112,10 @@ export default defineEventHandler(async (event) => {
       if (error)
         throw createError({ statusCode: 500, statusMessage: error.message });
     }
-    total += rows.length;
 
-    cursor = new Date(chunkEnd.getTime() + 86_400_000);
+    total += rows.length;
+    cursor = new Date(chunkEnd.getTime() + DAY_MS);
   }
+
   return { from: iso(start), count: total };
 });
