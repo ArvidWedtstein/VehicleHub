@@ -26,7 +26,7 @@ const chartSettings = reactive<ChartSettings>({
   ],
   periodOptions: [
     { value: "month", label: "This year" },
-    { value: "year", label: "Years" },
+    { value: "year", label: "All time" },
   ],
   selectedPeriod: "month",
   selectedCurrency: "NOK",
