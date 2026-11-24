@@ -113,8 +113,8 @@ const menuItems = computed<DropdownMenuItem[]>(() => {
           color="neutral"
           variant="ghost"
           :avatar="{
-            src: user?.user_metadata.avatar_url,
-            alt: user?.user_metadata.name,
+            src: user?.user_metadata?.avatar_url,
+            alt: user?.user_metadata?.name,
             icon: 'mdi:account',
             size: 'lg',
           }"

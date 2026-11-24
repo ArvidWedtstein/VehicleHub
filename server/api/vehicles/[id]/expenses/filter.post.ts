@@ -31,13 +31,16 @@ export default defineAuthenticatedEventHandler(
     const client = await serverSupabaseClient<Database>(event);
 
     let query = client
-      .from("VehicleExpenses")
+      .from("vehicle_expenses_converted")
       .select("*")
       .eq("vehicle_id", vehicleId)
       .order("date", { ascending: false });
 
     if (filters && filters.length > 0) {
-      query = applyFilters<"VehicleExpenses", typeof query>(query, filters);
+      query = applyFilters<"vehicle_expenses_converted", typeof query>(
+        query,
+        filters,
+      );
     }
 
     if (pagination && pagination?.limit !== -1) {

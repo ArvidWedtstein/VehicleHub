@@ -1,6 +1,6 @@
 import * as z from "zod";
 import { convertToDatetimeLocal } from "../utils/convert";
-import { dbToForm, currency } from "./utils";
+import { dbToForm } from "./utils";
 
 export const expenseFormSchema = z.object({
   id: z.number().optional(),
@@ -10,7 +10,7 @@ export const expenseFormSchema = z.object({
   amount: z.number().min(0).default(0),
   cost: z.number({ error: "Cost is required" }).min(0).default(0),
   mileage: z.number().min(0).default(0),
-  currency: currency.default("NOK"),
+  currency: z.currencyCode().default("NOK"),
   notes: dbToForm(z.string().optional()),
   location: dbToForm(z.string().optional()),
 });

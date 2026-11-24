@@ -1,75 +1,83 @@
 import type { Tables } from "~/types/supabase";
 
-export function useVehicleChangelog(
-  vehicleId?: MaybeRef<string | number | undefined>,
-) {
-  const id = computed(() => unref(vehicleId));
+type ChangelogItem = Tables<"changelog_with_profile">;
 
-  const key = computed(() =>
-    id.value ? `vehicle-${id.value}_changelog` : undefined,
-  );
+export function useVehicleChangelog(vehicleId: MaybeRefOrGetter<number>) {
+  const id = computed(() => toValue(vehicleId));
 
-  return useFetch<Tables<"changelog_with_profile">[]>(
-    `/api/vehicles/${id.value}/changelog`,
+  return useFetch<ChangelogItem[]>(
+    () => `/api/vehicles/${id.value}/changelog`,
     {
-      key: key.value,
+      key: () => cacheKeys.changelog(id.value),
+      server: false,
       lazy: true,
-      watch: [id],
       default: () => [],
     },
   );
 }
 
 export const initChangelogRealtime = (
-  vehicleId?: MaybeRef<string | number | undefined>,
+  vehicleId?: MaybeRef<number | undefined>,
 ) => {
   try {
     const id = computed(() => unref(vehicleId));
-    const key = computed(() => `vehicle-${id.value}_changelog`);
 
     const client = useSupabaseClient();
     let channel: ReturnType<typeof client.channel> | null = null;
 
+    const cleanup = () => {
+      if (!channel) return;
+
+      client.removeChannel(channel);
+      channel = null;
+    };
+
     watch(
       id,
-      (vehicleId) => {
-        if (!vehicleId) return;
-
-        if (channel) {
-          client.removeChannel(channel);
-        }
+      (newId) => {
+        cleanup();
+        if (!newId) return;
 
         channel = client
-          .channel("Changelog")
+          .channel(cacheKeys.changelog(newId))
           .on(
             "postgres_changes",
             {
               event: "INSERT",
               schema: "public",
               table: "Changelog",
-              filter: `vehicle_id=eq.${id.value}`,
+              filter: `vehicle_id=eq.${newId}`,
             },
             async (payload) => {
-              if (payload.errors) throw payload.errors;
+              if (payload.errors) {
+                console.error("Realtime changelog error:", payload.errors);
+                return;
+              }
 
-              // Get missing fields from profiles, since realtime does not work views
-              const nuxtData = useNuxtData<Tables<"changelog_with_profile">[]>(
-                key.value,
+              const { data: changelogData } = useNuxtData<ChangelogItem[]>(
+                cacheKeys.changelog(newId),
               );
-              if (!nuxtData.data.value) return;
+              if (!changelogData.value) return;
 
-              const { data: profile } = await useProfile(
-                payload.new["createdby_id"],
-              );
+              const record = payload.new as Tables<"Changelog">;
 
-              const newEntry: Tables<"changelog_with_profile"> = {
-                ...(payload.new as Tables<"Changelog">),
-                createdby_name: profile.value?.name || null,
-                createdby_profile_image_url:
-                  profile.value?.profile_image_url || null,
+              let profile: {
+                name: string | null;
+                profile_image_url: string | null;
+              } | null = null;
+              if (record.createdby_id) {
+                profile = await $fetch(
+                  `/api/profiles/${record.createdby_id}`,
+                ).catch(() => null);
+              }
+
+              const newEntry: ChangelogItem = {
+                ...record,
+                createdby_name: profile?.name ?? null,
+                createdby_profile_image_url: profile?.profile_image_url ?? null,
               };
 
-              nuxtData.data.value.unshift(newEntry);
+              changelogData.value = [newEntry, ...changelogData.value];
             },
           )
           .subscribe();
@@ -79,9 +87,7 @@ export const initChangelogRealtime = (
       },
     );
 
-    onUnmounted(() => {
-      if (channel) client.removeChannel(channel);
-    });
+    onUnmounted(cleanup);
   } catch (error) {
     console.log(error);
   }

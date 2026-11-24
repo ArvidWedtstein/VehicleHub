@@ -8,6 +8,7 @@ const profileSchema = z.object({
   name: z.string().optional(),
   role_id: z.coerce.number().optional(),
   user_id: z.uuid().optional(),
+  currency: z.currencyCode().optional(),
   profile_image_url: z
     .string()
     .min(1)
@@ -18,7 +19,7 @@ const profileSchema = z.object({
 });
 
 const paramsSchema = z.object({
-  id: z.coerce.number().int().positive(),
+  id: z.coerce.number().int().positive().or(z.coerce.string()),
 });
 
 const bodySchema = z.object({
@@ -34,11 +35,15 @@ export default defineAuthenticatedEventHandler(async (event) => {
 
   const client = await serverSupabaseClient<Database>(event);
 
-  const { data, error, status, statusText } = await client
-    .from("Profiles")
-    .update(profile)
-    .eq("id", profileId)
-    .select();
+  const query = client.from("Profiles").update(profile).select();
+
+  if (typeof profileId === "string") {
+    query.eq("user_id", profileId);
+  } else {
+    query.eq("id", profileId);
+  }
+
+  const { data, error, status, statusText } = await query;
 
   if (error) throw createError({ statusCode: status, statusText, ...error });
 

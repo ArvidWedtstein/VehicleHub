@@ -5,7 +5,7 @@ import {
   deleteVehicleDocument,
   uploadVehicleDocument,
 } from "~/composables/vehicle/useVehicleDocuments";
-import { currency, nullish } from "#shared/schemas/utils";
+import { nullish } from "#shared/schemas/utils";
 
 const serviceItemSchema = z.object({
   id: z.number().positive().optional(),
@@ -26,7 +26,7 @@ const serviceSchema = z.object({
   type: z.string().nonempty().default(""),
   provider: nullish(z.string()),
   mileage: nullish(z.number().positive()),
-  currency: currency.default("NOK"),
+  currency: z.currencyCode().default("NOK"),
   notes: nullish(z.string()),
 });
 

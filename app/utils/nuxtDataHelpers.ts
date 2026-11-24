@@ -22,6 +22,8 @@ export const cacheKeys = {
   manufacturers: () => `vehicleManufacturers`,
   manufacturerModels: (manufacturer: string) =>
     `vehicleManufacturer-${manufacturer.toLowerCase()}?models`,
+
+  changelog: (vehicleId: number) => `vehicle-${vehicleId}_changelog`,
 } as const;
 
 export function keysWithPrefix(prefix: string): string[] {

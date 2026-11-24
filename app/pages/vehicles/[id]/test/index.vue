@@ -4,7 +4,7 @@ import type { Tables } from "~/types/supabase";
 
 const vehicleId = useRouteParam("id", { type: "number", required: true });
 
-const filterSchema: FilterSchema<"VehicleExpenses"> = [
+const filterSchema: FilterSchema<"vehicle_expenses_converted"> = [
   {
     column: "currency",
     label: "Valuta",

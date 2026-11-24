@@ -25,13 +25,14 @@ const generateChangelogSentence = (entry: Tables<"changelog_with_profile">) => {
   const changedValues = calculateJsonChanges(oldChanges, newChanges);
 
   const tableSentenceMappings: {
-    [key in Exclude<
+    [key in Extract<
       TableNames,
-      | "Changelog"
-      | "Roles"
-      | "Profiles"
-      | "RolesPermissions"
-      | "VehicleManufacturers"
+      | "Vehicles"
+      | "VehicleShares"
+      | "VehicleExpenses"
+      | "VehicleServiceLogs"
+      | "VehicleServiceLogsItems"
+      | "VehicleDocuments"
     >]: {
       INSERT?: string;
       UPDATE?: string;

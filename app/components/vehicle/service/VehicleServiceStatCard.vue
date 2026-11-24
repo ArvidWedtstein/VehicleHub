@@ -1,10 +1,10 @@
 <script setup lang="ts">
 const vehicleId = useRouteParam("id", { type: "number", required: true });
-const { data: services, pending: loading } = useVehicleServices(
-  vehicleId,
-  undefined,
-  -1,
-);
+const {
+  data: services,
+  pending: loading,
+  refresh,
+} = useVehicleServices(vehicleId, undefined, -1);
 
 type Option = {
   value: string;
@@ -101,6 +101,12 @@ const serviceData = computed(() => {
 
   return axisValuesWithServicesData;
 });
+
+onMounted(() => {
+  if (!services.value.length) {
+    refresh();
+  }
+});
 </script>
 
 <template>
@@ -109,40 +115,39 @@ const serviceData = computed(() => {
 
     <UPageCard
       v-else
-      title="Services stats"
-      icon="mdi:chart-bar"
+      title="Services"
+      :description="`Monthly cost ${chartSettings.selectedCurrency} or number of repairs`"
       variant="soft"
       class="w-full min-h-full"
     >
-      <template #description>
-        <div class="flex justify-baseline items-center gap-2">
-          <UTabs
-            v-model="chartSettings.selectedType"
-            :items="chartSettings.typesOptions"
-            :content="false"
-            :unmountOnHide="false"
-            color="neutral"
-            size="sm"
-            :ui="{
-              list: 'ring ring-accented rounded-full',
-              indicator: 'rounded-full',
-            }"
-          />
+      <template #description> </template>
+      <div class="flex justify-baseline items-center gap-2">
+        <UTabs
+          v-model="chartSettings.selectedType"
+          :items="chartSettings.typesOptions"
+          :content="false"
+          :unmountOnHide="false"
+          color="neutral"
+          size="sm"
+          :ui="{
+            list: 'ring ring-accented rounded-full',
+            indicator: 'rounded-full',
+          }"
+        />
 
-          <UTabs
-            v-model="chartSettings.selectedPeriod"
-            :items="chartSettings.periodOptions"
-            :content="false"
-            :unmountOnHide="false"
-            size="sm"
-            color="neutral"
-            :ui="{
-              list: 'ring ring-accented rounded-full',
-              indicator: 'rounded-full',
-            }"
-          />
-        </div>
-      </template>
+        <UTabs
+          v-model="chartSettings.selectedPeriod"
+          :items="chartSettings.periodOptions"
+          :content="false"
+          :unmountOnHide="false"
+          size="sm"
+          color="neutral"
+          :ui="{
+            list: 'ring ring-accented rounded-full',
+            indicator: 'rounded-full',
+          }"
+        />
+      </div>
 
       <UChart
         :data="serviceData"

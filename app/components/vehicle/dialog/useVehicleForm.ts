@@ -1,6 +1,7 @@
 import type { TablesUpdate } from "~/types/supabase";
 import z from "zod";
 import { dbToForm } from "#shared/schemas/utils";
+import type { FileUploadItem } from "@nuxt/ui";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const MIN_DIMENSIONS = { width: 200, height: 200 };
