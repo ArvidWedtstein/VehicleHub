@@ -1,6 +1,12 @@
-import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
+import type {
+  Database,
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+} from "~/types/supabase";
 
-type Row = Tables<"VehicleExpenses">;
+type Row = Database["public"]["Views"]["vehicle_expenses_converted"]["Row"];
+
 export const useVehicleExpenses = (
   vehicleId: MaybeRefOrGetter<Row["vehicle_id"]>,
   filters: MaybeRefOrGetter<FilterOption<Row>[]> = [],

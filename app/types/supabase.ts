@@ -556,15 +556,15 @@ export type Database = {
     Views: {
       changelog_with_profile: {
         Row: {
-          changes: Json | null
-          created_at: string | null
+          changes: Json
+          created_at: string
           createdby_id: string | null
           createdby_name: string | null
           createdby_profile_image_url: string | null
-          id: number | null
-          operation: string | null
-          schema_name: string | null
-          table_name: string | null
+          id: number
+          operation: string
+          schema_name: string
+          table_name: string
           vehicle_id: number | null
         }
         Relationships: [
@@ -582,12 +582,12 @@ export type Database = {
           amount: number | null
           cost: number | null
           cost_reporting: number | null
-          created_at: string | null
+          created_at: string
           createdby_id: string | null
           currency: string | null
-          date: string | null
+          date: string
           exchange_rate: number | null
-          id: number | null
+          id: number
           latitude: number | null
           location: string | null
           location_accuracy: number | null
@@ -595,10 +595,11 @@ export type Database = {
           mileage: number | null
           notes: string | null
           price_per_unit: number | null
+          price_per_unit_reporting: number | null
           reporting_currency: string | null
           type: string | null
           unit: string | null
-          vehicle_id: number | null
+          vehicle_id: number
         }
         Relationships: [
           {
@@ -612,18 +613,18 @@ export type Database = {
       }
       vehicleservicelogs_with_items: {
         Row: {
-          created_at: string | null
+          created_at: string
           createdby_id: string | null
           createdby_name: string | null
           currency: string | null
-          date: string | null
-          id: number | null
+          date: string
+          id: number
           mileage: number | null
           notes: string | null
           provider: string | null
           total_cost: number | null
-          type: string | null
-          vehicle_id: number | null
+          type: string
+          vehicle_id: number
         }
         Relationships: []
       }
@@ -692,6 +693,12 @@ export type Database = {
       fx_rate: {
         Args: { p_day: string; p_from: string; p_to: string }
         Returns: number
+      }
+      get_currencies: {
+        Args: never
+        Returns: {
+          currency: string
+        }[]
       }
       get_last_mileage: {
         Args: { type?: string; vehicle_id: number }

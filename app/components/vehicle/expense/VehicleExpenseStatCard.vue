@@ -1,10 +1,10 @@
 <script setup lang="ts">
 const vehicleId = useRouteParam("id", { type: "number", required: true });
-const { data: expenses, pending: loading } = useVehicleExpenses(
-  vehicleId,
-  undefined,
-  -1,
-);
+const {
+  data: expenses,
+  pending: loading,
+  refresh,
+} = useVehicleExpenses(vehicleId, undefined, -1);
 
 type Option = {
   value: string;
@@ -23,15 +23,15 @@ type ChartSettings<U extends readonly Option[], T extends readonly Option[]> = {
 const chartSettings = reactive<ChartSettings<Option[], Option[]>>({
   typesOptions: [
     { value: "totalCost", label: "Fuel Cost" },
-    { value: "averageFuelPrice", label: "Avg Fuel Price" },
-    { value: "totalAmount", label: "Total Amount" },
+    { value: "averageFuelPrice", label: "Price per Litre" },
+    { value: "totalAmount", label: `Litres filled` },
   ] as const,
   periodOptions: [
     { value: "month", label: "This year" },
     { value: "year", label: "Last 10 years" },
   ] as const,
   selectedPeriod: "month",
-  selectedCurrency: "NOK",
+  selectedCurrency: expenses.value?.[0]?.reporting_currency ?? "NOK",
   selectedType: "totalCost",
   selectedUnit: "liter",
 } as const);
@@ -100,7 +100,7 @@ const expensesData = computed(() => {
     const items = servicesGroupedBySelectedPeriod[groupKey] || [];
 
     const totalCost = items.reduce(
-      (costAcc, currentItem) => costAcc + (currentItem.cost || 0),
+      (costAcc, currentItem) => costAcc + (currentItem.cost_reporting || 0),
       0,
     );
     const totalAmount = items.reduce(
@@ -108,7 +108,7 @@ const expensesData = computed(() => {
       0,
     );
 
-    const numbers = items.map((item) => item.price_per_unit || 0);
+    const numbers = items.map((item) => item.price_per_unit_reporting || 0);
     const averageFuelPrice = sum(numbers) / numbers.length;
 
     return {
@@ -125,13 +125,18 @@ const expensesData = computed(() => {
   return axisValuesWithServicesData;
 });
 
-const uniqueCurrencies = computed(() => {
-  const currenciesUsed = expenses.value.map((expense) => expense.currency);
-  return [...new Set(currenciesUsed)];
-});
-const uniqueUnits = computed(() => {
-  const unitsUsed = expenses.value.map((expense) => expense.unit);
-  return [...new Set(unitsUsed)];
+const { currencies, pending, setUserCurrency } = useCurrencies();
+
+const setCurrency = async () => {
+  await setUserCurrency(chartSettings.selectedCurrency);
+
+  refresh();
+};
+
+onMounted(() => {
+  if (!expenses.value.length) {
+    refresh();
+  }
 });
 </script>
 
@@ -143,43 +148,53 @@ const uniqueUnits = computed(() => {
 
     <UPageCard
       v-else
-      title="Expenses Overview"
-      icon="mdi:chart-bar"
+      title="Fuel"
+      :description="`Monthly cost (${chartSettings.selectedCurrency}), price per litre and litres filled`"
       variant="soft"
       class="w-full min-h-full"
     >
-      <template #description>
-        <div class="flex justify-baseline items-center gap-2">
-          <UTabs
-            v-model="chartSettings.selectedType"
-            :items="chartSettings.typesOptions"
-            :content="false"
-            :unmountOnHide="false"
-            color="neutral"
-            size="sm"
-            :ui="{
-              list: 'ring ring-accented rounded-full',
-              indicator: 'rounded-full',
-            }"
-          />
+      <div class="flex justify-baseline items-center gap-2">
+        <UTabs
+          v-model="chartSettings.selectedType"
+          :items="chartSettings.typesOptions"
+          :content="false"
+          :unmountOnHide="false"
+          color="neutral"
+          size="sm"
+          :ui="{
+            list: 'ring ring-accented rounded-full',
+            indicator: 'rounded-full',
+          }"
+        />
 
-          <UTabs
-            v-model="chartSettings.selectedPeriod"
-            :items="chartSettings.periodOptions"
-            :content="false"
-            :unmountOnHide="false"
-            color="neutral"
-            size="sm"
-            :ui="{
-              list: 'ring ring-accented rounded-full',
-              indicator: 'rounded-full',
-            }"
-          />
-        </div>
-      </template>
+        <UTabs
+          v-model="chartSettings.selectedPeriod"
+          :items="chartSettings.periodOptions"
+          :content="false"
+          :unmountOnHide="false"
+          color="neutral"
+          size="sm"
+          :ui="{
+            list: 'ring ring-accented rounded-full',
+            indicator: 'rounded-full',
+          }"
+        />
+
+        <USelectMenu
+          v-model="chartSettings.selectedCurrency"
+          :items="currencies"
+          labelKey="currency"
+          valueKey="currency"
+          :loading="pending"
+          placeholder="Select Display Currency"
+          @change="setCurrency"
+        />
+      </div>
 
       <UChart
-        type="bar"
+        :type="
+          chartSettings.selectedType === 'averageFuelPrice' ? 'line' : 'bar'
+        "
         :data="expensesData"
         index="key"
         xLabel="Period"
@@ -187,8 +202,8 @@ const uniqueUnits = computed(() => {
           chartSettings.selectedType === 'totalCost'
             ? 'Fuel Cost'
             : chartSettings.selectedType === 'totalAmount'
-              ? 'Total Amount in ' + chartSettings.selectedUnit
-              : 'Average Fuel Price'
+              ? `Total Amount in ${chartSettings.selectedUnit}`
+              : `Price per ${chartSettings.selectedUnit}`
         "
         :categories="[
           {
