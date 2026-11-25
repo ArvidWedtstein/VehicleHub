@@ -27,8 +27,10 @@ const items: SplitterItem[] = [
 </script>
 
 <template>
-  <UPageGrid :ui="{ base: 'grid-cols-1 gap-2 m-2' }">
-    <VehicleExpenseFuelStatCard class="col-span-full" />
+  <UPageGrid :ui="{ base: 'grid-cols-1 lg:grid-cols-2 gap-2 m-2' }">
+    <VehicleStatsFuelCard />
+
+    <VehicleStatsSpendingCard />
 
     <USplitter
       v-if="!isMobile"
@@ -38,16 +40,16 @@ const items: SplitterItem[] = [
       orientation="horizontal"
     >
       <template #expenses>
-        <VehicleExpenseStatCard />
+        <VehicleStatsExpensesCard />
       </template>
       <template #services>
-        <VehicleServiceStatCard />
+        <VehicleStatsServicesCard />
       </template>
     </USplitter>
 
     <template v-else>
-      <VehicleExpenseStatCard class="col-span-full" />
-      <VehicleServiceStatCard class="col-span-full" />
+      <VehicleStatsExpensesCard class="col-span-full" />
+      <VehicleStatsServicesCard class="col-span-full" />
     </template>
   </UPageGrid>
 </template>

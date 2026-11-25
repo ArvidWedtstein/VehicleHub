@@ -125,14 +125,6 @@ const expensesData = computed(() => {
   return axisValuesWithServicesData;
 });
 
-const { currencies, pending, setUserCurrency } = useCurrencies();
-
-const setCurrency = async () => {
-  await setUserCurrency(chartSettings.selectedCurrency);
-
-  refresh();
-};
-
 onMounted(() => {
   if (!expenses.value.length) {
     refresh();
@@ -159,7 +151,6 @@ onMounted(() => {
           :items="chartSettings.typesOptions"
           :content="false"
           :unmountOnHide="false"
-          color="neutral"
           size="sm"
           :ui="{
             list: 'ring ring-accented rounded-full',
@@ -172,22 +163,11 @@ onMounted(() => {
           :items="chartSettings.periodOptions"
           :content="false"
           :unmountOnHide="false"
-          color="neutral"
           size="sm"
           :ui="{
             list: 'ring ring-accented rounded-full',
             indicator: 'rounded-full',
           }"
-        />
-
-        <USelectMenu
-          v-model="chartSettings.selectedCurrency"
-          :items="currencies"
-          labelKey="currency"
-          valueKey="currency"
-          :loading="pending"
-          placeholder="Select Display Currency"
-          @change="setCurrency"
         />
       </div>
 

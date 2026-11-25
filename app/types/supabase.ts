@@ -623,6 +623,7 @@ export type Database = {
           notes: string | null
           provider: string | null
           total_cost: number | null
+          total_cost_reporting: number | null
           type: string
           vehicle_id: number
         }
@@ -631,34 +632,6 @@ export type Database = {
     }
     Functions: {
       eur_rate: { Args: { p_currency: string; p_day: string }; Returns: number }
-      expense_insights: {
-        Args: { p_from?: string; p_to?: string; p_vehicle_id: number }
-        Returns: {
-          avg_days_between_fills: number
-          avg_fill_cost: number
-          avg_fill_litres: number
-          avg_km_between_fills: number
-          avg_l_per_100km: number
-          avg_price_per_l: number
-          best_l_per_100km: number
-          by_type: Json
-          consumption_samples: number
-          cost_per_km: number
-          fills: number
-          km_driven: number
-          latest_l_per_100km: number
-          latest_price_per_l: number
-          max_price_per_l: number
-          min_price_per_l: number
-          projected_annual_km: number
-          reporting_currency: string
-          rows_bad_mileage: number
-          rows_without_rate: number
-          total_cost: number
-          total_litres: number
-          worst_l_per_100km: number
-        }[]
-      }
       expense_stats: {
         Args: { expense_id: number }
         Returns: {
@@ -716,14 +689,147 @@ export type Database = {
           type: string
         }[]
       }
+      get_vehicle_expense_insights: {
+        Args: { p_from?: string; p_to?: string; p_vehicle_id: number }
+        Returns: Database["public"]["CompositeTypes"]["vehicle_expense_insights"]
+        SetofOptions: {
+          from: "*"
+          to: "vehicle_expense_insights"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      get_vehicle_service_insights: {
+        Args: { p_from?: string; p_to?: string; p_vehicle_id: number }
+        Returns: Database["public"]["CompositeTypes"]["vehicle_service_insights"]
+        SetofOptions: {
+          from: "*"
+          to: "vehicle_service_insights"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       jwt_custom_claims: { Args: { event: Json }; Returns: Json }
+      service_stats: {
+        Args: { service_log_id: number; vehicle_id: number }
+        Returns: {
+          avg_interval: number
+          previous_date: string
+          previous_mileage: number
+          type: string
+        }[]
+      }
       terminate_user: { Args: { profile_user_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
     }
     CompositeTypes: {
-      [_ in never]: never
+      expense_insights_by_type: {
+        type: string | null
+        fills: number | null
+        litres: number | null
+        avg_price_per_l: number | null
+      }
+      expense_insights_consumption: {
+        samples: number | null
+        avg_l_per_100km: number | null
+        best_l_per_100km: number | null
+        worst_l_per_100km: number | null
+        latest_l_per_100km: number | null
+        cost_per_km: number | null
+      }
+      expense_insights_data_quality: {
+        rows_without_rate: number | null
+        rows_bad_mileage: number | null
+      }
+      expense_insights_distance: {
+        km_driven: number | null
+        avg_km_between_fills: number | null
+        avg_days_between_fills: number | null
+        projected_annual_km: number | null
+      }
+      expense_insights_fuel: {
+        total_litres: number | null
+        avg_fill_litres: number | null
+        avg_price_per_l: number | null
+        min_price_per_l: number | null
+        max_price_per_l: number | null
+        latest_price_per_l: number | null
+      }
+      expense_insights_spend: {
+        fills: number | null
+        total_cost: number | null
+        avg_fill_cost: number | null
+      }
+      service_insights_month: {
+        month: string | null
+        services: number | null
+        total_cost: number | null
+      }
+      service_insights_recurring_type: {
+        vehicle_id: number | null
+        type: string | null
+        services: number | null
+        total_cost: number | null
+        avg_cost: number | null
+        first_service_date: string | null
+        last_service_date: string | null
+        avg_days_between: number | null
+        avg_km_between: number | null
+      }
+      service_insights_summary: {
+        reporting_currency: string | null
+        total_services: number | null
+        total_cost: number | null
+        missing_fx_rates: number | null
+        first_service_date: string | null
+        last_service_date: string | null
+        days_since_last_service: number | null
+        avg_days_between_services: number | null
+        avg_km_between_services: number | null
+        mileage_span_km: number | null
+      }
+      service_insights_year: {
+        year: number | null
+        services: number | null
+        total_cost: number | null
+      }
+      vehicle_expense_insights: {
+        reporting_currency: string | null
+        spend:
+          | Database["public"]["CompositeTypes"]["expense_insights_spend"]
+          | null
+        fuel:
+          | Database["public"]["CompositeTypes"]["expense_insights_fuel"]
+          | null
+        distance:
+          | Database["public"]["CompositeTypes"]["expense_insights_distance"]
+          | null
+        consumption:
+          | Database["public"]["CompositeTypes"]["expense_insights_consumption"]
+          | null
+        data_quality:
+          | Database["public"]["CompositeTypes"]["expense_insights_data_quality"]
+          | null
+        by_type:
+          | Database["public"]["CompositeTypes"]["expense_insights_by_type"][]
+          | null
+      }
+      vehicle_service_insights: {
+        summary:
+          | Database["public"]["CompositeTypes"]["service_insights_summary"]
+          | null
+        by_month:
+          | Database["public"]["CompositeTypes"]["service_insights_month"][]
+          | null
+        by_year:
+          | Database["public"]["CompositeTypes"]["service_insights_year"][]
+          | null
+        recurring_types:
+          | Database["public"]["CompositeTypes"]["service_insights_recurring_type"][]
+          | null
+      }
     }
   }
 }

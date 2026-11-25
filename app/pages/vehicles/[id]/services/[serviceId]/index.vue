@@ -48,7 +48,7 @@ const getServiceInsights = async () => {
   if (!serviceId.value) return;
 
   const client = useSupabaseClient();
-  const { data, error } = await client.rpc("get_service_insights", {
+  const { data, error } = await client.rpc("service_stats", {
     vehicle_id: vehicleId.value,
     service_log_id: serviceId.value,
   });

@@ -5,6 +5,8 @@ const {
   pending: loading,
   refresh,
 } = useVehicleServices(vehicleId, undefined, -1);
+const user = useSupabaseUser();
+const { data: profile } = useProfile(user.value?.sub);
 
 type Option = {
   value: string;
@@ -14,10 +16,10 @@ type ChartSettings = {
   typesOptions: Option[];
   periodOptions: Option[];
   selectedType: "cost" | "repairs";
-  selectedCurrency: string;
   selectedPeriod: "month" | "year";
-  currencyFormatOptions: Intl.NumberFormatOptions;
 };
+
+const userCurrency = computed(() => profile.value?.currency ?? "NOK");
 
 const chartSettings = reactive<ChartSettings>({
   typesOptions: [
@@ -29,18 +31,18 @@ const chartSettings = reactive<ChartSettings>({
     { value: "year", label: "All time" },
   ],
   selectedPeriod: "month",
-  selectedCurrency: "NOK",
   selectedType: "cost",
-  /** TODO: find solution for when user has registered services in different currencies */
-  currencyFormatOptions: {
+});
+
+const formatCurrency = (num: number) =>
+  formatNumber(num, {
     style: "currency",
-    currency: "NOK",
+    currency: profile.value?.currency ?? "NOK",
     currencyDisplay: "narrowSymbol",
     minimumFractionDigits: 0,
     maximumFractionDigits: 1,
     notation: "compact",
-  },
-});
+  });
 
 const xAxisValues = computed(() => {
   const soYearDate = adjustCalendarDate("start", "year");
@@ -87,10 +89,7 @@ const serviceData = computed(() => {
 
     const items = servicesGroupedBySelectedPeriod[groupKey] || [];
 
-    const totalCost = items.reduce(
-      (costAcc, currentItem) => costAcc + (currentItem?.total_cost || 0),
-      0,
-    );
+    const totalCost = sum(items, "total_cost");
 
     return {
       key: groupKey,
@@ -103,7 +102,7 @@ const serviceData = computed(() => {
 });
 
 onMounted(() => {
-  if (!services.value.length) {
+  if (!services.value.length && !loading) {
     refresh();
   }
 });
@@ -116,18 +115,16 @@ onMounted(() => {
     <UPageCard
       v-else
       title="Services"
-      :description="`Monthly cost ${chartSettings.selectedCurrency} or number of repairs`"
+      :description="`Monthly cost ${userCurrency} or number of repairs`"
       variant="soft"
       class="w-full min-h-full"
     >
-      <template #description> </template>
       <div class="flex justify-baseline items-center gap-2">
         <UTabs
           v-model="chartSettings.selectedType"
           :items="chartSettings.typesOptions"
           :content="false"
           :unmountOnHide="false"
-          color="neutral"
           size="sm"
           :ui="{
             list: 'ring ring-accented rounded-full',
@@ -141,7 +138,6 @@ onMounted(() => {
           :content="false"
           :unmountOnHide="false"
           size="sm"
-          color="neutral"
           :ui="{
             list: 'ring ring-accented rounded-full',
             indicator: 'rounded-full',
@@ -161,14 +157,7 @@ onMounted(() => {
         :format="
           (value) => {
             if (chartSettings.selectedType === 'cost') {
-              const formattedNumber = formatNumber(
-                parseInt((value || 0).toString()),
-                chartSettings.selectedType === 'cost'
-                  ? chartSettings.currencyFormatOptions
-                  : undefined,
-              );
-
-              return formattedNumber;
+              return formatCurrency(value);
             }
 
             return value.toString();
