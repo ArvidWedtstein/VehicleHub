@@ -26,12 +26,34 @@ const filePreviewModal = overlay.create(FilePreviewModal);
 const files = computed(() => documents.value ?? []);
 type StoredFile = (typeof files.value)[number];
 
+const imagePaths = computed(() =>
+  files.value
+    .filter((d) => /\.(webp|jpe?g|png|gif)$/i.test(d.name ?? ""))
+    .map((d) => d.file_path),
+);
+
+const { data: thumbnailMap } = await useAsyncData(
+  () => `thumbs-${imagePaths.value.join(",")}`,
+  async () => {
+    if (!imagePaths.value.length) return {};
+
+    const { data } = await client.storage
+      .from("VehicleDocuments")
+      .createSignedUrls(imagePaths.value, 3600);
+
+    return Object.fromEntries(
+      (data ?? []).map((item) => [item.path, item.signedUrl]),
+    );
+  },
+  { watch: [imagePaths] },
+);
+
 const selected = ref<File[]>([]);
 const uploading = ref(false);
 
-async function onPick(picked: File[] | null | undefined) {
+const onPick = async (picked: File[] | null | undefined) => {
   const list = picked ?? [];
-  selected.value = []; // clear the picker right away, it is not the list
+  selected.value = [];
   if (!list.length || !vehicleId.value) return;
 
   const valid = list.filter((file) => {
@@ -73,7 +95,7 @@ async function onPick(picked: File[] | null | undefined) {
       duration: 3000,
     });
   }
-}
+};
 
 const handlePreview = (doc: StoredFile) => {
   if (!doc.file_path) {
@@ -176,32 +198,43 @@ const iconFor = (name?: string | null) => {
       @update:model-value="onPick"
     />
 
-    <ul v-if="files.length" class="divide-y divide-default">
-      <li
+    <UPageList v-if="files.length">
+      <UPageCard
         v-for="doc in files"
         :key="doc.id"
-        class="flex items-center gap-3 py-3"
+        variant="ghost"
+        :ui="{
+          container: 'flex-row lg:flex',
+        }"
       >
-        <UIcon :name="iconFor(doc.name)" class="size-6 shrink-0 text-muted" />
-
-        <div class="min-w-0 grow">
-          <button
-            type="button"
-            class="block max-w-full truncate text-left hover:underline"
+        <template #body>
+          <UUser
+            :name="doc.name ?? 'Unnamed file'"
+            :description="`${formatFileSize(doc.file_size ?? 0)} · ${formatDate(
+              doc.created_at,
+              {
+                dateStyle: 'medium',
+              },
+            )}`"
+            :avatar="{
+              src: thumbnailMap?.[doc.file_path],
+              alt: doc.name ?? 'unnamed file',
+              loading: 'lazy' as const,
+              icon: iconFor(doc.name),
+            }"
+            size="xl"
+            class="relative"
+            :ui="{
+              name: 'group-hover/user:underline',
+            }"
             @click="handlePreview(doc)"
-          >
-            {{ doc.name }}
-          </button>
-          <p class="text-xs text-muted">
-            {{ formatFileSize(doc.file_size ?? 0) }} ·
-            {{ new Date(doc.created_at).toLocaleDateString() }}
-          </p>
-        </div>
+          />
+        </template>
 
         <ResponsiveMenu :items="actionsFor(doc)">
           <UButton icon="mdi:dots-vertical" variant="ghost" color="neutral" />
         </ResponsiveMenu>
-      </li>
-    </ul>
+      </UPageCard>
+    </UPageList>
   </div>
 </template>
