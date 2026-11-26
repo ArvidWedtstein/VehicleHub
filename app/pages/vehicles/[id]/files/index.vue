@@ -9,230 +9,199 @@ definePageMeta({
   auth: true,
 });
 
-const vehicleId = useRouteParam("id", { type: "number", required: true });
-const { data: documents } = useVehicleDocuments(vehicleId.value);
+const BUCKET = "VehicleDocuments";
+const MAX_SIZE = 5 * 1024 * 1024;
+const ACCEPT = "application/pdf,image/jpeg,image/png,image/webp";
 
+const vehicleId = useRouteParam("id", { type: "number", required: true });
+const { data: documents, refresh } = useVehicleDocuments(vehicleId, [
+  { column: "service_log_id", operator: "is", value: null },
+]);
+
+const client = useSupabaseClient();
 const toast = useToast();
 const overlay = useOverlay();
-
 const filePreviewModal = overlay.create(FilePreviewModal);
 
-const uploadedFiles = computed(() => {
-  return documents.value
-    ?.filter(({ service_log_id }) => !service_log_id)
-    .map(({ name, file_size, created_at, file_path }) => {
-      return {
-        file: new File([new ArrayBuffer(file_size || 0)], name || "", {
-          lastModified: new Date(created_at).getTime(),
-        }),
-        path: file_path,
-      };
+const files = computed(() => documents.value ?? []);
+type StoredFile = (typeof files.value)[number];
+
+const selected = ref<File[]>([]);
+const uploading = ref(false);
+
+async function onPick(picked: File[] | null | undefined) {
+  const list = picked ?? [];
+  selected.value = []; // clear the picker right away, it is not the list
+  if (!list.length || !vehicleId.value) return;
+
+  const valid = list.filter((file) => {
+    if (file.size <= MAX_SIZE) return true;
+    toast.add({
+      title: `${file.name} is too large`,
+      description: `${(file.size / 1024 / 1024).toFixed(1)} MB, the limit is 5 MB per file`,
+      color: "error",
     });
-});
+    return false;
+  });
+  if (!valid.length) return;
 
-const files = ref(uploadedFiles.value?.map((p) => p.file as File) || []);
+  uploading.value = true;
+  const uploadToast = toast.add({
+    title: `Uploading ${pluralize(valid.length, "file")}...`,
+    color: "info",
+    duration: 0,
+  });
 
-const handleFilePreview = (file: File) => {
-  const fileToPreview = documents.value?.find(
-    ({ name, file_size }) =>
-      name === file.name && (file_size || 0) === file.size,
+  const results = await Promise.allSettled(
+    valid.map((file) => uploadVehicleDocument(vehicleId.value, file)),
   );
+  const failed = valid.filter((_, i) => results[i]?.status === "rejected");
 
-  if (!fileToPreview || !fileToPreview.file_path) {
-    toast.add({ title: `File ${file.name} not found.`, color: "error" });
+  await refresh();
+  uploading.value = false;
+
+  if (failed.length) {
+    toast.update(uploadToast.id, {
+      title: `Failed to upload: ${failed.map((f) => f.name).join(", ")}`,
+      color: "error",
+      duration: 5000,
+    });
+  } else {
+    toast.update(uploadToast.id, {
+      title: `Uploaded ${pluralize(valid.length, "file")}!`,
+      color: "success",
+      duration: 3000,
+    });
+  }
+}
+
+const handlePreview = (doc: StoredFile) => {
+  if (!doc.file_path) {
+    toast.add({ title: `File ${doc.name} not found.`, color: "error" });
     return;
   }
-
-  filePreviewModal.open({
-    bucket: "VehicleDocuments",
-    path: fileToPreview.file_path,
-  });
+  filePreviewModal.open({ bucket: BUCKET, path: doc.file_path });
 };
 
-const handleFileDownload = async (file: File) => {
+const handleDownload = async (doc: StoredFile) => {
+  if (!doc.file_path) return;
   try {
-    const fileToPreview = uploadedFiles.value?.find(
-      ({ file: previewFile }) => previewFile.name === file.name,
-    );
-    if (!fileToPreview) return;
-    if (!fileToPreview.path) return;
-
-    const client = useSupabaseClient();
-
     const { data, error } = await client.storage
-      .from("VehicleDocuments")
-      .download(fileToPreview.path);
-
+      .from(BUCKET)
+      .download(doc.file_path);
     if (error) throw error;
-
-    downloadBlob(data, file?.name || "file");
+    downloadBlob(data, doc.name || "file");
   } catch (error) {
     console.error(error);
     toast.add({
-      title: `Failed to download file`,
-      description: JSON.stringify(error),
+      title: "Failed to download file",
+      description: (error as { message?: string })?.message,
       color: "error",
     });
   }
 };
 
-const handleFileDelete = async (file: File) => {
+const handleDelete = async (doc: StoredFile) => {
   if (!vehicleId.value) return;
-  const fileToDelete = documents.value?.find(
-    ({ name, file_size }) =>
-      name === file.name && (file_size || 0) === file.size,
-  );
-  if (!fileToDelete) return;
+  if (!confirm(`Delete ${doc.name}?`)) return;
 
   const deleteToast = toast.add({
-    title: `Deleting ${fileToDelete.name}...`,
+    title: `Deleting ${doc.name}...`,
     color: "info",
     duration: 0,
   });
 
   try {
-    await deleteVehicleDocument(
-      vehicleId.value,
-      fileToDelete.id,
-      fileToDelete.file_path,
-    );
-
+    await deleteVehicleDocument(vehicleId.value, doc.id, doc.file_path);
+    await refresh();
     toast.update(deleteToast.id, {
-      title: `Deleted ${fileToDelete.name} successfully!`,
+      title: `Deleted ${doc.name}`,
       color: "success",
       duration: 3000,
     });
-
-    files.value = files.value.filter(
-      (f) => f.name !== file.name && f.size !== file.size,
-    );
   } catch (error) {
     console.error(error);
-
     toast.update(deleteToast.id, {
-      title: `Failed to delete ${fileToDelete.name}.`,
+      title: `Failed to delete ${doc.name}.`,
       color: "error",
       duration: 5000,
     });
   }
 };
 
-const uploadFiles = async (files: File[]) => {
-  if (!vehicleId.value) return;
-  if (files.length === 0) return;
-
-  const pluralFile = pluralize(files.length, "file");
-
-  const uploadPromises = files.map(async (file) => {
-    const data = await uploadVehicleDocument(vehicleId.value!, file);
-
-    return data;
-  });
-
-  const uploadToast = toast.add({
-    title: `Uploading ${pluralFile}...`,
-    color: "info",
-    duration: 0,
-  });
-
-  try {
-    await Promise.all(uploadPromises);
-
-    toast.update(uploadToast.id, {
-      title: `Successfully uploaded ${pluralFile}!`,
-      color: "success",
-      duration: 3000,
-    });
-  } catch (error: unknown) {
-    console.error(error);
-    toast.update(uploadToast.id, {
-      title: `Failed to upload file.\n${(error as { message: string })?.message}`,
+const actionsFor = (doc: StoredFile): DropdownMenuItem[][] => [
+  [
+    {
+      label: "Preview",
+      icon: "mdi:file",
+      onClick: () => handlePreview(doc),
+    },
+    {
+      label: "Download",
+      icon: "mdi:download",
+      onClick: () => handleDownload(doc),
+    },
+  ],
+  [
+    {
+      label: "Delete",
+      icon: "mdi:trash",
       color: "error",
-      duration: 5000,
-    });
-  }
-};
+      onClick: () => handleDelete(doc),
+    },
+  ],
+];
 
-watch(files, (newFiles, oldFiles) => {
-  if (newFiles.length === 0) {
-    files.value = uploadedFiles.value?.map((p) => p.file as File) || [];
-  }
-
-  const newFileNames = newFiles.map((f) => f.name);
-  const oldFileNames = oldFiles.map((f) => f.name);
-  const addedFiles = newFiles.filter((f) => !oldFileNames.includes(f.name));
-  const removedFiles = oldFiles.filter((f) => !newFileNames.includes(f.name));
-
-  if (addedFiles.length > 0) {
-    uploadFiles(addedFiles);
-  }
-
-  if (removedFiles.length > 0) {
-    removedFiles.forEach((file) => handleFileDelete(file));
-  }
-});
-
-const generateFileGridActions = (file: File) => {
-  const fileGridActions: DropdownMenuItem[] | DropdownMenuItem[][] = [
-    [
-      {
-        type: "label",
-        label: "Preview",
-        icon: "mdi:file",
-        onClick: () => handleFilePreview(file),
-      },
-      {
-        type: "label",
-        label: "Download",
-        icon: "mdi:download",
-        onClick: () => handleFileDownload(file),
-      },
-    ],
-    [
-      {
-        type: "label",
-        label: "Delete",
-        icon: "mdi:trash",
-        color: "error",
-        onClick: () => handleFileDelete(file),
-      },
-    ],
-  ];
-
-  return fileGridActions;
+const iconFor = (name?: string | null) => {
+  const ext = name?.split(".").pop()?.toLowerCase();
+  if (ext === "pdf") return "mdi:file-pdf-box";
+  if (ext && ["jpg", "jpeg", "png", "webp"].includes(ext))
+    return "mdi:file-image";
+  return "mdi:file";
 };
 </script>
 
 <template>
-  <div>
+  <div class="space-y-4">
     <UFileUpload
-      label="Click to upload or drag & drop"
-      class="mb-2"
-      description="Max 5MB"
+      v-model="selected"
       multiple
-      fileIcon="mdi:file"
-      v-model="files"
-      layout="list"
-    >
-      <template #file-name="{ file }">
-        <span class="link-hover truncate" @click="handleFilePreview(file)">
-          {{ file.name }}
-        </span>
-      </template>
+      :accept="ACCEPT"
+      :variant="files.length ? 'button' : 'area'"
+      :label="files.length ? 'Add files' : 'Upload your first file'"
+      description="PDF, JPG, PNG or WebP · max 5 MB per file"
+      icon="i-lucide-upload"
+      :disabled="uploading"
+      :class="files.length ? '' : 'w-full min-h-56'"
+      @update:model-value="onPick"
+    />
 
-      <template #file-trailing="{ file }">
-        <div class="grow"></div>
+    <ul v-if="files.length" class="divide-y divide-default">
+      <li
+        v-for="doc in files"
+        :key="doc.id"
+        class="flex items-center gap-3 py-3"
+      >
+        <UIcon :name="iconFor(doc.name)" class="size-6 shrink-0 text-muted" />
 
-        <ResponsiveMenu :items="generateFileGridActions(file)">
+        <div class="min-w-0 grow">
+          <button
+            type="button"
+            class="block max-w-full truncate text-left hover:underline"
+            @click="handlePreview(doc)"
+          >
+            {{ doc.name }}
+          </button>
+          <p class="text-xs text-muted">
+            {{ formatFileSize(doc.file_size ?? 0) }} ·
+            {{ new Date(doc.created_at).toLocaleDateString() }}
+          </p>
+        </div>
+
+        <ResponsiveMenu :items="actionsFor(doc)">
           <UButton icon="mdi:dots-vertical" variant="ghost" color="neutral" />
         </ResponsiveMenu>
-      </template>
-    </UFileUpload>
-
-    <LazyUEmpty
-      icon="mdi:file"
-      title="No files found"
-      description="It looks like you haven't added any files. Upload one to get started."
-    />
+      </li>
+    </ul>
   </div>
 </template>

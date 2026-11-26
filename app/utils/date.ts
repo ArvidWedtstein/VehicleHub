@@ -183,16 +183,15 @@ export const formatDateToFormat = (
  */
 export const adjustCalendarDate = (
   type: "start" | "end",
-  period: "day" | "week" | "month" | "year" = "day",
+  period: "day" | "week" | "month" | "year" | "decade" | "century" = "day",
   date: Date = new Date(),
   startOn = 0,
 ): Date => {
   const result = new Date(date);
+  const year = result.getFullYear();
 
   if (type === "start") {
-    if (period === "day") {
-      result.setHours(0, 0, 0, 0);
-    } else if (period === "week") {
+    if (period === "week") {
       const dayOfWeek = result.getUTCDay();
       const diff = (dayOfWeek - startOn + 7) % 7;
       result.setDate(result.getUTCDate() - diff);
@@ -200,21 +199,32 @@ export const adjustCalendarDate = (
       result.setDate(1);
     } else if (period === "year") {
       result.setMonth(0, 1);
-      result.setHours(0, 0, 0);
+    } else if (period === "decade") {
+      const startDecade = Math.floor(year / 10) * 10;
+      result.setFullYear(startDecade, 0, 1);
+    } else if (period === "century") {
+      const startCentury = Math.floor(year / 100) * 100;
+      result.setFullYear(startCentury, 0, 1);
     }
+
+    result.setHours(0, 0, 0, 0);
   } else if (type === "end") {
-    if (period === "day") {
-      result.setHours(23, 59, 59, 999);
-    } else if (period === "month") {
+    if (period === "month") {
       result.setMonth(result.getMonth() + 1, 0);
     } else if (period === "week") {
       const dayOfWeek = result.getDay();
-      const diff = (6 - dayOfWeek + (7 + startOn)) % 7;
+      const diff = (6 - dayOfWeek + startOn) % 7;
       result.setDate(result.getDate() + diff);
     } else if (period === "year") {
       result.setMonth(11, 31);
-      // result.setUTCHours(2, 0, 0, 0);
+    } else if (period === "decade") {
+      const endDecade = Math.floor(year / 10) * 10 + 9;
+      result.setFullYear(endDecade, 11, 31);
+    } else if (period === "century") {
+      const endCentury = Math.floor(year / 100) * 100 + 99;
+      result.setFullYear(endCentury, 11, 31);
     }
+    result.setHours(23, 59, 59, 999);
   }
 
   return result;

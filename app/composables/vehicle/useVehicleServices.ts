@@ -1,17 +1,9 @@
 import type { Tables, TablesInsert, TablesUpdate } from "~/types/supabase";
 
-type Row = Omit<
-  Tables<"vehicleservicelogs_with_items">,
-  "id" | "vehicle_id"
-> & {
-  id: NonNullable<Tables<"vehicleservicelogs_with_items">["id"]>;
-  vehicle_id: NonNullable<
-    Tables<"vehicleservicelogs_with_items">["vehicle_id"]
-  >;
-};
+type Row = Tables<"vehicleservicelogs_with_items">;
 
 export function useVehicleServices(
-  vehicleId: MaybeRefOrGetter<Tables<"VehicleServiceLogs">["vehicle_id"]>,
+  vehicleId: MaybeRefOrGetter<Row["vehicle_id"]>,
   filters: MaybeRefOrGetter<FilterOption<Row>[]> = [],
   pageSize: MaybeRefOrGetter<number> = 10,
 ) {

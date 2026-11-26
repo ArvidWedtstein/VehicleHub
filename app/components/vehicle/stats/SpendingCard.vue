@@ -67,29 +67,6 @@ onBeforeMount(async () => {
         <UIcon v-else name="mdi:minus" />
       </Transition>
     </div>
-    <!-- <div class="flex items-center gap-2">
-      <Transition name="fade" mode="out-in">
-        <span v-if="!expenseInsights && !serviceInsights" class="text-muted">
-          No spendings this year
-        </span>
-        <div
-          v-else
-          :class="[
-            statFuelCostPerMonth.percentageDiffToPrevPeriod >= 0
-              ? 'text-success'
-              : 'text-error',
-          ]"
-        >
-          <Icon
-            :name="
-              statFuelCostPerMonth.percentageDiffToPrevPeriod >= 0
-                ? 'mdi:trending-up'
-                : 'mdi:trending-down'
-            "
-          />
-          {{ statDiffToPrevPeriodText }}
-        </div>
-      </Transition>
-    </div> -->
+    <span class="text-muted">Fuel and Services</span>
   </UCard>
 </template>

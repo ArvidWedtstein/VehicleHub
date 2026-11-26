@@ -1,14 +1,26 @@
 import type { Tables, TablesUpdate } from "~/types/supabase";
 
+type Row = Tables<"VehicleDocuments">;
+
 export function useVehicleDocuments(
-  vehicleId: MaybeRefOrGetter<Tables<"Vehicles">["id"]>,
+  vehicleId: MaybeRefOrGetter<Row["vehicle_id"]>,
+  filters: MaybeRefOrGetter<FilterOption<Row>[]> = [],
 ) {
   const resolvedVehicleId = computed(() => toValue(vehicleId));
+  const resolvedFilters = computed(() => toValue(filters));
+
+  const key = computed(() =>
+    cacheKeys.documentsFiltered(resolvedVehicleId.value, resolvedFilters.value),
+  );
 
   return useLazyFetch<Tables<"VehicleDocuments">[]>(
-    `/api/vehicles/${resolvedVehicleId.value}/documents`,
+    `/api/vehicles/${resolvedVehicleId.value}/documents/filter`,
     {
-      key: cacheKeys.documents(resolvedVehicleId.value),
+      key: () => key.value,
+      method: "post",
+      body: {
+        filters: resolvedFilters.value,
+      },
       immediate: !!resolvedVehicleId.value,
     },
   );
@@ -26,21 +38,13 @@ export async function uploadVehicleDocument(
     formData.append("file", file);
   }
 
-  const params = new URLSearchParams();
-
-  if (serviceId) {
-    params.append("serviceId", serviceId.toString());
-  }
-
-  const document = await $fetch(
-    `/api/vehicles/${vehicleId}/documents/upload${
-      params.toString().length > 0 ? `?${params.toString()}` : ""
-    }`,
-    {
-      method: "POST",
-      body: formData,
+  const document = await $fetch(`/api/vehicles/${vehicleId}/documents/upload`, {
+    method: "POST",
+    query: {
+      serviceId,
     },
-  );
+    body: formData,
+  });
 
   refreshNuxtData(cacheKeys.documents(vehicleId));
 

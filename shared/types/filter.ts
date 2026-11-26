@@ -21,6 +21,7 @@ const _FilterOperatorDocs = {
   in: "in",
   /** Is null or boolean check: column is null or matches boolean */
   is: "is",
+  is_not: "is_not",
   /** Contains: Full-text search: column matches the full-text search query */
   cs: "cs",
   /** Contained by: Full-text search: column is contained by the full-text search query */

@@ -5,7 +5,7 @@ import type {
   TablesUpdate,
 } from "~/types/supabase";
 
-type Row = Database["public"]["Views"]["vehicle_expenses_converted"]["Row"];
+type Row = Tables<"vehicle_expenses_converted">;
 
 export const useVehicleExpenses = (
   vehicleId: MaybeRefOrGetter<Row["vehicle_id"]>,

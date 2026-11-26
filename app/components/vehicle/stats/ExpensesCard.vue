@@ -1,40 +1,63 @@
 <script setup lang="ts">
 const vehicleId = useRouteParam("id", { type: "number", required: true });
-const {
-  data: expenses,
-  pending: loading,
-  refresh,
-} = useVehicleExpenses(vehicleId, undefined, -1);
 
 type Option = {
   value: string;
   label: string;
 };
 
+const typesOptions = [
+  { value: "totalCost", label: "Fuel Cost" },
+  { value: "averageFuelPrice", label: "Price per Litre" },
+  { value: "totalAmount", label: `Litres filled` },
+] as const satisfies Option[];
+
+const periodOptions = [
+  { value: "month", label: "This year" },
+  { value: "year", label: "Last 10 years" },
+] as const satisfies Option[];
+
 type ChartSettings<U extends readonly Option[], T extends readonly Option[]> = {
   typesOptions: U;
   periodOptions: T;
   selectedType: U[number]["value"];
-  selectedCurrency: string;
   selectedPeriod: T[number]["value"];
   selectedUnit: string;
 };
-
-const chartSettings = reactive<ChartSettings<Option[], Option[]>>({
-  typesOptions: [
-    { value: "totalCost", label: "Fuel Cost" },
-    { value: "averageFuelPrice", label: "Price per Litre" },
-    { value: "totalAmount", label: `Litres filled` },
-  ] as const,
-  periodOptions: [
-    { value: "month", label: "This year" },
-    { value: "year", label: "Last 10 years" },
-  ] as const,
+const chartSettings = reactive<
+  ChartSettings<typeof typesOptions, typeof periodOptions>
+>({
+  typesOptions,
+  periodOptions,
   selectedPeriod: "month",
-  selectedCurrency: expenses.value?.[0]?.reporting_currency ?? "NOK",
   selectedType: "totalCost",
   selectedUnit: "liter",
-} as const);
+});
+
+const soYearDate = adjustCalendarDate("start", "year");
+const eoYearDate = adjustCalendarDate("end", "year");
+const tenYearsAgoDate = new Date(new Date().getFullYear() - 10, 0, 1);
+
+const rangeStart = computed(() =>
+  chartSettings.selectedPeriod === "month" ? soYearDate : tenYearsAgoDate,
+);
+
+const filters = computed<FilterOption<Tables<"vehicle_expenses_converted">>[]>(
+  () => [
+    { column: "date", operator: "gte", value: rangeStart.value.toISOString() },
+    { column: "date", operator: "lte", value: eoYearDate.toISOString() },
+  ],
+);
+
+const { data: expenses, pending: loading } = useVehicleExpenses(
+  vehicleId,
+  filters,
+  -1,
+);
+const user = useSupabaseUser();
+const { data: profile } = useProfile(user.value?.sub);
+
+const userCurrency = computed(() => profile.value?.currency ?? "NOK");
 
 const amountFormatOptions = computed<Intl.NumberFormatOptions>(() => {
   return {
@@ -46,102 +69,52 @@ const amountFormatOptions = computed<Intl.NumberFormatOptions>(() => {
 const currencyFormatOptions = computed<Intl.NumberFormatOptions>(() => {
   return {
     style: "currency",
-    currency: chartSettings.selectedCurrency,
+    currency: userCurrency.value,
     currencyDisplay: "narrowSymbol",
     minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
+    maximumFractionDigits: 2,
     notation: "compact",
   };
 });
 
-const xAxisValues = computed(() => {
-  const soYearDate = adjustCalendarDate("start", "year");
-  const eoYearDate = adjustCalendarDate("end", "year");
-
-  const startDate =
-    chartSettings.selectedPeriod === "month"
-      ? soYearDate
-      : new Date(new Date().getFullYear() - 10, 1, 1);
-
-  const period = chartSettings.selectedPeriod === "month" ? "months" : "years";
-  const range = getRangeBetweenDates(startDate, eoYearDate, period, "date");
-
-  return range.map((p) => {
-    if (chartSettings.selectedPeriod === "month") {
-      return {
-        label: formatDateToFormat(p, "MMM"),
-        date: p,
-      };
-    }
-
-    return {
-      label: formatDateToFormat(p, "yyyy"),
-      date: p,
-    };
-  });
+const periodDates = computed(() => {
+  const unit = chartSettings.selectedPeriod === "month" ? "months" : "years";
+  return getRangeBetweenDates(rangeStart.value, eoYearDate, unit, "date");
 });
 
 const expensesData = computed(() => {
-  const selectedPeriod = chartSettings.selectedPeriod;
-  const servicesGroupedBySelectedPeriod = groupBy(expenses.value, (s) => {
-    if (selectedPeriod === "month") {
-      return formatDateToFormat(new Date(s.date), "MMM yyyy");
-    }
+  const isMonth = chartSettings.selectedPeriod === "month";
+  const keyFormat = isMonth ? "yyyy-MM" : "yyyy";
+  const labelFormat = isMonth ? "MMM" : "yyyy";
 
-    return formatDateToFormat(new Date(s.date), "yyyy");
-  });
+  const grouped = groupBy(
+    expenses.value.filter((s) => !!s.date),
+    (s) => formatDateToFormat(new Date(s.date!), keyFormat),
+  );
 
-  const axisValuesWithServicesData = xAxisValues.value.map(({ date }) => {
-    const groupKey =
-      selectedPeriod === "month"
-        ? formatDateToFormat(date, "MMM yyyy")
-        : formatDateToFormat(date, "yyyy");
-
-    const items = servicesGroupedBySelectedPeriod[groupKey] || [];
-
-    const totalCost = items.reduce(
-      (costAcc, currentItem) => costAcc + (currentItem.cost_reporting || 0),
-      0,
-    );
-    const totalAmount = items.reduce(
-      (amountAcc, currentItem) => amountAcc + (currentItem.amount || 0),
-      0,
-    );
-
-    const numbers = items.map((item) => item.price_per_unit_reporting || 0);
-    const averageFuelPrice = sum(numbers) / numbers.length;
+  return periodDates.value.map((date) => {
+    const key = formatDateToFormat(date, keyFormat);
+    const items = grouped[key] ?? [];
 
     return {
-      key: groupKey,
-      value:
-        chartSettings.selectedType === "totalCost"
-          ? totalCost
-          : chartSettings.selectedType === "totalAmount"
-            ? totalAmount
-            : averageFuelPrice,
+      key,
+      label: formatDateToFormat(date, labelFormat),
+      totalCost: sum(items, "cost_reporting"),
+      totalAmount: sum(items, "amount"),
+      averageFuelPrice: sum(items, "price_per_unit_reporting") / items.length,
     };
-  }, []);
-
-  return axisValuesWithServicesData;
-});
-
-onMounted(() => {
-  if (!expenses.value.length) {
-    refresh();
-  }
+  });
 });
 </script>
 
 <template>
   <div class="w-full h-full overflow-auto">
-    <template v-if="loading">
-      <StatCardSkeletonLoader />
-    </template>
+    <StatCardSkeletonLoader v-if="loading && !expenses?.length" />
 
     <UPageCard
       v-else
       title="Fuel"
-      :description="`Monthly cost (${chartSettings.selectedCurrency}), price per litre and litres filled`"
+      :description="`Monthly cost (${userCurrency}), price per litre and litres filled`"
       variant="soft"
       class="w-full min-h-full"
     >
@@ -176,18 +149,11 @@ onMounted(() => {
           chartSettings.selectedType === 'averageFuelPrice' ? 'line' : 'bar'
         "
         :data="expensesData"
-        index="key"
-        xLabel="Period"
-        :yLabel="
-          chartSettings.selectedType === 'totalCost'
-            ? 'Fuel Cost'
-            : chartSettings.selectedType === 'totalAmount'
-              ? `Total Amount in ${chartSettings.selectedUnit}`
-              : `Price per ${chartSettings.selectedUnit}`
-        "
+        index="label"
+        points
         :categories="[
           {
-            key: 'value',
+            key: chartSettings.selectedType,
             label:
               chartSettings.typesOptions.find(
                 (option) => option.value === chartSettings.selectedType,

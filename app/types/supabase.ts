@@ -622,6 +622,7 @@ export type Database = {
           mileage: number | null
           notes: string | null
           provider: string | null
+          reporting_currency: string | null
           total_cost: number | null
           total_cost_reporting: number | null
           type: string

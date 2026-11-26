@@ -15,6 +15,8 @@ export const cacheKeys = {
   expenses: (vehicleId: number) => `vehicle-${vehicleId}_expenses`,
   expense: (vehicleId: number, id: number) =>
     `vehicle-${vehicleId}_expense-${id}`,
+  documentsFiltered: (vehicleId: number, filters: unknown) =>
+    `vehicle-${vehicleId}_documents?${hash(filters ?? [])}`,
   documents: (vehicleId: number) => `vehicle-${vehicleId}_documents`,
   document: (vehicleId: number, id: number) =>
     `vehicle-${vehicleId}_document-${id}`,

@@ -1,121 +1,109 @@
 <script setup lang="ts">
 const vehicleId = useRouteParam("id", { type: "number", required: true });
-const {
-  data: services,
-  pending: loading,
-  refresh,
-} = useVehicleServices(vehicleId, undefined, -1);
-const user = useSupabaseUser();
-const { data: profile } = useProfile(user.value?.sub);
 
 type Option = {
   value: string;
   label: string;
 };
-type ChartSettings = {
-  typesOptions: Option[];
-  periodOptions: Option[];
-  selectedType: "cost" | "repairs";
-  selectedPeriod: "month" | "year";
+
+const typesOptions = [
+  { value: "cost", label: "Cost" },
+  { value: "repairs", label: "Repairs" },
+] as const satisfies Option[];
+
+const periodOptions = [
+  { value: "month", label: "This year" },
+  { value: "year", label: "Last 10 years" },
+] as const satisfies Option[];
+
+type ChartSettings<U extends Option[], T extends Option[]> = {
+  typesOptions: U;
+  periodOptions: T;
+  selectedType: U[number]["value"];
+  selectedPeriod: T[number]["value"];
 };
-
-const userCurrency = computed(() => profile.value?.currency ?? "NOK");
-
-const chartSettings = reactive<ChartSettings>({
-  typesOptions: [
-    { value: "cost", label: "Cost" },
-    { value: "repairs", label: "Repairs" },
-  ],
-  periodOptions: [
-    { value: "month", label: "This year" },
-    { value: "year", label: "All time" },
-  ],
+const chartSettings = reactive<
+  ChartSettings<typeof typesOptions, typeof periodOptions>
+>({
+  typesOptions,
+  periodOptions,
   selectedPeriod: "month",
   selectedType: "cost",
 });
 
+// Filter stuff
+const soYearDate = adjustCalendarDate("start", "year");
+const eoYearDate = adjustCalendarDate("end", "year");
+const tenYearsAgoDate = new Date(new Date().getFullYear() - 10, 0, 1);
+
+const rangeStart = computed(() =>
+  chartSettings.selectedPeriod === "month" ? soYearDate : tenYearsAgoDate,
+);
+
+const filters = computed<
+  FilterOption<Tables<"vehicleservicelogs_with_items">>[]
+>(() => [
+  { column: "date", operator: "gte", value: rangeStart.value.toISOString() },
+  { column: "date", operator: "lte", value: eoYearDate.toISOString() },
+]);
+
+const { data: services, pending: loading } = useVehicleServices(
+  vehicleId,
+  filters,
+  -1,
+);
+const user = useSupabaseUser();
+const { data: profile } = useProfile(user.value?.sub);
+
+const userCurrency = computed(() => profile.value?.currency ?? "NOK");
+
 const formatCurrency = (num: number) =>
   formatNumber(num, {
     style: "currency",
-    currency: profile.value?.currency ?? "NOK",
+    currency: userCurrency.value,
     currencyDisplay: "narrowSymbol",
     minimumFractionDigits: 0,
     maximumFractionDigits: 1,
     notation: "compact",
   });
 
-const xAxisValues = computed(() => {
-  const soYearDate = adjustCalendarDate("start", "year");
-  const eoYearDate = adjustCalendarDate("end", "year");
-
-  const startDate =
-    chartSettings.selectedPeriod === "month"
-      ? soYearDate
-      : new Date(new Date().getFullYear() - 10, 1, 1);
-
-  const period = chartSettings.selectedPeriod === "month" ? "months" : "years";
-  const range = getRangeBetweenDates(startDate, eoYearDate, period, "date");
-
-  return range.map((p) => {
-    if (chartSettings.selectedPeriod === "month") {
-      return {
-        label: formatDateToFormat(p, "MMM"),
-        date: p,
-      };
-    }
-
-    return {
-      label: formatDateToFormat(p, "yyyy"),
-      date: p,
-    };
-  });
+const periodDates = computed(() => {
+  const unit = chartSettings.selectedPeriod === "month" ? "months" : "years";
+  return getRangeBetweenDates(rangeStart.value, eoYearDate, unit, "date");
 });
 
 const serviceData = computed(() => {
-  const selectedPeriod = chartSettings.selectedPeriod;
-  const servicesGroupedBySelectedPeriod = groupBy(services.value, (s) => {
-    if (selectedPeriod === "month") {
-      return formatDateToFormat(new Date(s.date || ""), "MMM yyyy");
-    }
+  const isMonth = chartSettings.selectedPeriod === "month";
+  const keyFormat = isMonth ? "yyyy-MM" : "yyyy";
+  const labelFormat = isMonth ? "MMM" : "yyyy";
 
-    return formatDateToFormat(new Date(s.date || ""), "yyyy");
-  });
+  const grouped = groupBy(
+    (services.value ?? []).filter((s) => !!s.date),
+    (s) => formatDateToFormat(new Date(s.date!), keyFormat),
+  );
 
-  const axisValuesWithServicesData = xAxisValues.value.map(({ date }) => {
-    const groupKey =
-      selectedPeriod === "month"
-        ? formatDateToFormat(date, "MMM yyyy")
-        : formatDateToFormat(date, "yyyy");
-
-    const items = servicesGroupedBySelectedPeriod[groupKey] || [];
-
-    const totalCost = sum(items, "total_cost");
+  return periodDates.value.map((date) => {
+    const key = formatDateToFormat(date, keyFormat);
+    const items = grouped[key] ?? [];
 
     return {
-      key: groupKey,
-      cost: totalCost,
+      key,
+      label: formatDateToFormat(date, labelFormat),
+      cost: sum(items, "total_cost_reporting"),
       repairs: items.length,
     };
-  }, []);
-
-  return axisValuesWithServicesData;
-});
-
-onMounted(() => {
-  if (!services.value.length && !loading) {
-    refresh();
-  }
+  });
 });
 </script>
 
 <template>
   <div class="w-full h-full overflow-auto">
-    <StatCardSkeletonLoader v-if="loading" />
+    <StatCardSkeletonLoader v-if="loading && !services?.length" />
 
     <UPageCard
       v-else
       title="Services"
-      :description="`Monthly cost ${userCurrency} or number of repairs`"
+      :description="`Cost ${userCurrency} or number of repairs`"
       variant="soft"
       class="w-full min-h-full"
     >
@@ -147,7 +135,7 @@ onMounted(() => {
 
       <UChart
         :data="serviceData"
-        index="key"
+        index="label"
         :categories="[
           {
             key: chartSettings.selectedType,
@@ -155,13 +143,10 @@ onMounted(() => {
           },
         ]"
         :format="
-          (value) => {
-            if (chartSettings.selectedType === 'cost') {
-              return formatCurrency(value);
-            }
-
-            return value.toString();
-          }
+          (value) =>
+            chartSettings.selectedType === 'cost'
+              ? formatCurrency(value)
+              : value.toString()
         "
       />
     </UPageCard>

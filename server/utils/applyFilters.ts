@@ -27,6 +27,10 @@ const OperatorMap: Record<
     apply: (q, c, v) => q.is(c, v),
     or: (c, v) => `${c}.is.${v ?? "null"}`,
   },
+  is_not: {
+    apply: (q, c, v) => q.not(c, "is", v),
+    or: (c, v) => `${c}.not.is.${v ?? "null"}`,
+  },
   cs: { apply: (q, c, v) => q.contains(c, v), or: (c, v) => `${c}.cs.${v}` },
   cd: { apply: (q, c, v) => q.containedBy(c, v), or: (c, v) => `${c}.cd.${v}` },
   ov: { apply: (q, c, v) => q.overlaps(c, v), or: (c, v) => `${c}.ov.${v}` },
@@ -88,96 +92,6 @@ export const applyFilters = <
   for (const f of filters) {
     q = OperatorMap[f.operator].apply(q, f.column as string, f.value);
   }
-
-  /*filters.forEach((filter) => {
-    const { column, operator, value } = filter;
-    const col = column as string;
-
-    switch (operator) {
-      case "eq":
-        q = q.eq(col, value as Parameters<typeof q.eq>["1"]);
-        break;
-      case "neq":
-        q = q.neq(col, value as Parameters<typeof q.eq>["1"]);
-        break;
-      case "gt":
-        q = q.gt(col, value);
-        break;
-      case "gte":
-        q = q.gte(col, value);
-        break;
-      case "lt":
-        q = q.lt(col, value);
-        break;
-      case "lte":
-        q = q.lte(col, value);
-        break;
-      case "like":
-        if (typeof value === "string") {
-          q = q.like(col, value);
-        }
-        break;
-      case "ilike":
-        if (typeof value === "string") {
-          q = q.ilike(col, value);
-        }
-        break;
-      case "in":
-        if (Array.isArray(value) && value.length) {
-          q = q.in(col, value);
-        }
-        break;
-      case "is":
-        q = q.is(
-          col,
-          typeof value === "boolean" ? value : operator === "is" ? null : null,
-        );
-        break;
-      case "cs":
-        if (typeof value === "string" || Array.isArray(value)) {
-          q = q.contains(col, value);
-        }
-        break;
-      case "cd":
-        if (typeof value === "string" || Array.isArray(value)) {
-          q = q.containedBy(col, value);
-        }
-        break;
-      case "ov":
-        if (typeof value === "string" || Array.isArray(value)) {
-          q = q.overlaps(col, value);
-        }
-        break;
-      case "fts":
-        if (typeof value === "string") {
-          q = q.textSearch(col, value);
-        }
-        break;
-      case "plfts":
-        if (typeof value === "string") {
-          q = q.textSearch(col, value, { type: "plain" });
-        }
-        break;
-      case "phfts":
-        if (typeof value === "string") {
-          q = q.textSearch(col, value, { type: "phrase" });
-        }
-        break;
-      case "wfts":
-        if (typeof value === "string") {
-          q = q.textSearch(col, value, { type: "websearch" });
-        }
-        break;
-    }
-
-    // TODO: fix type
-    // if (operator === 'eq' && value != null && !Array.isArray(value)) {
-    //   q = q.eq(col, value);
-    // }
-    // if (operator === 'neq' && value != null && !Array.isArray(value)) {
-    //   q = q.neq(col, value);
-    // }
-  });*/
 
   return q as Q;
 };
