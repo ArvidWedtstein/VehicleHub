@@ -595,7 +595,6 @@ export type Database = {
           mileage: number | null
           notes: string | null
           price_per_unit: number | null
-          price_per_unit_reporting: number | null
           reporting_currency: string | null
           type: string | null
           unit: string | null
@@ -622,6 +621,7 @@ export type Database = {
           mileage: number | null
           notes: string | null
           provider: string | null
+          reporting_currency: string | null
           total_cost: number | null
           total_cost_reporting: number | null
           type: string
