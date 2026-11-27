@@ -60,7 +60,7 @@ const onPick = async (picked: File[] | null | undefined) => {
     if (file.size <= MAX_SIZE) return true;
     toast.add({
       title: `${file.name} is too large`,
-      description: `${(file.size / 1024 / 1024).toFixed(1)} MB, the limit is 5 MB per file`,
+      description: `${formatFileSize(file.size)}, the limit is 5 MB per file`,
       color: "error",
     });
     return false;
